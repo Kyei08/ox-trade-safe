@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const CTASection = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="py-20 bg-gradient-hero relative overflow-hidden">
       {/* Decorative Elements */}
@@ -26,7 +29,7 @@ const CTASection = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button size="lg" variant="hero" className="text-lg px-8">
+            <Button size="lg" variant="hero" className="text-lg px-8" onClick={() => navigate("/auth")}>
               Create Free Account
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
