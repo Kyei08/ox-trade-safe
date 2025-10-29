@@ -66,7 +66,11 @@ const Header = () => {
             
             {user ? (
               <>
-                <Button variant="accent" className="hidden sm:flex">
+                <Button 
+                  variant="accent" 
+                  className="hidden sm:flex"
+                  onClick={() => navigate("/create-listing")}
+                >
                   Start Selling
                 </Button>
                 
