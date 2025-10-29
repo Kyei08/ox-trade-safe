@@ -46,6 +46,9 @@ const Header = () => {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
+              <a href="/listings" className="text-sm font-medium hover:text-primary transition-colors">
+                Browse
+              </a>
               <a href="#categories" className="text-sm font-medium hover:text-primary transition-colors">
                 Categories
               </a>
