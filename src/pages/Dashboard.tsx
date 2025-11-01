@@ -207,7 +207,11 @@ const Dashboard = () => {
               ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {listings.map((listing) => (
-                    <Card key={listing.id}>
+                    <Card 
+                      key={listing.id}
+                      className="cursor-pointer hover:shadow-lg transition-shadow"
+                      onClick={() => navigate(`/listings/${listing.id}`)}
+                    >
                       <CardHeader>
                         <div className="flex justify-between items-start mb-2">
                           <Badge variant={listing.status === "active" ? "default" : "secondary"}>
@@ -239,7 +243,14 @@ const Dashboard = () => {
                             <span>{listing.bid_count}</span>
                           </div>
                         </div>
-                        <Button variant="outline" className="w-full mt-4">
+                        <Button 
+                          variant="outline" 
+                          className="w-full mt-4"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/listings/${listing.id}`);
+                          }}
+                        >
                           View Details
                         </Button>
                       </CardContent>
@@ -262,7 +273,11 @@ const Dashboard = () => {
               ) : (
                 <div className="space-y-4">
                   {bids.map((bid) => (
-                    <Card key={bid.id}>
+                    <Card 
+                      key={bid.id}
+                      className="cursor-pointer hover:shadow-lg transition-shadow"
+                      onClick={() => navigate(`/listings/${bid.listing.id}`)}
+                    >
                       <CardContent className="pt-6">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">

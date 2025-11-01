@@ -319,7 +319,7 @@ const Listings = () => {
                 <Card
                   key={listing.id}
                   className="cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => navigate(`/listing/${listing.id}`)}
+                  onClick={() => navigate(`/listings/${listing.id}`)}
                 >
                   <CardHeader>
                     <div className="flex justify-between items-start mb-2">

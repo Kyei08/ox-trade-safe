@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import CreateListing from "./pages/CreateListing";
 import Listings from "./pages/Listings";
+import ListingDetail from "./pages/ListingDetail";
 import KYCSubmission from "./pages/KYCSubmission";
 import AdminKYC from "./pages/AdminKYC";
 import NotFound from "./pages/NotFound";
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/create-listing" element={<CreateListing />} />
           <Route path="/listings" element={<Listings />} />
+          <Route path="/listings/:id" element={<ListingDetail />} />
           <Route path="/kyc" element={<KYCSubmission />} />
           <Route path="/admin/kyc" element={<AdminKYC />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
