@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -48,6 +48,7 @@ interface Profile {
   rating: number;
   total_reviews: number;
   kyc_status: string;
+  kyc_verified_at: string | null;
 }
 
 const Dashboard = () => {
@@ -321,6 +322,37 @@ const Dashboard = () => {
                     <p className="text-muted-foreground">{profile?.bio || "No bio yet"}</p>
                   </div>
                   <Button variant="outline" className="mt-4">Edit Profile</Button>
+                </CardContent>
+              </Card>
+
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle>KYC Verification</CardTitle>
+                  <CardDescription>Verify your identity to unlock full platform features</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium">Verification Status</label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant={profile?.kyc_status === "verified" ? "default" : "secondary"}>
+                          {profile?.kyc_status || "pending"}
+                        </Badge>
+                        {profile?.kyc_status === "verified" && profile.kyc_verified_at && (
+                          <span className="text-sm text-muted-foreground">
+                            Verified on {new Date(profile.kyc_verified_at).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {profile?.kyc_status !== "verified" && (
+                    <Link to="/kyc">
+                      <Button className="w-full">
+                        {profile?.kyc_status === "rejected" ? "Resubmit KYC" : "Start Verification"}
+                      </Button>
+                    </Link>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
