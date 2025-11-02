@@ -123,7 +123,7 @@ const CreateListing = () => {
         condition: values.condition,
         location: values.location,
         seller_id: user.id,
-        status: "draft",
+        status: "active",
       };
 
       if (values.listing_type === "fixed_price" && values.fixed_price) {
