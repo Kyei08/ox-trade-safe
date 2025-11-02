@@ -8,6 +8,26 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Loader2, Shield } from "lucide-react";
+import { z } from "zod";
+
+// Validation schemas for secure input handling
+const signUpSchema = z.object({
+  email: z.string().trim().email('Invalid email address').max(255, 'Email too long'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(100, 'Password too long')
+    .regex(/[A-Z]/, 'Password must contain an uppercase letter')
+    .regex(/[a-z]/, 'Password must contain a lowercase letter')
+    .regex(/[0-9]/, 'Password must contain a number'),
+  fullName: z.string().trim()
+    .min(1, 'Name is required')
+    .max(100, 'Name too long')
+});
+
+const signInSchema = z.object({
+  email: z.string().trim().email('Invalid email address').max(255, 'Email too long'),
+  password: z.string().min(1, 'Password required')
+});
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -35,21 +55,18 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!signUpData.email || !signUpData.password || !signUpData.fullName) {
-      toast.error("Please fill in all fields");
-      return;
-    }
-
-    if (signUpData.password.length < 6) {
-      toast.error("Password must be at least 6 characters");
+    // Validate inputs using Zod schema
+    const result = signUpSchema.safeParse(signUpData);
+    if (!result.success) {
+      toast.error(result.error.errors[0].message);
       return;
     }
 
     setLoading(true);
     const { error } = await signUp(
-      signUpData.email,
-      signUpData.password,
-      signUpData.fullName
+      result.data.email,
+      result.data.password,
+      result.data.fullName
     );
     setLoading(false);
 
@@ -64,13 +81,15 @@ const Auth = () => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!signInData.email || !signInData.password) {
-      toast.error("Please fill in all fields");
+    // Validate inputs using Zod schema
+    const result = signInSchema.safeParse(signInData);
+    if (!result.success) {
+      toast.error(result.error.errors[0].message);
       return;
     }
 
     setLoading(true);
-    const { error } = await signIn(signInData.email, signInData.password);
+    const { error } = await signIn(result.data.email, result.data.password);
     setLoading(false);
 
     if (error) {
@@ -196,7 +215,7 @@ const Auth = () => {
                       required
                     />
                     <p className="text-xs text-muted-foreground">
-                      Minimum 6 characters
+                      Minimum 8 characters with uppercase, lowercase, and number
                     </p>
                   </div>
                   <Button

@@ -82,37 +82,39 @@ export default function KYCSubmission() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !file || !documentType) return;
+    if (!user || !file || !documentType) {
+      toast({
+        title: "Missing Information",
+        description: "Please select a file and document type",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setSubmitting(true);
+
     try {
-      // Upload file to storage
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from("kyc-documents")
-        .upload(fileName, file);
+      // Create FormData for the secure edge function
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('documentType', documentType);
+      if (additionalInfo) {
+        formData.append('additionalInfo', additionalInfo);
+      }
 
-      if (uploadError) throw uploadError;
+      // Get current session for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from("kyc-documents")
-        .getPublicUrl(fileName);
+      // Call the secure upload edge function
+      const { data, error } = await supabase.functions.invoke('upload-kyc-document', {
+        body: formData,
+      });
 
-      // Create submission record
-      const { error: submitError } = await supabase
-        .from("kyc_submissions")
-        .insert({
-          user_id: user.id,
-          document_type: documentType,
-          document_url: urlData.publicUrl,
-          additional_info: additionalInfo || null,
-          status: "pending",
-        });
-
-      if (submitError) throw submitError;
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error || 'Upload failed');
 
       toast({
         title: "KYC Submitted",
@@ -125,9 +127,10 @@ export default function KYCSubmission() {
       setAdditionalInfo("");
       fetchKYCStatus();
     } catch (error: any) {
+      console.error('KYC upload error:', error);
       toast({
         title: "Submission Failed",
-        description: error.message,
+        description: error.message || 'Failed to upload document',
         variant: "destructive",
       });
     } finally {

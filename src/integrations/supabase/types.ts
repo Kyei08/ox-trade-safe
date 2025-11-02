@@ -48,6 +48,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "bids_bidder_id_fkey"
+            columns: ["bidder_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "bids_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
@@ -207,6 +214,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "listings_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
@@ -281,11 +295,50 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string | null
+          kyc_status: Database["public"]["Enums"]["kyc_status"] | null
+          rating: number | null
+          total_reviews: number | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          kyc_status?: Database["public"]["Enums"]["kyc_status"] | null
+          rating?: number | null
+          total_reviews?: number | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          kyc_status?: Database["public"]["Enums"]["kyc_status"] | null
+          rating?: number | null
+          total_reviews?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
