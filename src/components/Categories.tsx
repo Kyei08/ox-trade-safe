@@ -1,5 +1,6 @@
 import { Smartphone, Laptop, Home, Car, Shirt, Gem, Package, Briefcase } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
 
 const categories = [
   { icon: Smartphone, name: "Electronics", count: "2.3k" },
@@ -13,8 +14,10 @@ const categories = [
 ];
 
 const Categories = () => {
+  const navigate = useNavigate();
+
   return (
-    <section className="py-20 bg-secondary/30">
+    <section id="categories" className="py-20 bg-secondary/30">
       <div className="container px-4">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold mb-4">Browse Categories</h2>
@@ -30,6 +33,7 @@ const Categories = () => {
               <Card
                 key={index}
                 className="p-6 hover:shadow-card transition-all duration-300 cursor-pointer hover:-translate-y-1 group"
+                onClick={() => navigate("/listings")}
               >
                 <div className="flex flex-col items-center text-center gap-3">
                   <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
