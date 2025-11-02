@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Menu, Search, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -37,18 +37,18 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center gap-8">
-            <a href="/" className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2">
               <div className="w-10 h-10 rounded-lg bg-gradient-hero flex items-center justify-center">
                 <span className="text-2xl font-bold text-primary-foreground">OX</span>
               </div>
               <span className="text-xl font-bold">OX Marketplace</span>
-            </a>
+            </Link>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
-              <a href="/listings" className="text-sm font-medium hover:text-primary transition-colors">
+              <Link to="/listings" className="text-sm font-medium hover:text-primary transition-colors">
                 Browse
-              </a>
+              </Link>
               <a href="#categories" className="text-sm font-medium hover:text-primary transition-colors">
                 Categories
               </a>
