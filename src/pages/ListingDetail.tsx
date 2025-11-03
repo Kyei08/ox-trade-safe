@@ -291,6 +291,50 @@ export default function ListingDetail() {
     });
   };
 
+  const handleContactSeller = async () => {
+    if (!user || !listing) return;
+
+    try {
+      // Check if conversation already exists
+      const { data: existingConv, error: checkError } = await supabase
+        .from("conversations")
+        .select("id")
+        .eq("listing_id", listing.id)
+        .eq("buyer_id", user.id)
+        .eq("seller_id", listing.seller_id)
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+
+      if (existingConv) {
+        // Navigate to existing conversation
+        navigate(`/messages/${existingConv.id}`);
+      } else {
+        // Create new conversation
+        const { data: newConv, error: createError } = await supabase
+          .from("conversations")
+          .insert({
+            listing_id: listing.id,
+            buyer_id: user.id,
+            seller_id: listing.seller_id,
+          })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+
+        navigate(`/messages/${newConv.id}`);
+      }
+    } catch (error: any) {
+      console.error("Error starting conversation:", error);
+      toast({
+        title: "Error",
+        description: "Failed to start conversation",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <>
@@ -382,7 +426,7 @@ export default function ListingDetail() {
                 <CardHeader>
                   <CardTitle>Seller Information</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   <div className="flex items-center gap-4">
                     <Avatar>
                       <AvatarFallback>
@@ -396,6 +440,26 @@ export default function ListingDetail() {
                       </p>
                     </div>
                   </div>
+
+                  {!isOwner && user && (
+                    <Button 
+                      variant="outline" 
+                      className="w-full" 
+                      onClick={handleContactSeller}
+                    >
+                      Contact Seller
+                    </Button>
+                  )}
+
+                  {!user && (
+                    <Button 
+                      variant="outline" 
+                      className="w-full" 
+                      onClick={() => navigate("/auth")}
+                    >
+                      Sign in to Contact
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             </div>

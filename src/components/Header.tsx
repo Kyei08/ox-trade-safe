@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Menu, Search, LogOut } from "lucide-react";
+import { Menu, Search, LogOut, MessageSquare } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -69,6 +69,13 @@ const Header = () => {
             
             {user ? (
               <>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => navigate("/messages")}
+                >
+                  <MessageSquare className="h-5 w-5" />
+                </Button>
                 <Button 
                   variant="accent" 
                   className="hidden sm:flex"
