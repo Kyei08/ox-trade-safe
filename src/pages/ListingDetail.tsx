@@ -32,7 +32,7 @@ interface Listing {
   auction_ends_at: string | null;
   seller_id: string;
   created_at: string;
-  profiles: {
+  public_profiles: {
     full_name: string;
     rating: number;
     total_reviews: number;
@@ -45,7 +45,7 @@ interface Bid {
   bidder_id: string;
   created_at: string;
   is_winning: boolean;
-  profiles: {
+  public_profiles: {
     full_name: string;
   };
 }
@@ -127,7 +127,7 @@ export default function ListingDetail() {
         .from("listings")
         .select(`
           *,
-          profiles:seller_id (
+          public_profiles!seller_id (
             full_name,
             rating,
             total_reviews
@@ -156,7 +156,7 @@ export default function ListingDetail() {
         .from("bids")
         .select(`
           *,
-          profiles:bidder_id (
+          public_profiles!bidder_id (
             full_name
           )
         `)
@@ -390,9 +390,9 @@ export default function ListingDetail() {
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-semibold">{listing.profiles.full_name}</p>
+                      <p className="font-semibold">{listing.public_profiles.full_name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {listing.profiles.rating.toFixed(1)} ★ ({listing.profiles.total_reviews} reviews)
+                        {listing.public_profiles.rating.toFixed(1)} ★ ({listing.public_profiles.total_reviews} reviews)
                       </p>
                     </div>
                   </div>
@@ -494,7 +494,7 @@ export default function ListingDetail() {
                         >
                           <div>
                             <p className="font-semibold">
-                              {bid.profiles.full_name}
+                              {bid.public_profiles.full_name}
                               {bid.is_winning && (
                                 <Badge variant="default" className="ml-2">
                                   Winning
