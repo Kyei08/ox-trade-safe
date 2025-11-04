@@ -285,10 +285,32 @@ export default function ListingDetail() {
       return;
     }
 
-    toast({
-      title: "Purchase initiated",
-      description: "Payment processing would be implemented here",
-    });
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-payment", {
+        body: { listingId: id },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        // Open Stripe checkout in new tab
+        window.open(data.url, "_blank");
+        toast({
+          title: "Redirecting to payment",
+          description: "Opening Stripe checkout in a new tab",
+        });
+      }
+    } catch (error: any) {
+      console.error("Payment error:", error);
+      toast({
+        title: "Payment failed",
+        description: error.message || "Failed to initiate payment",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleContactSeller = async () => {
@@ -518,8 +540,15 @@ export default function ListingDetail() {
                   )}
 
                   {!isAuction && !isOwner && listing.status === "active" && (
-                    <Button onClick={handleBuyNow} className="w-full">
-                      Buy Now
+                    <Button onClick={handleBuyNow} disabled={submitting} className="w-full">
+                      {submitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        "Buy Now"
+                      )}
                     </Button>
                   )}
 
