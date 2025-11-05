@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload, X } from "lucide-react";
 
 const listingSchema = z.object({
   title: z.string().trim().min(5, "Title must be at least 5 characters").max(200, "Title must be less than 200 characters"),
@@ -65,6 +65,8 @@ const CreateListing = () => {
   const navigate = useNavigate();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   const form = useForm<ListingFormValues>({
     resolver: zodResolver(listingSchema),
@@ -109,6 +111,64 @@ const CreateListing = () => {
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !user) return;
+
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    // Limit to 8 images total
+    if (uploadedImages.length + files.length > 8) {
+      toast.error("Maximum 8 images allowed");
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const uploadPromises = files.map(async (file) => {
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+
+        const { error: uploadError, data } = await supabase.storage
+          .from("listing-images")
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from("listing-images")
+          .getPublicUrl(fileName);
+
+        return publicUrl;
+      });
+
+      const urls = await Promise.all(uploadPromises);
+      setUploadedImages((prev) => [...prev, ...urls]);
+      toast.success(`${files.length} image(s) uploaded successfully`);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to upload images");
+      console.error(error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = async (url: string) => {
+    try {
+      // Extract file path from URL
+      const urlParts = url.split("/listing-images/");
+      if (urlParts.length > 1) {
+        const filePath = urlParts[1].split("?")[0];
+        await supabase.storage.from("listing-images").remove([filePath]);
+      }
+      setUploadedImages((prev) => prev.filter((img) => img !== url));
+      toast.success("Image removed");
+    } catch (error: any) {
+      toast.error("Failed to remove image");
+      console.error(error);
+    }
+  };
+
   const onSubmit = async (values: ListingFormValues) => {
     if (!user) return;
 
@@ -124,6 +184,7 @@ const CreateListing = () => {
         location: values.location,
         seller_id: user.id,
         status: "active",
+        images: uploadedImages,
       };
 
       if (values.listing_type === "fixed_price" && values.fixed_price) {
@@ -438,6 +499,65 @@ const CreateListing = () => {
                       </FormItem>
                     )}
                   />
+
+                  {/* Image Upload */}
+                  <div className="space-y-4">
+                    <div>
+                      <FormLabel>Product Images</FormLabel>
+                      <FormDescription>
+                        Upload up to 8 images of your product (JPG, PNG, WEBP)
+                      </FormDescription>
+                    </div>
+
+                    {uploadedImages.length > 0 && (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {uploadedImages.map((url, index) => (
+                          <div key={url} className="relative group aspect-square">
+                            <img
+                              src={url}
+                              alt={`Product ${index + 1}`}
+                              className="w-full h-full object-cover rounded-lg border"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeImage(url)}
+                              className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {uploadedImages.length < 8 && (
+                      <div>
+                        <label
+                          htmlFor="image-upload"
+                          className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                            <p className="text-sm text-muted-foreground">
+                              {uploading ? "Uploading..." : "Click to upload images"}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {uploadedImages.length}/8 images
+                            </p>
+                          </div>
+                          <input
+                            id="image-upload"
+                            type="file"
+                            className="hidden"
+                            accept="image/jpeg,image/png,image/webp"
+                            multiple
+                            onChange={handleImageUpload}
+                            disabled={uploading}
+                          />
+                        </label>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="flex gap-4">
                     <Button
