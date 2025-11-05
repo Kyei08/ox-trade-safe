@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { Menu, Search, LogOut, MessageSquare } from "lucide-react";
+import { Menu, Search, LogOut, MessageSquare, Home, Grid, Plus, User, Gavel, Shield, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
+import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,11 +12,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 
 const Header = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -46,18 +56,26 @@ const Header = () => {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
-              <Link to="/listings" className="text-sm font-medium hover:text-primary transition-colors">
-                Browse
+              <Link to="/" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-2">
+                <Home className="w-4 h-4" />
+                Home
               </Link>
-              <a href="#categories" className="text-sm font-medium hover:text-primary transition-colors">
-                Categories
-              </a>
-              <a href="#how-it-works" className="text-sm font-medium hover:text-primary transition-colors">
-                How It Works
-              </a>
-              <a href="#pricing" className="text-sm font-medium hover:text-primary transition-colors">
-                Pricing
-              </a>
+              <Link to="/listings" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-2">
+                <Grid className="w-4 h-4" />
+                Browse Listings
+              </Link>
+              {user && (
+                <>
+                  <Link to="/create-listing" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-2">
+                    <Plus className="w-4 h-4" />
+                    Sell Item
+                  </Link>
+                  <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Dashboard
+                  </Link>
+                </>
+              )}
             </nav>
           </div>
 
@@ -98,13 +116,20 @@ const Header = () => {
                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => navigate("/dashboard")}>
+                      <User className="mr-2 h-4 w-4" />
                       Dashboard
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/dashboard")}>
-                      My Listings
+                    <DropdownMenuItem onClick={() => navigate("/create-listing")}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create Listing
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/dashboard")}>
-                      My Bids
+                    <DropdownMenuItem onClick={() => navigate("/messages")}>
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      Messages
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/kyc")}>
+                      <Shield className="mr-2 h-4 w-4" />
+                      KYC Verification
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut}>
@@ -126,9 +151,114 @@ const Header = () => {
               </>
             )}
 
-            <Button variant="ghost" size="icon" className="md:hidden">
-              <Menu className="w-5 h-5" />
-            </Button>
+            {/* Mobile Menu */}
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                <SheetHeader>
+                  <SheetTitle className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-hero flex items-center justify-center">
+                      <span className="text-xl font-bold text-primary-foreground">OX</span>
+                    </div>
+                    Menu
+                  </SheetTitle>
+                </SheetHeader>
+                
+                <div className="mt-8 flex flex-col gap-4">
+                  <Link 
+                    to="/" 
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Home className="w-5 h-5" />
+                    <span className="font-medium">Home</span>
+                  </Link>
+                  
+                  <Link 
+                    to="/listings" 
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Grid className="w-5 h-5" />
+                    <span className="font-medium">Browse Listings</span>
+                  </Link>
+
+                  {user ? (
+                    <>
+                      <Separator className="my-2" />
+                      
+                      <Link 
+                        to="/dashboard" 
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <User className="w-5 h-5" />
+                        <span className="font-medium">Dashboard</span>
+                      </Link>
+                      
+                      <Link 
+                        to="/create-listing" 
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <Plus className="w-5 h-5" />
+                        <span className="font-medium">Create Listing</span>
+                      </Link>
+                      
+                      <Link 
+                        to="/messages" 
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <MessageSquare className="w-5 h-5" />
+                        <span className="font-medium">Messages</span>
+                      </Link>
+                      
+                      <Link 
+                        to="/kyc" 
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <Shield className="w-5 h-5" />
+                        <span className="font-medium">KYC Verification</span>
+                      </Link>
+
+                      <Separator className="my-2" />
+                      
+                      <Button 
+                        variant="outline" 
+                        className="justify-start gap-3"
+                        onClick={() => {
+                          handleSignOut();
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        <LogOut className="w-5 h-5" />
+                        Sign Out
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Separator className="my-2" />
+                      
+                      <Button 
+                        onClick={() => {
+                          navigate("/auth");
+                          setMobileMenuOpen(false);
+                        }}
+                        className="w-full"
+                      >
+                        Get Started
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>
