@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Lock, BadgeCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-auction.jpg";
+import SearchFilters from "@/components/SearchFilters";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -34,6 +35,11 @@ const Hero = () => {
           <p className="text-xl md:text-2xl text-primary-foreground/90 mb-8 max-w-2xl mx-auto">
             South Africa's premier auction and classifieds platform. Trade with confidence using KYC verification and escrow payments.
           </p>
+
+          {/* Search & Filters */}
+          <div className="mb-12">
+            <SearchFilters />
+          </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
             <Button size="lg" variant="hero" className="text-lg px-8" onClick={() => navigate("/auth")}>
