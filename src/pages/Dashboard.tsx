@@ -4,13 +4,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
+import ReviewsList from "@/components/ReviewsList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Package, Gavel, User, Star, MapPin, Phone } from "lucide-react";
+import { Package, Gavel, User, Star, MapPin, Phone, MessageSquare } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Listing {
@@ -176,7 +177,7 @@ const Dashboard = () => {
 
           {/* Dashboard Tabs */}
           <Tabs defaultValue="listings" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 max-w-md">
+            <TabsList className="grid w-full grid-cols-4 max-w-2xl">
               <TabsTrigger value="listings">
                 <Package className="w-4 h-4 mr-2" />
                 Listings
@@ -184,6 +185,10 @@ const Dashboard = () => {
               <TabsTrigger value="bids">
                 <Gavel className="w-4 h-4 mr-2" />
                 Bids
+              </TabsTrigger>
+              <TabsTrigger value="reviews">
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Reviews
               </TabsTrigger>
               <TabsTrigger value="profile">
                 <User className="w-4 h-4 mr-2" />
@@ -311,6 +316,12 @@ const Dashboard = () => {
                   ))}
                 </div>
               )}
+            </TabsContent>
+
+            {/* Reviews Tab */}
+            <TabsContent value="reviews" className="mt-6">
+              <h2 className="text-2xl font-semibold mb-4">My Reviews</h2>
+              <ReviewsList userId={user.id} />
             </TabsContent>
 
             {/* Profile Tab */}

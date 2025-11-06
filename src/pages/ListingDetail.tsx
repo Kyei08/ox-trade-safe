@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
+import ReviewSubmitDialog from "@/components/ReviewSubmitDialog";
+import ReviewsList from "@/components/ReviewsList";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MapPin, Package, Clock, Gavel, User, TrendingUp } from "lucide-react";
+import { Loader2, MapPin, Package, Clock, Gavel, User, TrendingUp, Star } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Listing {
@@ -61,14 +63,17 @@ export default function ListingDetail() {
   const [bidAmount, setBidAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState("");
+  const [canReview, setCanReview] = useState(false);
+  const [hasReviewed, setHasReviewed] = useState(false);
 
   useEffect(() => {
     if (id) {
       fetchListing();
       fetchBids();
       incrementViewCount();
+      checkReviewStatus();
     }
-  }, [id]);
+  }, [id, user]);
 
   // Real-time bid updates
   useEffect(() => {
@@ -186,6 +191,37 @@ export default function ListingDetail() {
       }
     } catch (error) {
       console.error("Error incrementing view count:", error);
+    }
+  };
+
+  const checkReviewStatus = async () => {
+    if (!user || !id || !listing) return;
+
+    try {
+      // Check if user can leave a review (was involved in a sold transaction)
+      const canLeaveReview =
+        listing.status === "sold" &&
+        user.id !== listing.seller_id &&
+        (listing.listing_type === "fixed_price" ||
+          (listing.listing_type === "auction" &&
+            bids.some((bid) => bid.bidder_id === user.id && bid.is_winning)));
+
+      setCanReview(canLeaveReview);
+
+      // Check if user has already reviewed
+      if (canLeaveReview) {
+        const { data } = await supabase
+          .from("reviews")
+          .select("id")
+          .eq("listing_id", id)
+          .eq("reviewer_id", user.id)
+          .eq("reviewed_user_id", listing.seller_id)
+          .maybeSingle();
+
+        setHasReviewed(!!data);
+      }
+    } catch (error) {
+      console.error("Error checking review status:", error);
     }
   };
 
@@ -473,6 +509,29 @@ export default function ListingDetail() {
                     </Button>
                   )}
 
+                  {canReview && !hasReviewed && (
+                    <ReviewSubmitDialog
+                      listingId={id!}
+                      reviewedUserId={listing.seller_id}
+                      reviewedUserName={listing.public_profiles.full_name}
+                      onReviewSubmitted={() => {
+                        checkReviewStatus();
+                        fetchListing();
+                      }}
+                    >
+                      <Button variant="default" className="w-full">
+                        <Star className="mr-2 h-4 w-4" />
+                        Leave a Review
+                      </Button>
+                    </ReviewSubmitDialog>
+                  )}
+
+                  {hasReviewed && (
+                    <Alert>
+                      <AlertDescription>You have already reviewed this seller</AlertDescription>
+                    </Alert>
+                  )}
+
                   {!user && (
                     <Button 
                       variant="outline" 
@@ -482,6 +541,19 @@ export default function ListingDetail() {
                       Sign in to Contact
                     </Button>
                   )}
+                </CardContent>
+              </Card>
+
+              {/* Seller Reviews */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Seller Reviews</CardTitle>
+                  <CardDescription>
+                    What others are saying about {listing.public_profiles.full_name}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ReviewsList userId={listing.seller_id} />
                 </CardContent>
               </Card>
             </div>
