@@ -303,6 +303,7 @@ export type Database = {
           id: string
           kyc_status: Database["public"]["Enums"]["kyc_status"]
           kyc_verified_at: string | null
+          location: string | null
           phone: string | null
           rating: number | null
           total_reviews: number | null
@@ -317,6 +318,7 @@ export type Database = {
           id: string
           kyc_status?: Database["public"]["Enums"]["kyc_status"]
           kyc_verified_at?: string | null
+          location?: string | null
           phone?: string | null
           rating?: number | null
           total_reviews?: number | null
@@ -331,6 +333,7 @@ export type Database = {
           id?: string
           kyc_status?: Database["public"]["Enums"]["kyc_status"]
           kyc_verified_at?: string | null
+          location?: string | null
           phone?: string | null
           rating?: number | null
           total_reviews?: number | null

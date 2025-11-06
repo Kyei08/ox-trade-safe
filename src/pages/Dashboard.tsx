@@ -3,13 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
+import ProfileEditDialog from "@/components/ProfileEditDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Package, Gavel, User, Star, Calendar, DollarSign } from "lucide-react";
+import { Package, Gavel, User, Star, MapPin, Phone } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Listing {
@@ -45,6 +46,7 @@ interface Profile {
   email: string;
   bio: string | null;
   phone: string | null;
+  location: string | null;
   rating: number;
   total_reviews: number;
   kyc_status: string;
@@ -319,24 +321,56 @@ const Dashboard = () => {
                   <CardTitle>Personal Information</CardTitle>
                   <CardDescription>Manage your account details</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium">Full Name</label>
-                    <p className="text-lg">{profile?.full_name || "Not set"}</p>
+                <CardContent className="space-y-6">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Full Name</label>
+                      <p className="text-lg font-medium mt-1">{profile?.full_name || "Not set"}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Email</label>
+                      <p className="text-lg font-medium mt-1">{profile?.email}</p>
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium">Email</label>
-                    <p className="text-lg">{profile?.email}</p>
+
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <Phone className="w-4 h-4" />
+                        Phone Number
+                      </label>
+                      <p className="text-lg font-medium mt-1">{profile?.phone || "Not set"}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <MapPin className="w-4 h-4" />
+                        Location
+                      </label>
+                      <p className="text-lg font-medium mt-1">{profile?.location || "Not set"}</p>
+                    </div>
                   </div>
+
                   <div>
-                    <label className="text-sm font-medium">Phone</label>
-                    <p className="text-lg">{profile?.phone || "Not set"}</p>
+                    <label className="text-sm font-medium text-muted-foreground">Bio</label>
+                    <p className="mt-1 text-foreground whitespace-pre-wrap">
+                      {profile?.bio || "No bio yet - tell others about yourself!"}
+                    </p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium">Bio</label>
-                    <p className="text-muted-foreground">{profile?.bio || "No bio yet"}</p>
-                  </div>
-                  <Button variant="outline" className="mt-4">Edit Profile</Button>
+
+                  <ProfileEditDialog
+                    userId={user.id}
+                    currentProfile={{
+                      full_name: profile?.full_name || null,
+                      phone: profile?.phone || null,
+                      location: profile?.location || null,
+                      bio: profile?.bio || null,
+                    }}
+                    onProfileUpdate={fetchDashboardData}
+                  >
+                    <Button variant="default" className="w-full md:w-auto">
+                      Edit Profile
+                    </Button>
+                  </ProfileEditDialog>
                 </CardContent>
               </Card>
 
