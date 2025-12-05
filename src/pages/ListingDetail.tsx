@@ -631,7 +631,7 @@ export default function ListingDetail() {
                     </Alert>
                   )}
 
-                  {!user && (
+                  {!user && listing.status === "active" && !auctionEnded && (
                     <Button onClick={() => navigate("/auth")} className="w-full">
                       Sign in to {isAuction ? "bid" : "buy"}
                     </Button>
