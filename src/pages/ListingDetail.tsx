@@ -5,6 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import ReviewSubmitDialog from "@/components/ReviewSubmitDialog";
 import ReviewsList from "@/components/ReviewsList";
+import AuctionCountdown from "@/components/AuctionCountdown";
+import BidHistory from "@/components/BidHistory";
+import AuctionStatus from "@/components/AuctionStatus";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MapPin, Package, Clock, Gavel, User, TrendingUp, Star } from "lucide-react";
+import { Loader2, MapPin, Package, Gavel, User, Star } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Listing {
@@ -41,57 +44,44 @@ interface Listing {
   };
 }
 
-interface Bid {
-  id: string;
-  amount: number;
-  bidder_id: string;
-  created_at: string;
-  is_winning: boolean;
-  public_profiles: {
-    full_name: string;
-  };
-}
-
 export default function ListingDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [listing, setListing] = useState<Listing | null>(null);
-  const [bids, setBids] = useState<Bid[]>([]);
   const [loading, setLoading] = useState(true);
   const [bidAmount, setBidAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState("");
+  const [auctionEnded, setAuctionEnded] = useState(false);
   const [canReview, setCanReview] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
+  const [winningBidderId, setWinningBidderId] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
       fetchListing();
-      fetchBids();
       incrementViewCount();
       checkReviewStatus();
     }
   }, [id, user]);
 
-  // Real-time bid updates
+  // Real-time updates for listing changes (status updates when auction ends)
   useEffect(() => {
     if (!id) return;
 
     const channel = supabase
-      .channel(`listing-${id}`)
+      .channel(`listing-updates-${id}`)
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "UPDATE",
           schema: "public",
-          table: "bids",
-          filter: `listing_id=eq.${id}`,
+          table: "listings",
+          filter: `id=eq.${id}`,
         },
         () => {
-          fetchBids();
-          fetchListing(); // Refresh to get updated current_bid
+          fetchListing();
         }
       )
       .subscribe();
@@ -101,30 +91,43 @@ export default function ListingDetail() {
     };
   }, [id]);
 
-  // Countdown timer
+  // Check auction end status
   useEffect(() => {
     if (!listing?.auction_ends_at) return;
-
-    const interval = setInterval(() => {
+    
+    const checkAuctionEnd = () => {
       const now = new Date().getTime();
       const end = new Date(listing.auction_ends_at!).getTime();
-      const distance = end - now;
-
-      if (distance < 0) {
-        setTimeRemaining("Auction ended");
-        clearInterval(interval);
-      } else {
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-        setTimeRemaining(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+      if (end <= now && !auctionEnded) {
+        setAuctionEnded(true);
+        // Trigger the finalize-auctions function
+        supabase.functions.invoke("finalize-auctions").then(() => {
+          fetchListing();
+        });
       }
-    }, 1000);
+    };
 
+    checkAuctionEnd();
+    const interval = setInterval(checkAuctionEnd, 5000);
     return () => clearInterval(interval);
-  }, [listing]);
+  }, [listing?.auction_ends_at, auctionEnded]);
+
+  // Find winning bidder when listing is sold
+  useEffect(() => {
+    const findWinner = async () => {
+      if (listing?.status === "sold" && listing.listing_type === "auction") {
+        const { data } = await supabase
+          .from("bids")
+          .select("bidder_id")
+          .eq("listing_id", id)
+          .eq("is_winning", true)
+          .maybeSingle();
+        
+        setWinningBidderId(data?.bidder_id || null);
+      }
+    };
+    findWinner();
+  }, [listing?.status, id]);
 
   const fetchListing = async () => {
     try {
@@ -155,26 +158,6 @@ export default function ListingDetail() {
     }
   };
 
-  const fetchBids = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("bids")
-        .select(`
-          *,
-          public_profiles!bidder_id (
-            full_name
-          )
-        `)
-        .eq("listing_id", id)
-        .order("amount", { ascending: false });
-
-      if (error) throw error;
-      setBids(data || []);
-    } catch (error) {
-      console.error("Error fetching bids:", error);
-    }
-  };
-
   const incrementViewCount = async () => {
     try {
       const { data: currentListing } = await supabase
@@ -198,13 +181,24 @@ export default function ListingDetail() {
     if (!user || !id || !listing) return;
 
     try {
+      // For auctions, check if user was the winning bidder
+      let isWinningBidder = false;
+      if (listing.listing_type === "auction") {
+        const { data: winningBid } = await supabase
+          .from("bids")
+          .select("bidder_id")
+          .eq("listing_id", id)
+          .eq("bidder_id", user.id)
+          .eq("is_winning", true)
+          .maybeSingle();
+        isWinningBidder = !!winningBid;
+      }
+
       // Check if user can leave a review (was involved in a sold transaction)
       const canLeaveReview =
         listing.status === "sold" &&
         user.id !== listing.seller_id &&
-        (listing.listing_type === "fixed_price" ||
-          (listing.listing_type === "auction" &&
-            bids.some((bid) => bid.bidder_id === user.id && bid.is_winning)));
+        (listing.listing_type === "fixed_price" || isWinningBidder);
 
       setCanReview(canLeaveReview);
 
@@ -298,7 +292,6 @@ export default function ListingDetail() {
 
       setBidAmount("");
       fetchListing();
-      fetchBids();
     } catch (error: any) {
       toast({
         title: "Failed to place bid",
@@ -571,16 +564,24 @@ export default function ListingDetail() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {isAuction && listing.auction_ends_at && (
-                    <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                      <Clock className="h-5 w-5" />
-                      <div>
-                        <p className="text-sm font-medium">Time remaining</p>
-                        <p className="text-lg font-bold">{timeRemaining}</p>
-                      </div>
-                    </div>
+                    <AuctionCountdown 
+                      endTime={listing.auction_ends_at} 
+                      onAuctionEnd={() => setAuctionEnded(true)}
+                    />
                   )}
 
-                  {isAuction && !isOwner && listing.status === "active" && (
+                  {isAuction && (
+                    <AuctionStatus
+                      status={listing.status}
+                      currentBid={listing.current_bid}
+                      reservePrice={listing.reserve_price}
+                      winnerId={winningBidderId}
+                      currentUserId={user?.id}
+                      isOwner={isOwner}
+                    />
+                  )}
+
+                  {isAuction && !isOwner && listing.status === "active" && !auctionEnded && (
                     <form onSubmit={handlePlaceBid} className="space-y-4">
                       <div>
                         <Label htmlFor="bidAmount">Your bid</Label>
@@ -639,43 +640,12 @@ export default function ListingDetail() {
               </Card>
 
               {/* Bid History for Auctions */}
-              {isAuction && bids.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5" />
-                      Bid History
-                    </CardTitle>
-                    <CardDescription>{bids.length} bids placed</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {bids.map((bid) => (
-                        <div
-                          key={bid.id}
-                          className={`flex justify-between items-center p-3 rounded-lg ${
-                            bid.is_winning ? "bg-primary/10 border border-primary" : "bg-muted"
-                          }`}
-                        >
-                          <div>
-                            <p className="font-semibold">
-                              {bid.public_profiles.full_name}
-                              {bid.is_winning && (
-                                <Badge variant="default" className="ml-2">
-                                  Winning
-                                </Badge>
-                              )}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(bid.created_at).toLocaleString()}
-                            </p>
-                          </div>
-                          <p className="text-lg font-bold">${bid.amount.toFixed(2)}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+              {isAuction && (
+                <BidHistory 
+                  listingId={id!} 
+                  currentUserId={user?.id}
+                  auctionEnded={auctionEnded || listing.status === "sold" || listing.status === "expired"}
+                />
               )}
             </div>
           </div>
