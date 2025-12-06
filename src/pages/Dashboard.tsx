@@ -5,13 +5,15 @@ import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
 import ReviewsList from "@/components/ReviewsList";
+import AvatarUpload from "@/components/AvatarUpload";
+import ImageGalleryManager from "@/components/ImageGalleryManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Package, Gavel, User, Star, MapPin, Phone, MessageSquare } from "lucide-react";
+import { Package, Gavel, User, Star, MapPin, Phone, MessageSquare, Image } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Listing {
@@ -52,6 +54,7 @@ interface Profile {
   total_reviews: number;
   kyc_status: string;
   kyc_verified_at: string | null;
+  avatar_url: string | null;
 }
 
 const Dashboard = () => {
@@ -151,6 +154,7 @@ const Dashboard = () => {
           {/* Dashboard Header */}
           <div className="flex items-center gap-6 mb-8">
             <Avatar className="h-20 w-20">
+              <AvatarImage src={profile?.avatar_url || undefined} alt="Profile" />
               <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
                 {getInitials(user.email || "U", profile?.full_name)}
               </AvatarFallback>
@@ -177,7 +181,7 @@ const Dashboard = () => {
 
           {/* Dashboard Tabs */}
           <Tabs defaultValue="listings" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 max-w-2xl">
+            <TabsList className="grid w-full grid-cols-5 max-w-3xl">
               <TabsTrigger value="listings">
                 <Package className="w-4 h-4 mr-2" />
                 Listings
@@ -189,6 +193,10 @@ const Dashboard = () => {
               <TabsTrigger value="reviews">
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Reviews
+              </TabsTrigger>
+              <TabsTrigger value="images">
+                <Image className="w-4 h-4 mr-2" />
+                Images
               </TabsTrigger>
               <TabsTrigger value="profile">
                 <User className="w-4 h-4 mr-2" />
@@ -324,13 +332,33 @@ const Dashboard = () => {
               <ReviewsList userId={user.id} />
             </TabsContent>
 
+            {/* Images Tab */}
+            <TabsContent value="images" className="mt-6">
+              <h2 className="text-2xl font-semibold mb-4">My Images</h2>
+              <ImageGalleryManager userId={user.id} />
+            </TabsContent>
+
             {/* Profile Tab */}
             <TabsContent value="profile" className="mt-6">
               <h2 className="text-2xl font-semibold mb-4">Profile Settings</h2>
               <Card>
                 <CardHeader>
-                  <CardTitle>Personal Information</CardTitle>
-                  <CardDescription>Manage your account details</CardDescription>
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
+                    <div>
+                      <CardTitle>Personal Information</CardTitle>
+                      <CardDescription>Manage your account details</CardDescription>
+                    </div>
+                    <AvatarUpload
+                      userId={user.id}
+                      currentAvatarUrl={profile?.avatar_url || null}
+                      userInitial={getInitials(user.email || "U", profile?.full_name)}
+                      onAvatarUpdate={(url) => {
+                        if (profile) {
+                          setProfile({ ...profile, avatar_url: url });
+                        }
+                      }}
+                    />
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="grid gap-6 md:grid-cols-2">
