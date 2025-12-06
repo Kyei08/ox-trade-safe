@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { Loader2, Upload, X } from "lucide-react";
+import { compressImages } from "@/lib/imageCompression";
 
 const listingSchema = z.object({
   title: z.string().trim().min(5, "Title must be at least 5 characters").max(200, "Title must be less than 200 characters"),
@@ -125,9 +126,17 @@ const CreateListing = () => {
 
     try {
       setUploading(true);
-      const uploadPromises = files.map(async (file) => {
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      
+      // Compress all images before upload
+      const compressedFiles = await compressImages(files, {
+        maxWidth: 1920,
+        maxHeight: 1920,
+        quality: 0.8,
+        maxSizeMB: 1,
+      });
+      
+      const uploadPromises = compressedFiles.map(async (file) => {
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.jpg`;
 
         const { error: uploadError, data } = await supabase.storage
           .from("listing-images")

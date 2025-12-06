@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Camera, Loader2, X } from "lucide-react";
+import { compressImage } from "@/lib/imageCompression";
 
 interface AvatarUploadProps {
   userId: string;
@@ -38,6 +39,14 @@ const AvatarUpload = ({ userId, currentAvatarUrl, userInitial, onAvatarUpdate }:
     try {
       setUploading(true);
 
+      // Compress image before upload (max 512px for avatars, 0.5MB)
+      const compressedFile = await compressImage(file, {
+        maxWidth: 512,
+        maxHeight: 512,
+        quality: 0.85,
+        maxSizeMB: 0.5,
+      });
+
       // Delete old avatar if exists
       if (avatarUrl) {
         const oldPath = avatarUrl.split("/avatars/")[1]?.split("?")[0];
@@ -46,13 +55,12 @@ const AvatarUpload = ({ userId, currentAvatarUrl, userInitial, onAvatarUpdate }:
         }
       }
 
-      // Upload new avatar
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${userId}/${Date.now()}.${fileExt}`;
+      // Upload compressed avatar
+      const fileName = `${userId}/${Date.now()}.jpg`;
 
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(fileName, file);
+        .upload(fileName, compressedFile);
 
       if (uploadError) throw uploadError;
 
