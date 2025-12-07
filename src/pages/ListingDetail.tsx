@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, MapPin, Package, Gavel, User, Star } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -38,9 +38,10 @@ interface Listing {
   seller_id: string;
   created_at: string;
   public_profiles: {
-    full_name: string;
-    rating: number;
-    total_reviews: number;
+    full_name: string | null;
+    avatar_url: string | null;
+    rating: number | null;
+    total_reviews: number | null;
   };
 }
 
@@ -137,6 +138,7 @@ export default function ListingDetail() {
           *,
           public_profiles!seller_id (
             full_name,
+            avatar_url,
             rating,
             total_reviews
           )
@@ -478,19 +480,25 @@ export default function ListingDetail() {
                   <CardTitle>Seller Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <Avatar>
+                  <Link 
+                    to={`/seller/${listing.seller_id}`}
+                    className="flex items-center gap-4 p-2 -m-2 rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={listing.public_profiles?.avatar_url || undefined} />
                       <AvatarFallback>
-                        <User className="h-5 w-5" />
+                        {listing.public_profiles?.full_name?.charAt(0) || <User className="h-5 w-5" />}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-semibold">{listing.public_profiles.full_name}</p>
+                      <p className="font-semibold hover:text-primary transition-colors">
+                        {listing.public_profiles?.full_name || "Anonymous Seller"}
+                      </p>
                       <p className="text-sm text-muted-foreground">
-                        {listing.public_profiles.rating.toFixed(1)} ★ ({listing.public_profiles.total_reviews} reviews)
+                        {(listing.public_profiles?.rating || 0).toFixed(1)} ★ ({listing.public_profiles?.total_reviews || 0} reviews)
                       </p>
                     </div>
-                  </div>
+                  </Link>
 
                   {!isOwner && user && (
                     <Button 
