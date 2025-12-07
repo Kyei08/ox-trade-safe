@@ -14,6 +14,7 @@ import AdminKYC from "./pages/AdminKYC";
 import Messages from "./pages/Messages";
 import Conversation from "./pages/Conversation";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import SellerProfile from "./pages/SellerProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,8 @@ const App = () => (
           <Route path="/create-listing" element={<CreateListing />} />
           <Route path="/listings" element={<Listings />} />
           <Route path="/listings/:id" element={<ListingDetail />} />
+          <Route path="/listing/:id" element={<ListingDetail />} />
+          <Route path="/seller/:sellerId" element={<SellerProfile />} />
           <Route path="/kyc" element={<KYCSubmission />} />
           <Route path="/admin/kyc" element={<AdminKYC />} />
           <Route path="/messages" element={<Messages />} />
