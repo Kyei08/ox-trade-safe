@@ -7,13 +7,14 @@ import ProfileEditDialog from "@/components/ProfileEditDialog";
 import ReviewsList from "@/components/ReviewsList";
 import AvatarUpload from "@/components/AvatarUpload";
 import ImageGalleryManager from "@/components/ImageGalleryManager";
+import SellerAnalytics from "@/components/SellerAnalytics";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Package, Gavel, User, Star, MapPin, Phone, MessageSquare, Image } from "lucide-react";
+import { Package, Gavel, User, Star, MapPin, Phone, MessageSquare, Image, BarChart3 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Listing {
@@ -180,8 +181,12 @@ const Dashboard = () => {
           </div>
 
           {/* Dashboard Tabs */}
-          <Tabs defaultValue="listings" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 max-w-3xl">
+          <Tabs defaultValue="analytics" className="w-full">
+            <TabsList className="grid w-full grid-cols-6 max-w-4xl">
+              <TabsTrigger value="analytics">
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Analytics
+              </TabsTrigger>
               <TabsTrigger value="listings">
                 <Package className="w-4 h-4 mr-2" />
                 Listings
@@ -203,6 +208,12 @@ const Dashboard = () => {
                 Profile
               </TabsTrigger>
             </TabsList>
+
+            {/* Analytics Tab */}
+            <TabsContent value="analytics" className="mt-6">
+              <h2 className="text-2xl font-semibold mb-4">Seller Analytics</h2>
+              <SellerAnalytics userId={user.id} />
+            </TabsContent>
 
             {/* Listings Tab */}
             <TabsContent value="listings" className="mt-6">
