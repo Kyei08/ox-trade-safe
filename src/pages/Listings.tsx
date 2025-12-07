@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import { Input } from "@/components/ui/input";
@@ -8,8 +8,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { Search, Filter, Clock, DollarSign, MapPin, Eye } from "lucide-react";
+import { Search, Filter, Clock, DollarSign, MapPin, Eye, User } from "lucide-react";
 
 interface Listing {
   id: string;
@@ -27,6 +28,11 @@ interface Listing {
   auction_ends_at: string | null;
   created_at: string;
   category_id: string;
+  seller_id: string;
+  public_profiles: {
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
 }
 
 interface Category {
@@ -74,7 +80,13 @@ const Listings = () => {
 
       let query = supabase
         .from("listings")
-        .select("*")
+        .select(`
+          *,
+          public_profiles!seller_id (
+            full_name,
+            avatar_url
+          )
+        `)
         .eq("status", "active");
 
       // Apply category filter
@@ -366,6 +378,23 @@ const Listings = () => {
                         {listing.view_count}
                       </div>
                     </div>
+
+                    {/* Seller Info */}
+                    <Link
+                      to={`/seller/${listing.seller_id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center gap-2 mt-2 p-2 -mx-2 rounded-md hover:bg-muted/50 transition-colors"
+                    >
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={listing.public_profiles?.avatar_url || undefined} />
+                        <AvatarFallback className="text-xs">
+                          {listing.public_profiles?.full_name?.charAt(0) || <User className="h-3 w-3" />}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-xs text-muted-foreground hover:text-foreground truncate">
+                        {listing.public_profiles?.full_name || "Anonymous"}
+                      </span>
+                    </Link>
                   </CardContent>
                   <CardFooter>
                     {listing.listing_type === "auction" ? (
