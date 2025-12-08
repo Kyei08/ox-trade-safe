@@ -299,14 +299,17 @@ export type Database = {
           bio: string | null
           created_at: string
           email: string
+          facebook_url: string | null
           full_name: string | null
           id: string
+          instagram_url: string | null
           kyc_status: Database["public"]["Enums"]["kyc_status"]
           kyc_verified_at: string | null
           location: string | null
           phone: string | null
           rating: number | null
           total_reviews: number | null
+          twitter_url: string | null
           updated_at: string
         }
         Insert: {
@@ -314,14 +317,17 @@ export type Database = {
           bio?: string | null
           created_at?: string
           email: string
+          facebook_url?: string | null
           full_name?: string | null
           id: string
+          instagram_url?: string | null
           kyc_status?: Database["public"]["Enums"]["kyc_status"]
           kyc_verified_at?: string | null
           location?: string | null
           phone?: string | null
           rating?: number | null
           total_reviews?: number | null
+          twitter_url?: string | null
           updated_at?: string
         }
         Update: {
@@ -329,14 +335,17 @@ export type Database = {
           bio?: string | null
           created_at?: string
           email?: string
+          facebook_url?: string | null
           full_name?: string | null
           id?: string
+          instagram_url?: string | null
           kyc_status?: Database["public"]["Enums"]["kyc_status"]
           kyc_verified_at?: string | null
           location?: string | null
           phone?: string | null
           rating?: number | null
           total_reviews?: number | null
+          twitter_url?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -425,31 +434,40 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string | null
+          facebook_url: string | null
           full_name: string | null
           id: string | null
+          instagram_url: string | null
           kyc_status: Database["public"]["Enums"]["kyc_status"] | null
           rating: number | null
           total_reviews: number | null
+          twitter_url: string | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
+          facebook_url?: string | null
           full_name?: string | null
           id?: string | null
+          instagram_url?: string | null
           kyc_status?: Database["public"]["Enums"]["kyc_status"] | null
           rating?: number | null
           total_reviews?: number | null
+          twitter_url?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
+          facebook_url?: string | null
           full_name?: string | null
           id?: string | null
+          instagram_url?: string | null
           kyc_status?: Database["public"]["Enums"]["kyc_status"] | null
           rating?: number | null
           total_reviews?: number | null
+          twitter_url?: string | null
         }
         Relationships: []
       }
