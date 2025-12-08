@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Facebook, Instagram, Twitter } from "lucide-react";
 
 const southAfricanProvinces = [
   "Eastern Cape",
@@ -45,6 +45,8 @@ const southAfricanProvinces = [
   "Western Cape",
 ];
 
+const urlSchema = z.string().trim().url("Please enter a valid URL").or(z.literal("")).optional();
+
 const profileSchema = z.object({
   full_name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
   phone: z
@@ -55,6 +57,9 @@ const profileSchema = z.object({
     .or(z.literal("")),
   location: z.string().trim().max(100).optional().or(z.literal("")),
   bio: z.string().trim().max(500, "Bio must be less than 500 characters").optional().or(z.literal("")),
+  facebook_url: urlSchema,
+  instagram_url: urlSchema,
+  twitter_url: urlSchema,
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -66,6 +71,9 @@ interface ProfileEditDialogProps {
     phone: string | null;
     location?: string | null;
     bio: string | null;
+    facebook_url?: string | null;
+    instagram_url?: string | null;
+    twitter_url?: string | null;
   };
   onProfileUpdate: () => void;
   children: React.ReactNode;
@@ -82,6 +90,9 @@ const ProfileEditDialog = ({ userId, currentProfile, onProfileUpdate, children }
       phone: currentProfile.phone || "",
       location: currentProfile.location || "",
       bio: currentProfile.bio || "",
+      facebook_url: currentProfile.facebook_url || "",
+      instagram_url: currentProfile.instagram_url || "",
+      twitter_url: currentProfile.twitter_url || "",
     },
   });
 
@@ -96,6 +107,9 @@ const ProfileEditDialog = ({ userId, currentProfile, onProfileUpdate, children }
           phone: values.phone || null,
           location: values.location || null,
           bio: values.bio || null,
+          facebook_url: values.facebook_url || null,
+          instagram_url: values.instagram_url || null,
+          twitter_url: values.twitter_url || null,
           updated_at: new Date().toISOString(),
         })
         .eq("id", userId);
@@ -118,7 +132,7 @@ const ProfileEditDialog = ({ userId, currentProfile, onProfileUpdate, children }
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Profile</DialogTitle>
           <DialogDescription>
@@ -204,6 +218,62 @@ const ProfileEditDialog = ({ userId, currentProfile, onProfileUpdate, children }
                 </FormItem>
               )}
             />
+
+            {/* Social Media Links */}
+            <div className="space-y-4 pt-2">
+              <h4 className="text-sm font-medium text-muted-foreground">Social Media Links</h4>
+              
+              <FormField
+                control={form.control}
+                name="facebook_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <Facebook className="h-4 w-4 text-[#1877F2]" />
+                      Facebook
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://facebook.com/yourprofile" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="instagram_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <Instagram className="h-4 w-4 text-[#E4405F]" />
+                      Instagram
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://instagram.com/yourprofile" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="twitter_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <Twitter className="h-4 w-4 text-[#1DA1F2]" />
+                      X (Twitter)
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://x.com/yourprofile" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <div className="flex justify-end gap-3 pt-4">
               <Button

@@ -6,9 +6,10 @@ import Footer from "@/components/Footer";
 import ReviewsList from "@/components/ReviewsList";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Star, ShieldCheck, MapPin, Calendar, Package } from "lucide-react";
+import { Star, ShieldCheck, Calendar, Package, Facebook, Instagram, Twitter } from "lucide-react";
 import { format } from "date-fns";
 
 interface PublicProfile {
@@ -20,6 +21,9 @@ interface PublicProfile {
   total_reviews: number | null;
   kyc_status: string | null;
   created_at: string | null;
+  facebook_url: string | null;
+  instagram_url: string | null;
+  twitter_url: string | null;
 }
 
 interface Listing {
@@ -79,6 +83,8 @@ const SellerProfile = () => {
     if (!price) return "N/A";
     return `R ${price.toLocaleString()}`;
   };
+
+  const hasSocialLinks = profile?.facebook_url || profile?.instagram_url || profile?.twitter_url;
 
   if (loading) {
     return (
@@ -157,6 +163,48 @@ const SellerProfile = () => {
                       </div>
                     )}
                   </div>
+
+                  {/* Social Media Links */}
+                  {hasSocialLinks && (
+                    <div className="flex justify-center sm:justify-start gap-2 pt-2">
+                      {profile.facebook_url && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          asChild
+                          className="hover:bg-[#1877F2]/10 hover:border-[#1877F2]/50"
+                        >
+                          <a href={profile.facebook_url} target="_blank" rel="noopener noreferrer">
+                            <Facebook className="h-4 w-4 text-[#1877F2]" />
+                          </a>
+                        </Button>
+                      )}
+                      {profile.instagram_url && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          asChild
+                          className="hover:bg-[#E4405F]/10 hover:border-[#E4405F]/50"
+                        >
+                          <a href={profile.instagram_url} target="_blank" rel="noopener noreferrer">
+                            <Instagram className="h-4 w-4 text-[#E4405F]" />
+                          </a>
+                        </Button>
+                      )}
+                      {profile.twitter_url && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          asChild
+                          className="hover:bg-[#1DA1F2]/10 hover:border-[#1DA1F2]/50"
+                        >
+                          <a href={profile.twitter_url} target="_blank" rel="noopener noreferrer">
+                            <Twitter className="h-4 w-4 text-[#1DA1F2]" />
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
