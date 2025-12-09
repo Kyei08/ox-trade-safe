@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Facebook, Instagram, Twitter, Linkedin, MessageCircle } from "lucide-react";
+import { Loader2, Facebook, Instagram, Twitter, Linkedin, MessageCircle, Video, Youtube } from "lucide-react";
 
 const southAfricanProvinces = [
   "Eastern Cape",
@@ -62,6 +62,8 @@ const profileSchema = z.object({
   twitter_url: urlSchema,
   linkedin_url: urlSchema,
   whatsapp_number: z.string().trim().regex(/^(\+27|0)[6-8][0-9]{8}$/, "Please enter a valid South African mobile number").or(z.literal("")).optional(),
+  tiktok_url: urlSchema,
+  youtube_url: urlSchema,
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -78,6 +80,8 @@ interface ProfileEditDialogProps {
     twitter_url?: string | null;
     linkedin_url?: string | null;
     whatsapp_number?: string | null;
+    tiktok_url?: string | null;
+    youtube_url?: string | null;
   };
   onProfileUpdate: () => void;
   children: React.ReactNode;
@@ -99,6 +103,8 @@ const ProfileEditDialog = ({ userId, currentProfile, onProfileUpdate, children }
       twitter_url: currentProfile.twitter_url || "",
       linkedin_url: currentProfile.linkedin_url || "",
       whatsapp_number: currentProfile.whatsapp_number || "",
+      tiktok_url: currentProfile.tiktok_url || "",
+      youtube_url: currentProfile.youtube_url || "",
     },
   });
 
@@ -118,6 +124,8 @@ const ProfileEditDialog = ({ userId, currentProfile, onProfileUpdate, children }
           twitter_url: values.twitter_url || null,
           linkedin_url: values.linkedin_url || null,
           whatsapp_number: values.whatsapp_number || null,
+          tiktok_url: values.tiktok_url || null,
+          youtube_url: values.youtube_url || null,
           updated_at: new Date().toISOString(),
         })
         .eq("id", userId);
@@ -314,6 +322,40 @@ const ProfileEditDialog = ({ userId, currentProfile, onProfileUpdate, children }
                     <FormDescription>
                       South African mobile number for WhatsApp contact
                     </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="tiktok_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <Video className="h-4 w-4 text-foreground" />
+                      TikTok
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://tiktok.com/@yourprofile" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="youtube_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <Youtube className="h-4 w-4 text-[#FF0000]" />
+                      YouTube
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://youtube.com/@yourchannel" {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

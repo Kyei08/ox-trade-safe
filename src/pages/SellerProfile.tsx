@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Star, ShieldCheck, Calendar, Package, Facebook, Instagram, Twitter, Linkedin, MessageCircle } from "lucide-react";
+import { Star, ShieldCheck, Calendar, Package, Facebook, Instagram, Twitter, Linkedin, MessageCircle, Video, Youtube } from "lucide-react";
 import { format } from "date-fns";
 
 interface PublicProfile {
@@ -26,6 +26,8 @@ interface PublicProfile {
   twitter_url: string | null;
   linkedin_url: string | null;
   whatsapp_number: string | null;
+  tiktok_url: string | null;
+  youtube_url: string | null;
 }
 
 interface Listing {
@@ -86,7 +88,7 @@ const SellerProfile = () => {
     return `R ${price.toLocaleString()}`;
   };
 
-  const hasSocialLinks = profile?.facebook_url || profile?.instagram_url || profile?.twitter_url || profile?.linkedin_url || profile?.whatsapp_number;
+  const hasSocialLinks = profile?.facebook_url || profile?.instagram_url || profile?.twitter_url || profile?.linkedin_url || profile?.whatsapp_number || profile?.tiktok_url || profile?.youtube_url;
 
   if (loading) {
     return (
@@ -230,6 +232,30 @@ const SellerProfile = () => {
                             rel="noopener noreferrer"
                           >
                             <MessageCircle className="h-4 w-4 text-[#25D366]" />
+                          </a>
+                        </Button>
+                      )}
+                      {profile.tiktok_url && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          asChild
+                          className="hover:bg-foreground/10 hover:border-foreground/50"
+                        >
+                          <a href={profile.tiktok_url} target="_blank" rel="noopener noreferrer">
+                            <Video className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      )}
+                      {profile.youtube_url && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          asChild
+                          className="hover:bg-[#FF0000]/10 hover:border-[#FF0000]/50"
+                        >
+                          <a href={profile.youtube_url} target="_blank" rel="noopener noreferrer">
+                            <Youtube className="h-4 w-4 text-[#FF0000]" />
                           </a>
                         </Button>
                       )}
