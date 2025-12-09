@@ -309,10 +309,12 @@ export type Database = {
           location: string | null
           phone: string | null
           rating: number | null
+          tiktok_url: string | null
           total_reviews: number | null
           twitter_url: string | null
           updated_at: string
           whatsapp_number: string | null
+          youtube_url: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -329,10 +331,12 @@ export type Database = {
           location?: string | null
           phone?: string | null
           rating?: number | null
+          tiktok_url?: string | null
           total_reviews?: number | null
           twitter_url?: string | null
           updated_at?: string
           whatsapp_number?: string | null
+          youtube_url?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -349,10 +353,12 @@ export type Database = {
           location?: string | null
           phone?: string | null
           rating?: number | null
+          tiktok_url?: string | null
           total_reviews?: number | null
           twitter_url?: string | null
           updated_at?: string
           whatsapp_number?: string | null
+          youtube_url?: string | null
         }
         Relationships: []
       }
@@ -447,9 +453,11 @@ export type Database = {
           kyc_status: Database["public"]["Enums"]["kyc_status"] | null
           linkedin_url: string | null
           rating: number | null
+          tiktok_url: string | null
           total_reviews: number | null
           twitter_url: string | null
           whatsapp_number: string | null
+          youtube_url: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -462,9 +470,11 @@ export type Database = {
           kyc_status?: Database["public"]["Enums"]["kyc_status"] | null
           linkedin_url?: string | null
           rating?: number | null
+          tiktok_url?: string | null
           total_reviews?: number | null
           twitter_url?: string | null
           whatsapp_number?: string | null
+          youtube_url?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -477,9 +487,11 @@ export type Database = {
           kyc_status?: Database["public"]["Enums"]["kyc_status"] | null
           linkedin_url?: string | null
           rating?: number | null
+          tiktok_url?: string | null
           total_reviews?: number | null
           twitter_url?: string | null
           whatsapp_number?: string | null
+          youtube_url?: string | null
         }
         Relationships: []
       }
