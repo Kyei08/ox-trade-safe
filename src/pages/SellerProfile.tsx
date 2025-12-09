@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Star, ShieldCheck, Calendar, Package, Facebook, Instagram, Twitter } from "lucide-react";
+import { Star, ShieldCheck, Calendar, Package, Facebook, Instagram, Twitter, Linkedin, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
 
 interface PublicProfile {
@@ -24,6 +24,8 @@ interface PublicProfile {
   facebook_url: string | null;
   instagram_url: string | null;
   twitter_url: string | null;
+  linkedin_url: string | null;
+  whatsapp_number: string | null;
 }
 
 interface Listing {
@@ -84,7 +86,7 @@ const SellerProfile = () => {
     return `R ${price.toLocaleString()}`;
   };
 
-  const hasSocialLinks = profile?.facebook_url || profile?.instagram_url || profile?.twitter_url;
+  const hasSocialLinks = profile?.facebook_url || profile?.instagram_url || profile?.twitter_url || profile?.linkedin_url || profile?.whatsapp_number;
 
   if (loading) {
     return (
@@ -200,6 +202,34 @@ const SellerProfile = () => {
                         >
                           <a href={profile.twitter_url} target="_blank" rel="noopener noreferrer">
                             <Twitter className="h-4 w-4 text-[#1DA1F2]" />
+                          </a>
+                        </Button>
+                      )}
+                      {profile.linkedin_url && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          asChild
+                          className="hover:bg-[#0A66C2]/10 hover:border-[#0A66C2]/50"
+                        >
+                          <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer">
+                            <Linkedin className="h-4 w-4 text-[#0A66C2]" />
+                          </a>
+                        </Button>
+                      )}
+                      {profile.whatsapp_number && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          asChild
+                          className="hover:bg-[#25D366]/10 hover:border-[#25D366]/50"
+                        >
+                          <a 
+                            href={`https://wa.me/${profile.whatsapp_number.replace(/^0/, '27').replace(/[^0-9]/g, '')}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                          >
+                            <MessageCircle className="h-4 w-4 text-[#25D366]" />
                           </a>
                         </Button>
                       )}

@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Facebook, Instagram, Twitter } from "lucide-react";
+import { Loader2, Facebook, Instagram, Twitter, Linkedin, MessageCircle } from "lucide-react";
 
 const southAfricanProvinces = [
   "Eastern Cape",
@@ -60,6 +60,8 @@ const profileSchema = z.object({
   facebook_url: urlSchema,
   instagram_url: urlSchema,
   twitter_url: urlSchema,
+  linkedin_url: urlSchema,
+  whatsapp_number: z.string().trim().regex(/^(\+27|0)[6-8][0-9]{8}$/, "Please enter a valid South African mobile number").or(z.literal("")).optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -74,6 +76,8 @@ interface ProfileEditDialogProps {
     facebook_url?: string | null;
     instagram_url?: string | null;
     twitter_url?: string | null;
+    linkedin_url?: string | null;
+    whatsapp_number?: string | null;
   };
   onProfileUpdate: () => void;
   children: React.ReactNode;
@@ -93,6 +97,8 @@ const ProfileEditDialog = ({ userId, currentProfile, onProfileUpdate, children }
       facebook_url: currentProfile.facebook_url || "",
       instagram_url: currentProfile.instagram_url || "",
       twitter_url: currentProfile.twitter_url || "",
+      linkedin_url: currentProfile.linkedin_url || "",
+      whatsapp_number: currentProfile.whatsapp_number || "",
     },
   });
 
@@ -110,6 +116,8 @@ const ProfileEditDialog = ({ userId, currentProfile, onProfileUpdate, children }
           facebook_url: values.facebook_url || null,
           instagram_url: values.instagram_url || null,
           twitter_url: values.twitter_url || null,
+          linkedin_url: values.linkedin_url || null,
+          whatsapp_number: values.whatsapp_number || null,
           updated_at: new Date().toISOString(),
         })
         .eq("id", userId);
@@ -269,6 +277,43 @@ const ProfileEditDialog = ({ userId, currentProfile, onProfileUpdate, children }
                     <FormControl>
                       <Input placeholder="https://x.com/yourprofile" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="linkedin_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <Linkedin className="h-4 w-4 text-[#0A66C2]" />
+                      LinkedIn
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://linkedin.com/in/yourprofile" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="whatsapp_number"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <MessageCircle className="h-4 w-4 text-[#25D366]" />
+                      WhatsApp Number
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="+27812345678 or 0812345678" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      South African mobile number for WhatsApp contact
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
