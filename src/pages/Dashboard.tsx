@@ -8,13 +8,14 @@ import ReviewsList from "@/components/ReviewsList";
 import AvatarUpload from "@/components/AvatarUpload";
 import ImageGalleryManager from "@/components/ImageGalleryManager";
 import SellerAnalytics from "@/components/SellerAnalytics";
+import FavoritesTab from "@/components/FavoritesTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Package, Gavel, User, Star, MapPin, Phone, MessageSquare, Image, BarChart3 } from "lucide-react";
+import { Package, Gavel, User, Star, MapPin, Phone, MessageSquare, Image, BarChart3, Heart } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Listing {
@@ -182,7 +183,7 @@ const Dashboard = () => {
 
           {/* Dashboard Tabs */}
           <Tabs defaultValue="analytics" className="w-full">
-            <TabsList className="grid w-full grid-cols-6 max-w-4xl">
+            <TabsList className="grid w-full grid-cols-7 max-w-5xl">
               <TabsTrigger value="analytics">
                 <BarChart3 className="w-4 h-4 mr-2" />
                 Analytics
@@ -190,6 +191,10 @@ const Dashboard = () => {
               <TabsTrigger value="listings">
                 <Package className="w-4 h-4 mr-2" />
                 Listings
+              </TabsTrigger>
+              <TabsTrigger value="favorites">
+                <Heart className="w-4 h-4 mr-2" />
+                Favorites
               </TabsTrigger>
               <TabsTrigger value="bids">
                 <Gavel className="w-4 h-4 mr-2" />
@@ -284,6 +289,12 @@ const Dashboard = () => {
                   ))}
                 </div>
               )}
+            </TabsContent>
+
+            {/* Favorites Tab */}
+            <TabsContent value="favorites" className="mt-6">
+              <h2 className="text-2xl font-semibold mb-4">My Favorites</h2>
+              <FavoritesTab userId={user.id} />
             </TabsContent>
 
             {/* Bids Tab */}

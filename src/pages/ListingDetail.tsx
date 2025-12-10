@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import ReviewSubmitDialog from "@/components/ReviewSubmitDialog";
+import FavoriteButton from "@/components/FavoriteButton";
 import ReviewsList from "@/components/ReviewsList";
 import AuctionCountdown from "@/components/AuctionCountdown";
 import BidHistory from "@/components/BidHistory";
@@ -447,10 +448,13 @@ export default function ListingDetail() {
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between mb-2">
-                    <Badge variant={listing.status === "active" ? "default" : "secondary"}>
-                      {listing.status}
-                    </Badge>
-                    <Badge variant="outline">{listing.listing_type}</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={listing.status === "active" ? "default" : "secondary"}>
+                        {listing.status}
+                      </Badge>
+                      <Badge variant="outline">{listing.listing_type}</Badge>
+                    </div>
+                    {!isOwner && <FavoriteButton listingId={listing.id} />}
                   </div>
                   <CardTitle className="text-3xl">{listing.title}</CardTitle>
                   <CardDescription className="flex items-center gap-4 text-base mt-2">

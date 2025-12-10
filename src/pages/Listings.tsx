@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import FavoriteButton from "@/components/FavoriteButton";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -330,11 +331,19 @@ const Listings = () => {
               {listings.map((listing) => (
                 <Card
                   key={listing.id}
-                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                  className="relative cursor-pointer hover:shadow-lg transition-shadow"
                   onClick={() => navigate(`/listings/${listing.id}`)}
                 >
+                  {/* Favorite button */}
+                  <div className="absolute top-2 right-2 z-10">
+                    <FavoriteButton
+                      listingId={listing.id}
+                      className="bg-background/80 backdrop-blur-sm hover:bg-background"
+                    />
+                  </div>
+                  
                   <CardHeader>
-                    <div className="flex justify-between items-start mb-2">
+                    <div className="flex justify-between items-start mb-2 pr-8">
                       <Badge variant={listing.listing_type === "auction" ? "default" : "secondary"}>
                         {listing.listing_type === "auction" ? "Auction" : "Fixed Price"}
                       </Badge>
