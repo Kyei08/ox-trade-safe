@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Star, ShieldCheck, Calendar, Package, Facebook, Instagram, Twitter, Linkedin, MessageCircle, Video, Youtube } from "lucide-react";
+import { Star, ShieldCheck, Calendar, Package, Facebook, Instagram, Twitter, Linkedin, MessageCircle, Video, Youtube, Globe } from "lucide-react";
 import { format } from "date-fns";
 
 interface PublicProfile {
@@ -28,6 +28,7 @@ interface PublicProfile {
   whatsapp_number: string | null;
   tiktok_url: string | null;
   youtube_url: string | null;
+  website_url: string | null;
 }
 
 interface Listing {
@@ -88,7 +89,7 @@ const SellerProfile = () => {
     return `R ${price.toLocaleString()}`;
   };
 
-  const hasSocialLinks = profile?.facebook_url || profile?.instagram_url || profile?.twitter_url || profile?.linkedin_url || profile?.whatsapp_number || profile?.tiktok_url || profile?.youtube_url;
+  const hasSocialLinks = profile?.facebook_url || profile?.instagram_url || profile?.twitter_url || profile?.linkedin_url || profile?.whatsapp_number || profile?.tiktok_url || profile?.youtube_url || profile?.website_url;
 
   if (loading) {
     return (
@@ -256,6 +257,18 @@ const SellerProfile = () => {
                         >
                           <a href={profile.youtube_url} target="_blank" rel="noopener noreferrer">
                             <Youtube className="h-4 w-4 text-[#FF0000]" />
+                          </a>
+                        </Button>
+                      )}
+                      {profile.website_url && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          asChild
+                          className="hover:bg-primary/10 hover:border-primary/50"
+                        >
+                          <a href={profile.website_url} target="_blank" rel="noopener noreferrer">
+                            <Globe className="h-4 w-4 text-primary" />
                           </a>
                         </Button>
                       )}

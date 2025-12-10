@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Facebook, Instagram, Twitter, Linkedin, MessageCircle, Video, Youtube } from "lucide-react";
+import { Loader2, Facebook, Instagram, Twitter, Linkedin, MessageCircle, Video, Youtube, Globe } from "lucide-react";
 
 const southAfricanProvinces = [
   "Eastern Cape",
@@ -64,6 +64,7 @@ const profileSchema = z.object({
   whatsapp_number: z.string().trim().regex(/^(\+27|0)[6-8][0-9]{8}$/, "Please enter a valid South African mobile number").or(z.literal("")).optional(),
   tiktok_url: urlSchema,
   youtube_url: urlSchema,
+  website_url: urlSchema,
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -82,6 +83,7 @@ interface ProfileEditDialogProps {
     whatsapp_number?: string | null;
     tiktok_url?: string | null;
     youtube_url?: string | null;
+    website_url?: string | null;
   };
   onProfileUpdate: () => void;
   children: React.ReactNode;
@@ -105,6 +107,7 @@ const ProfileEditDialog = ({ userId, currentProfile, onProfileUpdate, children }
       whatsapp_number: currentProfile.whatsapp_number || "",
       tiktok_url: currentProfile.tiktok_url || "",
       youtube_url: currentProfile.youtube_url || "",
+      website_url: currentProfile.website_url || "",
     },
   });
 
@@ -126,6 +129,7 @@ const ProfileEditDialog = ({ userId, currentProfile, onProfileUpdate, children }
           whatsapp_number: values.whatsapp_number || null,
           tiktok_url: values.tiktok_url || null,
           youtube_url: values.youtube_url || null,
+          website_url: values.website_url || null,
           updated_at: new Date().toISOString(),
         })
         .eq("id", userId);
@@ -355,6 +359,23 @@ const ProfileEditDialog = ({ userId, currentProfile, onProfileUpdate, children }
                     </FormLabel>
                     <FormControl>
                       <Input placeholder="https://youtube.com/@yourchannel" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="website_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-primary" />
+                      Website
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://yourwebsite.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

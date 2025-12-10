@@ -313,6 +313,7 @@ export type Database = {
           total_reviews: number | null
           twitter_url: string | null
           updated_at: string
+          website_url: string | null
           whatsapp_number: string | null
           youtube_url: string | null
         }
@@ -335,6 +336,7 @@ export type Database = {
           total_reviews?: number | null
           twitter_url?: string | null
           updated_at?: string
+          website_url?: string | null
           whatsapp_number?: string | null
           youtube_url?: string | null
         }
@@ -357,6 +359,7 @@ export type Database = {
           total_reviews?: number | null
           twitter_url?: string | null
           updated_at?: string
+          website_url?: string | null
           whatsapp_number?: string | null
           youtube_url?: string | null
         }
@@ -456,6 +459,7 @@ export type Database = {
           tiktok_url: string | null
           total_reviews: number | null
           twitter_url: string | null
+          website_url: string | null
           whatsapp_number: string | null
           youtube_url: string | null
         }
@@ -473,6 +477,7 @@ export type Database = {
           tiktok_url?: string | null
           total_reviews?: number | null
           twitter_url?: string | null
+          website_url?: string | null
           whatsapp_number?: string | null
           youtube_url?: string | null
         }
@@ -490,6 +495,7 @@ export type Database = {
           tiktok_url?: string | null
           total_reviews?: number | null
           twitter_url?: string | null
+          website_url?: string | null
           whatsapp_number?: string | null
           youtube_url?: string | null
         }
