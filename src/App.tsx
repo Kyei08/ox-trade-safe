@@ -12,6 +12,7 @@ import Listings from "./pages/Listings";
 import ListingDetail from "./pages/ListingDetail";
 import KYCSubmission from "./pages/KYCSubmission";
 import AdminKYC from "./pages/AdminKYC";
+import AdminReports from "./pages/AdminReports";
 import Messages from "./pages/Messages";
 import Conversation from "./pages/Conversation";
 import PaymentSuccess from "./pages/PaymentSuccess";
