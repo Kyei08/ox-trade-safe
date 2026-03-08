@@ -47,6 +47,22 @@ interface Bid {
   };
 }
 
+interface Order {
+  id: string;
+  listing_id: string;
+  amount: number;
+  status: string;
+  tracking_number: string | null;
+  created_at: string;
+  updated_at: string;
+  listings: {
+    id: string;
+    title: string;
+    images: string[] | null;
+    listing_type: string;
+  };
+}
+
 interface Profile {
   full_name: string | null;
   email: string;
