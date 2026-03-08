@@ -11,6 +11,7 @@ import { Loader2, Shield } from "lucide-react";
 import { z } from "zod";
 import { lovable } from "@/integrations/lovable/index";
 import { Separator } from "@/components/ui/separator";
+import { supabase } from "@/integrations/supabase/client";
 
 // Validation schemas for secure input handling
 const signUpSchema = z.object({
