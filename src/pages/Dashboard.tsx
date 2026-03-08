@@ -9,6 +9,7 @@ import AvatarUpload from "@/components/AvatarUpload";
 import ImageGalleryManager from "@/components/ImageGalleryManager";
 import SellerAnalytics from "@/components/SellerAnalytics";
 import FavoritesTab from "@/components/FavoritesTab";
+import InvoiceDialog from "@/components/InvoiceDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,8 @@ interface Order {
   amount: number;
   status: string;
   tracking_number: string | null;
+  invoice_number: string | null;
+  delivery_option: string | null;
   created_at: string;
   updated_at: string;
   listings: {
@@ -61,6 +64,9 @@ interface Order {
     images: string[] | null;
     listing_type: string;
   };
+  seller_profile: {
+    full_name: string | null;
+  } | null;
 }
 
 interface Profile {
@@ -136,15 +142,18 @@ const Dashboard = () => {
           amount,
           status,
           tracking_number,
+          invoice_number,
+          delivery_option,
           created_at,
           updated_at,
-          listings(id, title, images, listing_type)
+          listings(id, title, images, listing_type),
+          seller_profile:public_profiles!seller_id(full_name)
         `)
         .eq("buyer_id", user!.id)
         .order("created_at", { ascending: false });
 
       if (ordersError) throw ordersError;
-      setOrders(ordersData || []);
+      setOrders((ordersData as any) || []);
 
       // Fetch user profile
       const { data: profileData, error: profileError } = await supabase
@@ -409,11 +418,30 @@ const Dashboard = () => {
                               </div>
                               <div className="mt-2 flex items-center justify-between">
                                 <p className="text-lg font-bold text-primary">{formatZAR(order.amount)}</p>
-                                {order.tracking_number && (
-                                  <p className="text-sm text-muted-foreground">
-                                    Tracking: {order.tracking_number}
-                                  </p>
-                                )}
+                                <div className="flex items-center gap-2">
+                                  {order.tracking_number && (
+                                    <p className="text-sm text-muted-foreground">
+                                      Tracking: {order.tracking_number}
+                                    </p>
+                                  )}
+                                  {order.invoice_number && (
+                                    <div onClick={(e) => e.stopPropagation()}>
+                                      <InvoiceDialog
+                                        data={{
+                                          invoiceNumber: order.invoice_number,
+                                          orderDate: order.created_at,
+                                          buyerName: profile?.full_name || "Buyer",
+                                          buyerEmail: profile?.email || "",
+                                          sellerName: order.seller_profile?.full_name || "Seller",
+                                          listingTitle: order.listings?.title || "Item",
+                                          amount: order.amount,
+                                          deliveryOption: order.delivery_option,
+                                          status: order.status,
+                                        }}
+                                      />
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>

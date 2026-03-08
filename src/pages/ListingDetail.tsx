@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MapPin, Package, Gavel, User, Star, Trash2, Pencil } from "lucide-react";
+import { Loader2, MapPin, Package, Gavel, User, Star, Trash2, Pencil, Truck } from "lucide-react";
 import { formatZAR } from "@/lib/currency";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -51,6 +51,7 @@ interface Listing {
   auction_ends_at: string | null;
   seller_id: string;
   created_at: string;
+  delivery_options: string[] | null;
   public_profiles: {
     full_name: string | null;
     avatar_url: string | null;
@@ -522,6 +523,27 @@ export default function ListingDetail() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground whitespace-pre-wrap">{listing.description}</p>
+                  
+                  {/* Delivery Options */}
+                  {listing.delivery_options && listing.delivery_options.length > 0 && (
+                    <>
+                      <Separator className="my-4" />
+                      <div>
+                        <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                          <Truck className="h-4 w-4" />
+                          Delivery Options
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {listing.delivery_options.map((option) => (
+                            <Badge key={option} variant="outline" className="capitalize">
+                              {option === "collect" ? "Collection" : option === "courier" ? "Courier" : "Postal Service"}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
                   <Separator className="my-4" />
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span>{listing.view_count} views</span>
