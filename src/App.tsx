@@ -40,6 +40,7 @@ const App = () => (
           <Route path="/messages" element={<Messages />} />
           <Route path="/messages/:id" element={<Conversation />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
