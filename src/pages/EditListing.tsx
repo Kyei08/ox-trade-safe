@@ -29,6 +29,7 @@ const editListingSchema = z.object({
   category_id: z.string().uuid("Please select a category"),
   condition: z.string().trim().min(1, "Condition is required").max(50),
   location: z.string().trim().min(1, "Location is required").max(200),
+  delivery_options: z.array(z.string()).min(1, "Select at least one delivery option"),
   fixed_price: z.string().optional(),
 });
 
