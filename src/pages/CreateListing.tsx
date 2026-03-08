@@ -86,6 +86,7 @@ const CreateListing = () => {
       listing_type: "fixed_price",
       condition: "",
       location: "",
+      delivery_options: [],
       fixed_price: "",
       starting_price: "",
       reserve_price: "",
