@@ -337,12 +337,12 @@ const Dashboard = () => {
                             <div className="grid grid-cols-2 gap-4 text-sm">
                               <div>
                                 <span className="text-muted-foreground">Your Bid:</span>
-                                <p className="font-semibold text-lg">${bid.amount.toFixed(2)}</p>
+                                <p className="font-semibold text-lg">{formatZAR(bid.amount)}</p>
                               </div>
                               <div>
                                 <span className="text-muted-foreground">Current Bid:</span>
                                 <p className="font-semibold text-lg">
-                                  ${bid.listing.current_bid?.toFixed(2)}
+                                  {formatZAR(bid.listing.current_bid)}
                                 </p>
                               </div>
                             </div>

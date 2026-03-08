@@ -413,7 +413,7 @@ const CreateListing = () => {
                               />
                             </FormControl>
                             <FormDescription>
-                              Minimum bid amount in USD
+                              Minimum bid amount in ZAR
                             </FormDescription>
                             <FormMessage />
                           </FormItem>

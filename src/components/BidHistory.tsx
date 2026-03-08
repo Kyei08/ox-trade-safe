@@ -167,7 +167,7 @@ export default function BidHistory({ listingId, currentUserId, auctionEnded }: B
                   "text-lg font-bold",
                   bid.is_winning && "text-primary"
                 )}>
-                  ${bid.amount.toFixed(2)}
+                  {formatZAR(bid.amount)}
                 </p>
               </div>
             ))}

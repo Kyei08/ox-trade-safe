@@ -364,7 +364,7 @@ const Listings = () => {
                           {listing.listing_type === "auction" ? "Current Bid" : "Price"}
                         </p>
                         <p className="text-2xl font-bold text-primary">
-                          ${getPrice(listing)}
+                          {getPrice(listing)}
                         </p>
                       </div>
                       {listing.listing_type === "auction" && listing.auction_ends_at && (

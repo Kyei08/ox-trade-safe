@@ -656,7 +656,7 @@ export default function ListingDetail() {
                           min={(listing.current_bid || listing.starting_price || 0) + 1}
                           value={bidAmount}
                           onChange={(e) => setBidAmount(e.target.value)}
-                          placeholder={`Min: $${((listing.current_bid || listing.starting_price || 0) + 1).toFixed(2)}`}
+                          placeholder={`Min: ${formatZAR((listing.current_bid || listing.starting_price || 0) + 1)}`}
                           required
                         />
                       </div>
