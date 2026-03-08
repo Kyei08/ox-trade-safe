@@ -206,6 +206,7 @@ const EditListing = () => {
         category_id: values.category_id,
         condition: values.condition,
         location: values.location,
+        delivery_options: values.delivery_options,
         images: uploadedImages,
       };
 
