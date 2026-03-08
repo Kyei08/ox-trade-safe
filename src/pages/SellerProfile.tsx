@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/Header";
+import ReportDialog from "@/components/ReportDialog";
 import Footer from "@/components/Footer";
 import ReviewsList from "@/components/ReviewsList";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -44,6 +46,7 @@ interface Listing {
 
 const SellerProfile = () => {
   const { sellerId } = useParams<{ sellerId: string }>();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -146,6 +149,13 @@ const SellerProfile = () => {
                         <ShieldCheck className="h-3 w-3 mr-1" />
                         Verified
                       </Badge>
+                    )}
+                    {user && user.id !== sellerId && (
+                      <ReportDialog
+                        reportType="user"
+                        reportedUserId={sellerId}
+                        reportedName={profile.full_name || "this seller"}
+                      />
                     )}
                   </div>
                   

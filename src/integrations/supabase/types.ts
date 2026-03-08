@@ -394,6 +394,62 @@ export type Database = {
         }
         Relationships: []
       }
+      reports: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          description: string | null
+          id: string
+          reason: string
+          report_type: Database["public"]["Enums"]["report_type"]
+          reported_listing_id: string | null
+          reported_user_id: string | null
+          reporter_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["report_status"]
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          reason: string
+          report_type: Database["public"]["Enums"]["report_type"]
+          reported_listing_id?: string | null
+          reported_user_id?: string | null
+          reporter_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          reason?: string
+          report_type?: Database["public"]["Enums"]["report_type"]
+          reported_listing_id?: string | null
+          reported_user_id?: string | null
+          reporter_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_reported_listing_id_fkey"
+            columns: ["reported_listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           comment: string | null
@@ -545,6 +601,8 @@ export type Database = {
       kyc_status: "pending" | "verified" | "rejected"
       listing_status: "draft" | "active" | "sold" | "expired" | "removed"
       listing_type: "auction" | "fixed_price"
+      report_status: "pending" | "reviewed" | "resolved" | "dismissed"
+      report_type: "listing" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -676,6 +734,8 @@ export const Constants = {
       kyc_status: ["pending", "verified", "rejected"],
       listing_status: ["draft", "active", "sold", "expired", "removed"],
       listing_type: ["auction", "fixed_price"],
+      report_status: ["pending", "reviewed", "resolved", "dismissed"],
+      report_type: ["listing", "user"],
     },
   },
 } as const
