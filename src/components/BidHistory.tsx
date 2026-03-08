@@ -125,7 +125,7 @@ export default function BidHistory({ listingId, currentUserId, auctionEnded }: B
               <span className="font-semibold text-primary">Winner</span>
             </div>
             <p className="text-lg font-bold">{winningBid.public_profiles.full_name}</p>
-            <p className="text-2xl font-bold text-primary">${winningBid.amount.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-primary">{formatZAR(winningBid.amount)}</p>
           </div>
         )}
 
