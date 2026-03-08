@@ -203,6 +203,7 @@ const CreateListing = () => {
         seller_id: user.id,
         status: "active",
         images: uploadedImages,
+        delivery_options: values.delivery_options,
       };
 
       if (values.listing_type === "fixed_price" && values.fixed_price) {
