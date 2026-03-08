@@ -25,6 +25,7 @@ import { Separator } from "@/components/ui/separator";
 const Header = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
