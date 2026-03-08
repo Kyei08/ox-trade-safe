@@ -54,6 +54,8 @@ interface Order {
   amount: number;
   status: string;
   tracking_number: string | null;
+  invoice_number: string | null;
+  delivery_option: string | null;
   created_at: string;
   updated_at: string;
   listings: {
@@ -62,6 +64,9 @@ interface Order {
     images: string[] | null;
     listing_type: string;
   };
+  seller_profile: {
+    full_name: string | null;
+  } | null;
 }
 
 interface Profile {
