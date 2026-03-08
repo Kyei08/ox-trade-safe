@@ -11,7 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { Search, Filter, Clock, DollarSign, MapPin, Eye, User } from "lucide-react";
+import { Search, Filter, Clock, MapPin, Eye, User } from "lucide-react";
+import { formatZAR } from "@/lib/currency";
 
 interface Listing {
   id: string;
@@ -189,9 +190,9 @@ const Listings = () => {
 
   const getPrice = (listing: Listing) => {
     if (listing.listing_type === "fixed_price") {
-      return listing.fixed_price?.toFixed(2);
+      return formatZAR(listing.fixed_price);
     }
-    return listing.current_bid?.toFixed(2) || listing.starting_price?.toFixed(2);
+    return formatZAR(listing.current_bid ?? listing.starting_price);
   };
 
   const getTimeRemaining = (endDate: string | null) => {
@@ -363,7 +364,7 @@ const Listings = () => {
                           {listing.listing_type === "auction" ? "Current Bid" : "Price"}
                         </p>
                         <p className="text-2xl font-bold text-primary">
-                          ${getPrice(listing)}
+                          {getPrice(listing)}
                         </p>
                       </div>
                       {listing.listing_type === "auction" && listing.auction_ends_at && (

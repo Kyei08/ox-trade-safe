@@ -322,6 +322,59 @@ export type Database = {
           },
         ]
       }
+      orders: {
+        Row: {
+          amount: number
+          buyer_id: string
+          created_at: string
+          id: string
+          listing_id: string
+          notes: string | null
+          seller_id: string
+          shipping_address: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          stripe_session_id: string | null
+          tracking_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          buyer_id: string
+          created_at?: string
+          id?: string
+          listing_id: string
+          notes?: string | null
+          seller_id: string
+          shipping_address?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          stripe_session_id?: string | null
+          tracking_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          listing_id?: string
+          notes?: string | null
+          seller_id?: string
+          shipping_address?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          stripe_session_id?: string | null
+          tracking_number?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -601,6 +654,13 @@ export type Database = {
       kyc_status: "pending" | "verified" | "rejected"
       listing_status: "draft" | "active" | "sold" | "expired" | "removed"
       listing_type: "auction" | "fixed_price"
+      order_status:
+        | "pending"
+        | "paid"
+        | "shipped"
+        | "delivered"
+        | "cancelled"
+        | "refunded"
       report_status: "pending" | "reviewed" | "resolved" | "dismissed"
       report_type: "listing" | "user"
     }
@@ -734,6 +794,14 @@ export const Constants = {
       kyc_status: ["pending", "verified", "rejected"],
       listing_status: ["draft", "active", "sold", "expired", "removed"],
       listing_type: ["auction", "fixed_price"],
+      order_status: [
+        "pending",
+        "paid",
+        "shipped",
+        "delivered",
+        "cancelled",
+        "refunded",
+      ],
       report_status: ["pending", "reviewed", "resolved", "dismissed"],
       report_type: ["listing", "user"],
     },

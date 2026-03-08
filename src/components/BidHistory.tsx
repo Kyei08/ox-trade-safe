@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TrendingUp, Trophy, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatZAR } from "@/lib/currency";
 
 interface Bid {
   id: string;
@@ -124,7 +125,7 @@ export default function BidHistory({ listingId, currentUserId, auctionEnded }: B
               <span className="font-semibold text-primary">Winner</span>
             </div>
             <p className="text-lg font-bold">{winningBid.public_profiles.full_name}</p>
-            <p className="text-2xl font-bold text-primary">${winningBid.amount.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-primary">{formatZAR(winningBid.amount)}</p>
           </div>
         )}
 
@@ -166,7 +167,7 @@ export default function BidHistory({ listingId, currentUserId, auctionEnded }: B
                   "text-lg font-bold",
                   bid.is_winning && "text-primary"
                 )}>
-                  ${bid.amount.toFixed(2)}
+                  {formatZAR(bid.amount)}
                 </p>
               </div>
             ))}

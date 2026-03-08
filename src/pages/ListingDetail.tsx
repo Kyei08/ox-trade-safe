@@ -19,6 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, MapPin, Package, Gavel, User, Star, Trash2, Pencil } from "lucide-react";
+import { formatZAR } from "@/lib/currency";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -254,7 +255,7 @@ export default function ListingDetail() {
     if (amount < minimumBid) {
       toast({
         title: "Invalid bid",
-        description: `Minimum bid is $${minimumBid.toFixed(2)}`,
+        description: `Minimum bid is ${formatZAR(minimumBid)}`,
         variant: "destructive",
       });
       return;
@@ -302,7 +303,7 @@ export default function ListingDetail() {
 
       toast({
         title: "Bid placed successfully",
-        description: `Your bid of $${amount.toFixed(2)} has been placed`,
+        description: `Your bid of ${formatZAR(amount)} has been placed`,
       });
 
       setBidAmount("");
@@ -619,7 +620,7 @@ export default function ListingDetail() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-2xl">
-                    ${currentPrice?.toFixed(2)}
+                    {formatZAR(currentPrice)}
                   </CardTitle>
                   <CardDescription>
                     {isAuction ? "Current bid" : "Fixed price"}
@@ -655,7 +656,7 @@ export default function ListingDetail() {
                           min={(listing.current_bid || listing.starting_price || 0) + 1}
                           value={bidAmount}
                           onChange={(e) => setBidAmount(e.target.value)}
-                          placeholder={`Min: $${((listing.current_bid || listing.starting_price || 0) + 1).toFixed(2)}`}
+                          placeholder={`Min: ${formatZAR((listing.current_bid || listing.starting_price || 0) + 1)}`}
                           required
                         />
                       </div>

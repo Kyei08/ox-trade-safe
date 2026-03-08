@@ -15,7 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Package, Gavel, User, Star, MapPin, Phone, MessageSquare, Image, BarChart3, Heart, Pencil } from "lucide-react";
+import { Package, Gavel, User, Star, MapPin, Phone, MessageSquare, Image, BarChart3, Heart, Pencil, ShoppingBag } from "lucide-react";
+import { formatZAR } from "@/lib/currency";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Listing {
@@ -46,6 +47,22 @@ interface Bid {
   };
 }
 
+interface Order {
+  id: string;
+  listing_id: string;
+  amount: number;
+  status: string;
+  tracking_number: string | null;
+  created_at: string;
+  updated_at: string;
+  listings: {
+    id: string;
+    title: string;
+    images: string[] | null;
+    listing_type: string;
+  };
+}
+
 interface Profile {
   full_name: string | null;
   email: string;
@@ -64,6 +81,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [listings, setListings] = useState<Listing[]>([]);
   const [bids, setBids] = useState<Bid[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -108,6 +126,25 @@ const Dashboard = () => {
 
       if (bidsError) throw bidsError;
       setBids(bidsData || []);
+
+      // Fetch user's orders (purchases)
+      const { data: ordersData, error: ordersError } = await supabase
+        .from("orders")
+        .select(`
+          id,
+          listing_id,
+          amount,
+          status,
+          tracking_number,
+          created_at,
+          updated_at,
+          listings(id, title, images, listing_type)
+        `)
+        .eq("buyer_id", user!.id)
+        .order("created_at", { ascending: false });
+
+      if (ordersError) throw ordersError;
+      setOrders(ordersData || []);
 
       // Fetch user profile
       const { data: profileData, error: profileError } = await supabase
@@ -183,7 +220,7 @@ const Dashboard = () => {
 
           {/* Dashboard Tabs */}
           <Tabs defaultValue="analytics" className="w-full">
-            <TabsList className="grid w-full grid-cols-7 max-w-5xl">
+            <TabsList className="grid w-full grid-cols-8 max-w-5xl">
               <TabsTrigger value="analytics">
                 <BarChart3 className="w-4 h-4 mr-2" />
                 Analytics
@@ -195,6 +232,10 @@ const Dashboard = () => {
               <TabsTrigger value="favorites">
                 <Heart className="w-4 h-4 mr-2" />
                 Favorites
+              </TabsTrigger>
+              <TabsTrigger value="purchases">
+                <ShoppingBag className="w-4 h-4 mr-2" />
+                Purchases
               </TabsTrigger>
               <TabsTrigger value="bids">
                 <Gavel className="w-4 h-4 mr-2" />
@@ -260,9 +301,9 @@ const Dashboard = () => {
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Price:</span>
                             <span className="font-semibold">
-                              ${listing.listing_type === "fixed_price" 
-                                ? listing.fixed_price?.toFixed(2) 
-                                : listing.current_bid?.toFixed(2) || listing.starting_price?.toFixed(2)}
+                              {formatZAR(listing.listing_type === "fixed_price" 
+                                ? listing.fixed_price 
+                                : listing.current_bid || listing.starting_price)}
                             </span>
                           </div>
                           <div className="flex justify-between">
@@ -311,7 +352,79 @@ const Dashboard = () => {
               <FavoritesTab userId={user.id} />
             </TabsContent>
 
-            {/* Bids Tab */}
+            {/* Purchases Tab */}
+            <TabsContent value="purchases" className="mt-6">
+              <h2 className="text-2xl font-semibold mb-4">My Purchases</h2>
+              {orders.length === 0 ? (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <ShoppingBag className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">You haven't made any purchases yet.</p>
+                    <Button variant="outline" className="mt-4" onClick={() => navigate("/listings")}>
+                      Browse Listings
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {orders.map((order) => {
+                    const statusColors: Record<string, string> = {
+                      pending: "secondary",
+                      paid: "default",
+                      shipped: "default",
+                      delivered: "default",
+                      cancelled: "destructive",
+                      refunded: "secondary",
+                    };
+                    return (
+                      <Card
+                        key={order.id}
+                        className="cursor-pointer hover:shadow-lg transition-shadow"
+                        onClick={() => navigate(`/listings/${order.listing_id}`)}
+                      >
+                        <CardContent className="pt-6">
+                          <div className="flex gap-4">
+                            {order.listings?.images?.[0] ? (
+                              <img
+                                src={order.listings.images[0]}
+                                alt={order.listings.title}
+                                className="w-20 h-20 object-cover rounded-lg"
+                              />
+                            ) : (
+                              <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
+                                <Package className="w-8 h-8 text-muted-foreground" />
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <h3 className="font-semibold text-lg">{order.listings?.title}</h3>
+                                  <p className="text-sm text-muted-foreground">
+                                    Purchased {new Date(order.created_at).toLocaleDateString()}
+                                  </p>
+                                </div>
+                                <Badge variant={statusColors[order.status] as any || "secondary"}>
+                                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                </Badge>
+                              </div>
+                              <div className="mt-2 flex items-center justify-between">
+                                <p className="text-lg font-bold text-primary">{formatZAR(order.amount)}</p>
+                                {order.tracking_number && (
+                                  <p className="text-sm text-muted-foreground">
+                                    Tracking: {order.tracking_number}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </TabsContent>
+
             <TabsContent value="bids" className="mt-6">
               <h2 className="text-2xl font-semibold mb-4">My Bids</h2>
               {bids.length === 0 ? (
@@ -336,12 +449,12 @@ const Dashboard = () => {
                             <div className="grid grid-cols-2 gap-4 text-sm">
                               <div>
                                 <span className="text-muted-foreground">Your Bid:</span>
-                                <p className="font-semibold text-lg">${bid.amount.toFixed(2)}</p>
+                                <p className="font-semibold text-lg">{formatZAR(bid.amount)}</p>
                               </div>
                               <div>
                                 <span className="text-muted-foreground">Current Bid:</span>
                                 <p className="font-semibold text-lg">
-                                  ${bid.listing.current_bid?.toFixed(2)}
+                                  {formatZAR(bid.listing.current_bid)}
                                 </p>
                               </div>
                             </div>
