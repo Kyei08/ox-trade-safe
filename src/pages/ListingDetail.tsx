@@ -495,7 +495,17 @@ export default function ListingDetail() {
                       </Badge>
                       <Badge variant="outline">{listing.listing_type}</Badge>
                     </div>
-                    {!isOwner && <FavoriteButton listingId={listing.id} />}
+                    <div className="flex items-center gap-2">
+                      {!isOwner && (
+                        <ReportDialog
+                          reportType="listing"
+                          reportedListingId={listing.id}
+                          reportedUserId={listing.seller_id}
+                          reportedName={listing.title}
+                        />
+                      )}
+                      {!isOwner && <FavoriteButton listingId={listing.id} />}
+                    </div>
                   </div>
                   <CardTitle className="text-3xl">{listing.title}</CardTitle>
                   <CardDescription className="flex items-center gap-4 text-base mt-2">
