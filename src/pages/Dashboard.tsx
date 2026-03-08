@@ -127,6 +127,25 @@ const Dashboard = () => {
       if (bidsError) throw bidsError;
       setBids(bidsData || []);
 
+      // Fetch user's orders (purchases)
+      const { data: ordersData, error: ordersError } = await supabase
+        .from("orders")
+        .select(`
+          id,
+          listing_id,
+          amount,
+          status,
+          tracking_number,
+          created_at,
+          updated_at,
+          listings(id, title, images, listing_type)
+        `)
+        .eq("buyer_id", user!.id)
+        .order("created_at", { ascending: false });
+
+      if (ordersError) throw ordersError;
+      setOrders(ordersData || []);
+
       // Fetch user profile
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
