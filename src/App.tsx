@@ -15,6 +15,7 @@ import Messages from "./pages/Messages";
 import Conversation from "./pages/Conversation";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import SellerProfile from "./pages/SellerProfile";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
