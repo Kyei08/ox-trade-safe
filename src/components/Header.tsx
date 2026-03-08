@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Menu, Search, LogOut, MessageSquare, Home, Grid, Plus, User, Gavel, Shield, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { useState } from "react";
 import {
@@ -25,6 +25,7 @@ import { Separator } from "@/components/ui/separator";
 const Header = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -56,21 +57,33 @@ const Header = () => {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
-              <Link to="/" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-2">
+              <Link 
+                to="/" 
+                className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-2 ${location.pathname === "/" ? "font-bold" : ""}`}
+              >
                 <Home className="w-4 h-4" />
                 Home
               </Link>
-              <Link to="/listings" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-2">
+              <Link 
+                to="/listings" 
+                className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-2 ${location.pathname === "/listings" ? "font-bold" : ""}`}
+              >
                 <Grid className="w-4 h-4" />
                 Browse Listings
               </Link>
               {user && (
                 <>
-                  <Link to="/create-listing" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-2">
+                  <Link 
+                    to="/create-listing" 
+                    className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-2 ${location.pathname === "/create-listing" ? "font-bold" : ""}`}
+                  >
                     <Plus className="w-4 h-4" />
                     Sell Item
                   </Link>
-                  <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-2">
+                  <Link 
+                    to="/dashboard" 
+                    className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-2 ${location.pathname === "/dashboard" ? "font-bold" : ""}`}
+                  >
                     <User className="w-4 h-4" />
                     Dashboard
                   </Link>
@@ -171,7 +184,7 @@ const Header = () => {
                 <div className="mt-8 flex flex-col gap-4">
                   <Link 
                     to="/" 
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname === "/" ? "font-bold" : ""}`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <Home className="w-5 h-5" />
@@ -180,7 +193,7 @@ const Header = () => {
                   
                   <Link 
                     to="/listings" 
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname === "/listings" ? "font-bold" : ""}`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <Grid className="w-5 h-5" />
@@ -193,7 +206,7 @@ const Header = () => {
                       
                       <Link 
                         to="/dashboard" 
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname === "/dashboard" ? "font-bold" : ""}`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <User className="w-5 h-5" />
@@ -202,7 +215,7 @@ const Header = () => {
                       
                       <Link 
                         to="/create-listing" 
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname === "/create-listing" ? "font-bold" : ""}`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <Plus className="w-5 h-5" />
@@ -211,7 +224,7 @@ const Header = () => {
                       
                       <Link 
                         to="/messages" 
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname === "/messages" ? "font-bold" : ""}`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <MessageSquare className="w-5 h-5" />
@@ -220,7 +233,7 @@ const Header = () => {
                       
                       <Link 
                         to="/kyc" 
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname === "/kyc" ? "font-bold" : ""}`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <Shield className="w-5 h-5" />
