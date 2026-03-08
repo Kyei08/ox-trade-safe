@@ -255,7 +255,7 @@ export default function ListingDetail() {
     if (amount < minimumBid) {
       toast({
         title: "Invalid bid",
-        description: `Minimum bid is $${minimumBid.toFixed(2)}`,
+        description: `Minimum bid is ${formatZAR(minimumBid)}`,
         variant: "destructive",
       });
       return;
