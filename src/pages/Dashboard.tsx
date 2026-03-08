@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Package, Gavel, User, Star, MapPin, Phone, MessageSquare, Image, BarChart3, Heart } from "lucide-react";
+import { Package, Gavel, User, Star, MapPin, Phone, MessageSquare, Image, BarChart3, Heart, Pencil } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Listing {
@@ -274,16 +274,30 @@ const Dashboard = () => {
                             <span>{listing.bid_count}</span>
                           </div>
                         </div>
-                        <Button 
-                          variant="outline" 
-                          className="w-full mt-4"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/listings/${listing.id}`);
-                          }}
-                        >
-                          View Details
-                        </Button>
+                        <div className="flex gap-2 mt-4">
+                          <Button 
+                            variant="outline" 
+                            className="flex-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/listings/${listing.id}`);
+                            }}
+                          >
+                            View Details
+                          </Button>
+                          {(listing.status === "active" || listing.status === "draft") && (
+                            <Button 
+                              variant="secondary" 
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/edit-listing/${listing.id}`);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
