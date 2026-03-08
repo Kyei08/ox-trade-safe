@@ -400,6 +400,50 @@ const EditListing = () => {
                     )}
                   />
 
+                  {/* Delivery Options */}
+                  <FormField
+                    control={form.control}
+                    name="delivery_options"
+                    render={() => (
+                      <FormItem>
+                        <FormLabel>Delivery Options *</FormLabel>
+                        <FormDescription>
+                          Select how buyers can receive this item
+                        </FormDescription>
+                        <div className="space-y-2 mt-2">
+                          {DELIVERY_OPTIONS.map((option) => (
+                            <FormField
+                              key={option.value}
+                              control={form.control}
+                              name="delivery_options"
+                              render={({ field }) => (
+                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value?.includes(option.value)}
+                                      onCheckedChange={(checked) => {
+                                        const current = field.value || [];
+                                        field.onChange(
+                                          checked
+                                            ? [...current, option.value]
+                                            : current.filter((v: string) => v !== option.value)
+                                        );
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="font-normal cursor-pointer">
+                                    {option.label}
+                                  </FormLabel>
+                                </FormItem>
+                              )}
+                            />
+                          ))}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   {/* Image Upload */}
                   <div className="space-y-4">
                     <div>
