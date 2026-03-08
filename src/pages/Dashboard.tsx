@@ -142,15 +142,18 @@ const Dashboard = () => {
           amount,
           status,
           tracking_number,
+          invoice_number,
+          delivery_option,
           created_at,
           updated_at,
-          listings(id, title, images, listing_type)
+          listings(id, title, images, listing_type),
+          seller_profile:public_profiles!seller_id(full_name)
         `)
         .eq("buyer_id", user!.id)
         .order("created_at", { ascending: false });
 
       if (ordersError) throw ordersError;
-      setOrders(ordersData || []);
+      setOrders((ordersData as any) || []);
 
       // Fetch user profile
       const { data: profileData, error: profileError } = await supabase
