@@ -253,10 +253,64 @@ const Auth = () => {
                       "Sign In"
                     )}
                   </Button>
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="w-full text-sm text-muted-foreground"
+                    onClick={() => setShowForgotPassword(true)}
+                  >
+                    Forgot your password?
+                  </Button>
                 </form>
               </CardContent>
             </TabsContent>
 
+            {showForgotPassword && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+                <Card className="w-full max-w-md mx-4 shadow-glow">
+                  <CardHeader>
+                    <CardTitle>Reset Password</CardTitle>
+                    <CardDescription>Enter your email and we'll send you a reset link</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleForgotPassword} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="forgot-email">Email</Label>
+                        <Input
+                          id="forgot-email"
+                          type="email"
+                          placeholder="your@email.com"
+                          value={forgotEmail}
+                          onChange={(e) => setForgotEmail(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <Button type="submit" className="w-full" disabled={forgotLoading}>
+                        {forgotLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          "Send Reset Link"
+                        )}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="w-full"
+                        onClick={() => {
+                          setShowForgotPassword(false);
+                          setForgotEmail("");
+                        }}
+                      >
+                        Back to Sign In
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
             <TabsContent value="signup">
               <CardContent className="space-y-4 pt-0">
                 <Button
