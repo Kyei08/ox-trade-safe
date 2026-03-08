@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,8 +17,19 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MapPin, Package, Gavel, User, Star } from "lucide-react";
+import { Loader2, MapPin, Package, Gavel, User, Star, Trash2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Listing {
   id: string;
@@ -389,6 +400,35 @@ export default function ListingDetail() {
     }
   };
 
+  const handleRemoveListing = async () => {
+    if (!user || !listing || user.id !== listing.seller_id) return;
+
+    setSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from("listings")
+        .update({ status: "removed" as const })
+        .eq("id", listing.id)
+        .eq("seller_id", user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Listing removed",
+        description: "Your listing has been removed successfully",
+      });
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast({
+        title: "Failed to remove listing",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   if (loading) {
     return (
       <>
@@ -638,9 +678,35 @@ export default function ListingDetail() {
                   )}
 
                   {isOwner && (
-                    <Alert>
-                      <AlertDescription>This is your listing</AlertDescription>
-                    </Alert>
+                    <div className="space-y-3">
+                      <Alert>
+                        <AlertDescription>This is your listing</AlertDescription>
+                      </Alert>
+                      {listing.status !== "removed" && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" className="w-full" disabled={submitting}>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Remove Listing
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Remove this listing?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will remove your listing from the marketplace. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleRemoveListing}>
+                                Remove
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </div>
                   )}
 
                   {!user && listing.status === "active" && !auctionEnded && (
