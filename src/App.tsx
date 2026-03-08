@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import CreateListing from "./pages/CreateListing";
+import EditListing from "./pages/EditListing";
 import Listings from "./pages/Listings";
 import ListingDetail from "./pages/ListingDetail";
 import KYCSubmission from "./pages/KYCSubmission";
