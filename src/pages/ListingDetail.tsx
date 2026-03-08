@@ -3,6 +3,8 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
+import RecentlyViewedListings from "@/components/RecentlyViewedListings";
+import { addRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import ReviewSubmitDialog from "@/components/ReviewSubmitDialog";
 import FavoriteButton from "@/components/FavoriteButton";
 import ReviewsList from "@/components/ReviewsList";
