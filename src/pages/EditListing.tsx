@@ -12,16 +12,9 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Loader2, Upload, X } from "lucide-react";
 import { compressImages } from "@/lib/imageCompression";
-
-const DELIVERY_OPTIONS = [
-  { value: "collect", label: "Collection (buyer picks up)" },
-  { value: "courier", label: "Courier delivery" },
-  { value: "post", label: "Postal service" },
-];
 
 const editListingSchema = z.object({
   title: z.string().trim().min(5, "Title must be at least 5 characters").max(200, "Title must be less than 200 characters"),
@@ -29,7 +22,6 @@ const editListingSchema = z.object({
   category_id: z.string().uuid("Please select a category"),
   condition: z.string().trim().min(1, "Condition is required").max(50),
   location: z.string().trim().min(1, "Location is required").max(200),
-  delivery_options: z.array(z.string()).min(1, "Select at least one delivery option"),
   fixed_price: z.string().optional(),
 });
 
@@ -60,7 +52,6 @@ const EditListing = () => {
       category_id: "",
       condition: "",
       location: "",
-      delivery_options: [],
       fixed_price: "",
     },
   });
@@ -122,7 +113,6 @@ const EditListing = () => {
         category_id: data.category_id || "",
         condition: data.condition || "",
         location: data.location || "",
-        delivery_options: data.delivery_options || [],
         fixed_price: data.fixed_price?.toString() || "",
       });
     } catch (error) {
@@ -206,7 +196,6 @@ const EditListing = () => {
         category_id: values.category_id,
         condition: values.condition,
         location: values.location,
-        delivery_options: values.delivery_options,
         images: uploadedImages,
       };
 
@@ -395,50 +384,6 @@ const EditListing = () => {
                         <FormControl>
                           <Input placeholder="e.g., New York, NY" {...field} />
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Delivery Options */}
-                  <FormField
-                    control={form.control}
-                    name="delivery_options"
-                    render={() => (
-                      <FormItem>
-                        <FormLabel>Delivery Options *</FormLabel>
-                        <FormDescription>
-                          Select how buyers can receive this item
-                        </FormDescription>
-                        <div className="space-y-2 mt-2">
-                          {DELIVERY_OPTIONS.map((option) => (
-                            <FormField
-                              key={option.value}
-                              control={form.control}
-                              name="delivery_options"
-                              render={({ field }) => (
-                                <FormItem className="flex items-center space-x-3 space-y-0">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value?.includes(option.value)}
-                                      onCheckedChange={(checked) => {
-                                        const current = field.value || [];
-                                        field.onChange(
-                                          checked
-                                            ? [...current, option.value]
-                                            : current.filter((v: string) => v !== option.value)
-                                        );
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="font-normal cursor-pointer">
-                                    {option.label}
-                                  </FormLabel>
-                                </FormItem>
-                              )}
-                            />
-                          ))}
-                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
