@@ -190,9 +190,9 @@ const Listings = () => {
 
   const getPrice = (listing: Listing) => {
     if (listing.listing_type === "fixed_price") {
-      return listing.fixed_price?.toFixed(2);
+      return formatZAR(listing.fixed_price);
     }
-    return listing.current_bid?.toFixed(2) || listing.starting_price?.toFixed(2);
+    return formatZAR(listing.current_bid ?? listing.starting_price);
   };
 
   const getTimeRemaining = (endDate: string | null) => {
