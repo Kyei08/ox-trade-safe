@@ -388,7 +388,7 @@ const CreateListing = () => {
                               {...field}
                             />
                           </FormControl>
-                          <FormDescription>Price in USD</FormDescription>
+                          <FormDescription>Price in ZAR</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
