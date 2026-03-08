@@ -261,9 +261,9 @@ const Dashboard = () => {
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Price:</span>
                             <span className="font-semibold">
-                              ${listing.listing_type === "fixed_price" 
-                                ? listing.fixed_price?.toFixed(2) 
-                                : listing.current_bid?.toFixed(2) || listing.starting_price?.toFixed(2)}
+                              {formatZAR(listing.listing_type === "fixed_price" 
+                                ? listing.fixed_price 
+                                : listing.current_bid || listing.starting_price)}
                             </span>
                           </div>
                           <div className="flex justify-between">
