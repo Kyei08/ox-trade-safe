@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Menu, Search, LogOut, MessageSquare, Home, Grid, Plus, User, Gavel, Shield, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { useState } from "react";
 import {
