@@ -15,7 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Package, Gavel, User, Star, MapPin, Phone, MessageSquare, Image, BarChart3, Heart, Pencil } from "lucide-react";
+import { Package, Gavel, User, Star, MapPin, Phone, MessageSquare, Image, BarChart3, Heart, Pencil, ShoppingBag } from "lucide-react";
+import { formatZAR } from "@/lib/currency";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Listing {
