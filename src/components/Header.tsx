@@ -184,7 +184,7 @@ const Header = () => {
                 <div className="mt-8 flex flex-col gap-4">
                   <Link 
                     to="/" 
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname === "/" ? "font-bold" : ""}`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <Home className="w-5 h-5" />
@@ -193,7 +193,7 @@ const Header = () => {
                   
                   <Link 
                     to="/listings" 
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname === "/listings" ? "font-bold" : ""}`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <Grid className="w-5 h-5" />
