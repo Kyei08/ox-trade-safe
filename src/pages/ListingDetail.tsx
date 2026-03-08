@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import ReviewSubmitDialog from "@/components/ReviewSubmitDialog";
 import FavoriteButton from "@/components/FavoriteButton";
 import ReviewsList from "@/components/ReviewsList";
+import ReportDialog from "@/components/ReportDialog";
 import AuctionCountdown from "@/components/AuctionCountdown";
 import BidHistory from "@/components/BidHistory";
 import AuctionStatus from "@/components/AuctionStatus";

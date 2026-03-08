@@ -40,6 +40,7 @@ const App = () => (
           <Route path="/seller/:sellerId" element={<SellerProfile />} />
           <Route path="/kyc" element={<KYCSubmission />} />
           <Route path="/admin/kyc" element={<AdminKYC />} />
+          <Route path="/admin/reports" element={<AdminReports />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/messages/:id" element={<Conversation />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
