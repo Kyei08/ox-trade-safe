@@ -352,7 +352,79 @@ const Dashboard = () => {
               <FavoritesTab userId={user.id} />
             </TabsContent>
 
-            {/* Bids Tab */}
+            {/* Purchases Tab */}
+            <TabsContent value="purchases" className="mt-6">
+              <h2 className="text-2xl font-semibold mb-4">My Purchases</h2>
+              {orders.length === 0 ? (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <ShoppingBag className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">You haven't made any purchases yet.</p>
+                    <Button variant="outline" className="mt-4" onClick={() => navigate("/listings")}>
+                      Browse Listings
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {orders.map((order) => {
+                    const statusColors: Record<string, string> = {
+                      pending: "secondary",
+                      paid: "default",
+                      shipped: "default",
+                      delivered: "default",
+                      cancelled: "destructive",
+                      refunded: "secondary",
+                    };
+                    return (
+                      <Card
+                        key={order.id}
+                        className="cursor-pointer hover:shadow-lg transition-shadow"
+                        onClick={() => navigate(`/listings/${order.listing_id}`)}
+                      >
+                        <CardContent className="pt-6">
+                          <div className="flex gap-4">
+                            {order.listings?.images?.[0] ? (
+                              <img
+                                src={order.listings.images[0]}
+                                alt={order.listings.title}
+                                className="w-20 h-20 object-cover rounded-lg"
+                              />
+                            ) : (
+                              <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
+                                <Package className="w-8 h-8 text-muted-foreground" />
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <h3 className="font-semibold text-lg">{order.listings?.title}</h3>
+                                  <p className="text-sm text-muted-foreground">
+                                    Purchased {new Date(order.created_at).toLocaleDateString()}
+                                  </p>
+                                </div>
+                                <Badge variant={statusColors[order.status] as any || "secondary"}>
+                                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                </Badge>
+                              </div>
+                              <div className="mt-2 flex items-center justify-between">
+                                <p className="text-lg font-bold text-primary">{formatZAR(order.amount)}</p>
+                                {order.tracking_number && (
+                                  <p className="text-sm text-muted-foreground">
+                                    Tracking: {order.tracking_number}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </TabsContent>
+
             <TabsContent value="bids" className="mt-6">
               <h2 className="text-2xl font-semibold mb-4">My Bids</h2>
               {bids.length === 0 ? (
