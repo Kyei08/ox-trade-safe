@@ -274,16 +274,30 @@ const Dashboard = () => {
                             <span>{listing.bid_count}</span>
                           </div>
                         </div>
-                        <Button 
-                          variant="outline" 
-                          className="w-full mt-4"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/listings/${listing.id}`);
-                          }}
-                        >
-                          View Details
-                        </Button>
+                        <div className="flex gap-2 mt-4">
+                          <Button 
+                            variant="outline" 
+                            className="flex-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/listings/${listing.id}`);
+                            }}
+                          >
+                            View Details
+                          </Button>
+                          {(listing.status === "active" || listing.status === "draft") && (
+                            <Button 
+                              variant="secondary" 
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/edit-listing/${listing.id}`);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
