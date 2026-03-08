@@ -46,6 +46,7 @@ interface Listing {
 
 const SellerProfile = () => {
   const { sellerId } = useParams<{ sellerId: string }>();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
