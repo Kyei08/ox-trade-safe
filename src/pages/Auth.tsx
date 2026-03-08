@@ -117,6 +117,43 @@ const Auth = () => {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const emailResult = z.string().trim().email("Invalid email address").safeParse(forgotEmail);
+    if (!emailResult.success) {
+      toast.error(emailResult.error.errors[0].message);
+      return;
+    }
+
+    setForgotLoading(true);
+    
+    // Check if user exists by looking up profiles table
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("email", emailResult.data)
+      .maybeSingle();
+
+    if (!profile) {
+      setForgotLoading(false);
+      toast.error("No account found with this email address.");
+      return;
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(emailResult.data, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setForgotLoading(false);
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Password reset link sent! Check your email.");
+      setShowForgotPassword(false);
+      setForgotEmail("");
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-hero p-4">
       <div className="w-full max-w-md">
