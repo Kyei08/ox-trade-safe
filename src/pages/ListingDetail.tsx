@@ -3,6 +3,8 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
+import RecentlyViewedListings from "@/components/RecentlyViewedListings";
+import { addRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import ReviewSubmitDialog from "@/components/ReviewSubmitDialog";
 import FavoriteButton from "@/components/FavoriteButton";
 import ReviewsList from "@/components/ReviewsList";
@@ -165,6 +167,16 @@ export default function ListingDetail() {
 
       if (error) throw error;
       setListing(data);
+      // Track recently viewed
+      if (data) {
+        addRecentlyViewed({
+          id: data.id,
+          title: data.title,
+          image: data.images?.[0] || null,
+          price: data.listing_type === "fixed_price" ? data.fixed_price : (data.current_bid || data.starting_price),
+          listing_type: data.listing_type,
+        });
+      }
     } catch (error) {
       console.error("Error fetching listing:", error);
       toast({
@@ -841,6 +853,8 @@ export default function ListingDetail() {
             </div>
           </div>
         </div>
+
+        <RecentlyViewedListings excludeId={id} />
       </main>
     </>
   );
