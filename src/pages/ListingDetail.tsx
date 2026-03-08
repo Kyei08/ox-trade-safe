@@ -678,9 +678,35 @@ export default function ListingDetail() {
                   )}
 
                   {isOwner && (
-                    <Alert>
-                      <AlertDescription>This is your listing</AlertDescription>
-                    </Alert>
+                    <div className="space-y-3">
+                      <Alert>
+                        <AlertDescription>This is your listing</AlertDescription>
+                      </Alert>
+                      {listing.status !== "removed" && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" className="w-full" disabled={submitting}>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Remove Listing
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Remove this listing?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will remove your listing from the marketplace. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleRemoveListing}>
+                                Remove
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </div>
                   )}
 
                   {!user && listing.status === "active" && !auctionEnded && (
