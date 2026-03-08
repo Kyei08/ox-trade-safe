@@ -95,7 +95,7 @@ const AdminReports = () => {
       const { error } = await supabase
         .from("reports")
         .update({
-          status: newStatus,
+          status: newStatus as "pending" | "reviewed" | "resolved" | "dismissed",
           admin_notes: adminNotes[reportId] || null,
           reviewed_by: user!.id,
           reviewed_at: new Date().toISOString(),
