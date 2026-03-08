@@ -101,6 +101,7 @@ const Header = () => {
             
             {user ? (
               <>
+                <NotificationBell />
                 <Button 
                   variant="ghost" 
                   size="icon"
