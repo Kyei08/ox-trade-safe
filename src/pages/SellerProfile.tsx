@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/Header";
+import ReportDialog from "@/components/ReportDialog";
 import Footer from "@/components/Footer";
 import ReviewsList from "@/components/ReviewsList";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
