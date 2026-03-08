@@ -303,7 +303,7 @@ export default function ListingDetail() {
 
       toast({
         title: "Bid placed successfully",
-        description: `Your bid of $${amount.toFixed(2)} has been placed`,
+        description: `Your bid of ${formatZAR(amount)} has been placed`,
       });
 
       setBidAmount("");
