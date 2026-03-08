@@ -428,6 +428,8 @@ export default function ListingDetail() {
       setSubmitting(false);
     }
   };
+
+  if (loading) {
     return (
       <>
         <Header />
