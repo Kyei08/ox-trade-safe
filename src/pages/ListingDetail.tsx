@@ -523,6 +523,27 @@ export default function ListingDetail() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground whitespace-pre-wrap">{listing.description}</p>
+                  
+                  {/* Delivery Options */}
+                  {listing.delivery_options && listing.delivery_options.length > 0 && (
+                    <>
+                      <Separator className="my-4" />
+                      <div>
+                        <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                          <Truck className="h-4 w-4" />
+                          Delivery Options
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {listing.delivery_options.map((option) => (
+                            <Badge key={option} variant="outline" className="capitalize">
+                              {option === "collect" ? "Collection" : option === "courier" ? "Courier" : "Postal Service"}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
                   <Separator className="my-4" />
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span>{listing.view_count} views</span>
