@@ -35,6 +35,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const { user, signUp, signIn } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   // Redirect if already logged in
   useEffect(() => {
