@@ -11,6 +11,7 @@ import { Loader2, Shield } from "lucide-react";
 import { z } from "zod";
 import { lovable } from "@/integrations/lovable/index";
 import { Separator } from "@/components/ui/separator";
+import { supabase } from "@/integrations/supabase/client";
 
 // Validation schemas for secure input handling
 const signUpSchema = z.object({
@@ -36,6 +37,9 @@ const Auth = () => {
   const { user, signUp, signIn } = useAuth();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -111,6 +115,43 @@ const Auth = () => {
     setGoogleLoading(false);
     if (error) {
       toast.error("Google sign-in failed. Please try again.");
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const emailResult = z.string().trim().email("Invalid email address").safeParse(forgotEmail);
+    if (!emailResult.success) {
+      toast.error(emailResult.error.errors[0].message);
+      return;
+    }
+
+    setForgotLoading(true);
+    
+    // Check if user exists by looking up profiles table
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("email", emailResult.data)
+      .maybeSingle();
+
+    if (!profile) {
+      setForgotLoading(false);
+      toast.error("No account found with this email address.");
+      return;
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(emailResult.data, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setForgotLoading(false);
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Password reset link sent! Check your email.");
+      setShowForgotPassword(false);
+      setForgotEmail("");
     }
   };
 
@@ -212,10 +253,64 @@ const Auth = () => {
                       "Sign In"
                     )}
                   </Button>
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="w-full text-sm text-muted-foreground"
+                    onClick={() => setShowForgotPassword(true)}
+                  >
+                    Forgot your password?
+                  </Button>
                 </form>
               </CardContent>
             </TabsContent>
 
+            {showForgotPassword && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+                <Card className="w-full max-w-md mx-4 shadow-glow">
+                  <CardHeader>
+                    <CardTitle>Reset Password</CardTitle>
+                    <CardDescription>Enter your email and we'll send you a reset link</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleForgotPassword} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="forgot-email">Email</Label>
+                        <Input
+                          id="forgot-email"
+                          type="email"
+                          placeholder="your@email.com"
+                          value={forgotEmail}
+                          onChange={(e) => setForgotEmail(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <Button type="submit" className="w-full" disabled={forgotLoading}>
+                        {forgotLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          "Send Reset Link"
+                        )}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="w-full"
+                        onClick={() => {
+                          setShowForgotPassword(false);
+                          setForgotEmail("");
+                        }}
+                      >
+                        Back to Sign In
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
             <TabsContent value="signup">
               <CardContent className="space-y-4 pt-0">
                 <Button

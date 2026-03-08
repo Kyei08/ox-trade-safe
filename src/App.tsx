@@ -15,6 +15,7 @@ import Messages from "./pages/Messages";
 import Conversation from "./pages/Conversation";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import SellerProfile from "./pages/SellerProfile";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
           <Route path="/messages" element={<Messages />} />
           <Route path="/messages/:id" element={<Conversation />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
