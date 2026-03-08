@@ -620,7 +620,7 @@ export default function ListingDetail() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-2xl">
-                    ${currentPrice?.toFixed(2)}
+                    {formatZAR(currentPrice)}
                   </CardTitle>
                   <CardDescription>
                     {isAuction ? "Current bid" : "Fixed price"}
