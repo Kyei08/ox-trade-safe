@@ -400,7 +400,34 @@ export default function ListingDetail() {
     }
   };
 
-  if (loading) {
+  const handleRemoveListing = async () => {
+    if (!user || !listing || user.id !== listing.seller_id) return;
+
+    setSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from("listings")
+        .update({ status: "removed" as const })
+        .eq("id", listing.id)
+        .eq("seller_id", user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Listing removed",
+        description: "Your listing has been removed successfully",
+      });
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast({
+        title: "Failed to remove listing",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
     return (
       <>
         <Header />
