@@ -51,6 +51,7 @@ interface Listing {
   auction_ends_at: string | null;
   seller_id: string;
   created_at: string;
+  delivery_options: string[] | null;
   public_profiles: {
     full_name: string | null;
     avatar_url: string | null;
