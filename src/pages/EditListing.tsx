@@ -122,6 +122,7 @@ const EditListing = () => {
         category_id: data.category_id || "",
         condition: data.condition || "",
         location: data.location || "",
+        delivery_options: data.delivery_options || [],
         fixed_price: data.fixed_price?.toString() || "",
       });
     } catch (error) {
