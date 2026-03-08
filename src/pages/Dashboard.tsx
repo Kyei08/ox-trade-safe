@@ -233,6 +233,10 @@ const Dashboard = () => {
                 <Heart className="w-4 h-4 mr-2" />
                 Favorites
               </TabsTrigger>
+              <TabsTrigger value="purchases">
+                <ShoppingBag className="w-4 h-4 mr-2" />
+                Purchases
+              </TabsTrigger>
               <TabsTrigger value="bids">
                 <Gavel className="w-4 h-4 mr-2" />
                 Bids
