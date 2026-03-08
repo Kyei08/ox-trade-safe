@@ -5,7 +5,6 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { useState } from "react";
 import NotificationBell from "@/components/NotificationBell";
-import ThemeToggle from "@/components/ThemeToggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -96,7 +95,6 @@ const Header = () => {
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-4">
-            <ThemeToggle />
             <Button variant="ghost" size="icon" className="hidden sm:flex">
               <Search className="w-5 h-5" />
             </Button>

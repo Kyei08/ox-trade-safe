@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { Search, Filter, Clock, MapPin, Eye, User, Loader2 } from "lucide-react";
+import { Search, Filter, Clock, MapPin, Eye, User } from "lucide-react";
 import { formatZAR } from "@/lib/currency";
 
 interface Listing {
@@ -43,57 +43,24 @@ interface Category {
   icon: string | null;
 }
 
-const PAGE_SIZE = 12;
-
 const Listings = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [listings, setListings] = useState<Listing[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "all");
   const [listingType, setListingType] = useState(searchParams.get("type") || "all");
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "newest");
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const pageRef = useRef(0);
 
   useEffect(() => {
     fetchCategories();
   }, []);
 
   useEffect(() => {
-    // Reset and fetch from scratch when filters change
-    setListings([]);
-    pageRef.current = 0;
-    setHasMore(true);
-    fetchListings(0);
+    fetchListings();
   }, [selectedCategory, listingType, sortBy]);
-
-  // Infinite scroll observer
-  useEffect(() => {
-    if (observerRef.current) observerRef.current.disconnect();
-
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
-          const nextPage = pageRef.current + 1;
-          pageRef.current = nextPage;
-          fetchListings(nextPage);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (sentinelRef.current) {
-      observerRef.current.observe(sentinelRef.current);
-    }
-
-    return () => observerRef.current?.disconnect();
-  }, [hasMore, loading, loadingMore, searchQuery]);
 
   const fetchCategories = async () => {
     try {
@@ -101,63 +68,80 @@ const Listings = () => {
         .from("categories")
         .select("id, name, icon")
         .order("name");
+
       if (error) throw error;
       setCategories(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to load categories:", error);
     }
   };
 
-  const fetchListings = async (page: number) => {
+  const fetchListings = async () => {
     try {
-      if (page === 0) setLoading(true);
-      else setLoadingMore(true);
+      setLoading(true);
 
       let query = supabase
         .from("listings")
-        .select(`*, public_profiles!seller_id (full_name, avatar_url)`)
+        .select(`
+          *,
+          public_profiles!seller_id (
+            full_name,
+            avatar_url
+          )
+        `)
         .eq("status", "active");
 
-      if (selectedCategory !== "all") query = query.eq("category_id", selectedCategory);
-      if (listingType === "fixed_price" || listingType === "auction") query = query.eq("listing_type", listingType);
-
-      switch (sortBy) {
-        case "newest": query = query.order("created_at", { ascending: false }); break;
-        case "oldest": query = query.order("created_at", { ascending: true }); break;
-        case "price-low": query = query.order("fixed_price", { ascending: true, nullsFirst: false }); break;
-        case "price-high": query = query.order("fixed_price", { ascending: false, nullsFirst: false }); break;
-        case "popular": query = query.order("view_count", { ascending: false }); break;
+      // Apply category filter
+      if (selectedCategory !== "all") {
+        query = query.eq("category_id", selectedCategory);
       }
 
-      query = query.range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+      // Apply listing type filter
+      if (listingType === "fixed_price" || listingType === "auction") {
+        query = query.eq("listing_type", listingType);
+      }
+
+      // Apply sorting
+      switch (sortBy) {
+        case "newest":
+          query = query.order("created_at", { ascending: false });
+          break;
+        case "oldest":
+          query = query.order("created_at", { ascending: true });
+          break;
+        case "price-low":
+          query = query.order("fixed_price", { ascending: true, nullsFirst: false });
+          break;
+        case "price-high":
+          query = query.order("fixed_price", { ascending: false, nullsFirst: false });
+          break;
+        case "popular":
+          query = query.order("view_count", { ascending: false });
+          break;
+      }
 
       const { data, error } = await query;
+
       if (error) throw error;
 
+      // Apply search filter client-side for flexibility
       let filteredData = data || [];
       if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
+        const query = searchQuery.toLowerCase();
         filteredData = filteredData.filter(
-          (l) =>
-            l.title.toLowerCase().includes(q) ||
-            l.description.toLowerCase().includes(q) ||
-            l.location?.toLowerCase().includes(q)
+          (listing) =>
+            listing.title.toLowerCase().includes(query) ||
+            listing.description.toLowerCase().includes(query) ||
+            listing.location.toLowerCase().includes(query)
         );
       }
 
-      if (page === 0) {
-        setListings(filteredData);
-      } else {
-        setListings((prev) => [...prev, ...filteredData]);
-      }
-
-      setHasMore((data || []).length === PAGE_SIZE);
-    } catch (error) {
+      setListings(filteredData);
+    } catch (error: any) {
       toast.error("Failed to load listings");
       console.error(error);
     } finally {
       setLoading(false);
-      setLoadingMore(false);
     }
   };
 
@@ -168,45 +152,62 @@ const Listings = () => {
     if (listingType !== "all") params.set("type", listingType);
     if (sortBy !== "newest") params.set("sort", sortBy);
     setSearchParams(params);
-    setListings([]);
-    pageRef.current = 0;
-    setHasMore(true);
-    fetchListings(0);
+    fetchListings();
   };
 
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
     const params = new URLSearchParams(searchParams);
-    value === "all" ? params.delete("category") : params.set("category", value);
+    if (value === "all") {
+      params.delete("category");
+    } else {
+      params.set("category", value);
+    }
     setSearchParams(params);
   };
 
   const handleTypeChange = (value: string) => {
     setListingType(value);
     const params = new URLSearchParams(searchParams);
-    value === "all" ? params.delete("type") : params.set("type", value);
+    if (value === "all") {
+      params.delete("type");
+    } else {
+      params.set("type", value);
+    }
     setSearchParams(params);
   };
 
   const handleSortChange = (value: string) => {
     setSortBy(value);
     const params = new URLSearchParams(searchParams);
-    value === "newest" ? params.delete("sort") : params.set("sort", value);
+    if (value === "newest") {
+      params.delete("sort");
+    } else {
+      params.set("sort", value);
+    }
     setSearchParams(params);
   };
 
   const getPrice = (listing: Listing) => {
-    if (listing.listing_type === "fixed_price") return formatZAR(listing.fixed_price);
+    if (listing.listing_type === "fixed_price") {
+      return formatZAR(listing.fixed_price);
+    }
     return formatZAR(listing.current_bid ?? listing.starting_price);
   };
 
   const getTimeRemaining = (endDate: string | null) => {
     if (!endDate) return null;
-    const diff = new Date(endDate).getTime() - Date.now();
+    const end = new Date(endDate);
+    const now = new Date();
+    const diff = end.getTime() - now.getTime();
+
     if (diff <= 0) return "Ended";
+
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    return days > 0 ? `${days}d ${hours}h` : `${hours}h`;
+
+    if (days > 0) return `${days}d ${hours}h`;
+    return `${hours}h`;
   };
 
   return (
@@ -214,13 +215,17 @@ const Listings = () => {
       <Header />
       <main className="min-h-screen bg-background pt-24 pb-12">
         <div className="container px-4">
+          {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Browse Listings</h1>
-            <p className="text-muted-foreground">Discover amazing deals and unique items</p>
+            <p className="text-muted-foreground">
+              Discover amazing deals and unique items
+            </p>
           </div>
 
           {/* Search and Filters */}
           <div className="mb-8 space-y-4">
+            {/* Search Bar */}
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -232,9 +237,12 @@ const Listings = () => {
                   className="pl-10"
                 />
               </div>
-              <Button onClick={handleSearch}>Search</Button>
+              <Button onClick={handleSearch}>
+                Search
+              </Button>
             </div>
 
+            {/* Filters */}
             <div className="flex flex-wrap gap-4">
               <div className="flex items-center gap-2">
                 <Filter className="w-4 h-4 text-muted-foreground" />
@@ -248,7 +256,9 @@ const Listings = () => {
                 <SelectContent className="bg-background z-50">
                   <SelectItem value="all">All Categories</SelectItem>
                   {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -279,6 +289,7 @@ const Listings = () => {
             </div>
           </div>
 
+          {/* Results Count */}
           <div className="mb-4">
             <p className="text-sm text-muted-foreground">
               {loading ? "Loading..." : `${listings.length} listing${listings.length !== 1 ? "s" : ""} found`}
@@ -310,113 +321,105 @@ const Listings = () => {
                   setListingType("all");
                   setSortBy("newest");
                   setSearchParams({});
-                  setListings([]);
-                  pageRef.current = 0;
-                  setHasMore(true);
-                  fetchListings(0);
+                  fetchListings();
                 }}>
                   Clear Filters
                 </Button>
               </CardContent>
             </Card>
           ) : (
-            <>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {listings.map((listing) => (
-                  <Card
-                    key={listing.id}
-                    className="relative cursor-pointer hover:shadow-lg transition-shadow"
-                    onClick={() => navigate(`/listings/${listing.id}`)}
-                  >
-                    <div className="absolute top-2 right-2 z-10">
-                      <FavoriteButton
-                        listingId={listing.id}
-                        className="bg-background/80 backdrop-blur-sm hover:bg-background"
-                      />
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {listings.map((listing) => (
+                <Card
+                  key={listing.id}
+                  className="relative cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => navigate(`/listings/${listing.id}`)}
+                >
+                  {/* Favorite button */}
+                  <div className="absolute top-2 right-2 z-10">
+                    <FavoriteButton
+                      listingId={listing.id}
+                      className="bg-background/80 backdrop-blur-sm hover:bg-background"
+                    />
+                  </div>
+                  
+                  <CardHeader>
+                    <div className="flex justify-between items-start mb-2 pr-8">
+                      <Badge variant={listing.listing_type === "auction" ? "default" : "secondary"}>
+                        {listing.listing_type === "auction" ? "Auction" : "Fixed Price"}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {listing.condition}
+                      </Badge>
+                    </div>
+                    <CardTitle className="line-clamp-2 text-lg">{listing.title}</CardTitle>
+                    <CardDescription className="line-clamp-2">
+                      {listing.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">
+                          {listing.listing_type === "auction" ? "Current Bid" : "Price"}
+                        </p>
+                        <p className="text-2xl font-bold text-primary">
+                          {getPrice(listing)}
+                        </p>
+                      </div>
+                      {listing.listing_type === "auction" && listing.auction_ends_at && (
+                        <div className="text-right">
+                          <p className="text-xs text-muted-foreground mb-1">Time Left</p>
+                          <div className="flex items-center gap-1 text-sm font-medium">
+                            <Clock className="w-3 h-3" />
+                            {getTimeRemaining(listing.auction_ends_at)}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
-                    <CardHeader>
-                      <div className="flex justify-between items-start mb-2 pr-8">
-                        <Badge variant={listing.listing_type === "auction" ? "default" : "secondary"}>
-                          {listing.listing_type === "auction" ? "Auction" : "Fixed Price"}
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">{listing.condition}</Badge>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {listing.location}
                       </div>
-                      <CardTitle className="line-clamp-2 text-lg">{listing.title}</CardTitle>
-                      <CardDescription className="line-clamp-2">{listing.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-xs text-muted-foreground mb-1">
-                            {listing.listing_type === "auction" ? "Current Bid" : "Price"}
-                          </p>
-                          <p className="text-2xl font-bold text-primary">{getPrice(listing)}</p>
-                        </div>
-                        {listing.listing_type === "auction" && listing.auction_ends_at && (
-                          <div className="text-right">
-                            <p className="text-xs text-muted-foreground mb-1">Time Left</p>
-                            <div className="flex items-center gap-1 text-sm font-medium">
-                              <Clock className="w-3 h-3" />
-                              {getTimeRemaining(listing.auction_ends_at)}
-                            </div>
-                          </div>
-                        )}
+                      <div className="flex items-center gap-1">
+                        <Eye className="w-3 h-3" />
+                        {listing.view_count}
                       </div>
+                    </div>
 
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          {listing.location}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Eye className="w-3 h-3" />
-                          {listing.view_count}
-                        </div>
+                    {/* Seller Info */}
+                    <Link
+                      to={`/seller/${listing.seller_id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center gap-2 mt-2 p-2 -mx-2 rounded-md hover:bg-muted/50 transition-colors"
+                    >
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={listing.public_profiles?.avatar_url || undefined} />
+                        <AvatarFallback className="text-xs">
+                          {listing.public_profiles?.full_name?.charAt(0) || <User className="h-3 w-3" />}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-xs text-muted-foreground hover:text-foreground truncate">
+                        {listing.public_profiles?.full_name || "Anonymous"}
+                      </span>
+                    </Link>
+                  </CardContent>
+                  <CardFooter>
+                    {listing.listing_type === "auction" ? (
+                      <div className="w-full text-sm text-muted-foreground">
+                        {listing.bid_count} bid{listing.bid_count !== 1 ? "s" : ""}
                       </div>
-
-                      <Link
-                        to={`/seller/${listing.seller_id}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="flex items-center gap-2 mt-2 p-2 -mx-2 rounded-md hover:bg-muted/50 transition-colors"
-                      >
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage src={listing.public_profiles?.avatar_url || undefined} />
-                          <AvatarFallback className="text-xs">
-                            {listing.public_profiles?.full_name?.charAt(0) || <User className="h-3 w-3" />}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-xs text-muted-foreground hover:text-foreground truncate">
-                          {listing.public_profiles?.full_name || "Anonymous"}
-                        </span>
-                      </Link>
-                    </CardContent>
-                    <CardFooter>
-                      {listing.listing_type === "auction" ? (
-                        <div className="w-full text-sm text-muted-foreground">
-                          {listing.bid_count} bid{listing.bid_count !== 1 ? "s" : ""}
-                        </div>
-                      ) : (
-                        <Button variant="accent" className="w-full">View Details</Button>
-                      )}
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-
-              {/* Infinite scroll sentinel */}
-              <div ref={sentinelRef} className="flex justify-center py-8">
-                {loadingMore && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span className="text-sm">Loading more...</span>
-                  </div>
-                )}
-                {!hasMore && listings.length > 0 && (
-                  <p className="text-sm text-muted-foreground">You've reached the end</p>
-                )}
-              </div>
-            </>
+                    ) : (
+                      <Button variant="accent" className="w-full">
+                        View Details
+                      </Button>
+                    )}
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
           )}
         </div>
       </main>
