@@ -220,7 +220,7 @@ const Dashboard = () => {
 
           {/* Dashboard Tabs */}
           <Tabs defaultValue="analytics" className="w-full">
-            <TabsList className="grid w-full grid-cols-7 max-w-5xl">
+            <TabsList className="grid w-full grid-cols-8 max-w-5xl">
               <TabsTrigger value="analytics">
                 <BarChart3 className="w-4 h-4 mr-2" />
                 Analytics
