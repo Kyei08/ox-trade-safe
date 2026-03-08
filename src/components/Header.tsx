@@ -57,21 +57,33 @@ const Header = () => {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
-              <Link to="/" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-2">
+              <Link 
+                to="/" 
+                className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-2 ${location.pathname === "/" ? "font-bold" : ""}`}
+              >
                 <Home className="w-4 h-4" />
                 Home
               </Link>
-              <Link to="/listings" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-2">
+              <Link 
+                to="/listings" 
+                className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-2 ${location.pathname === "/listings" ? "font-bold" : ""}`}
+              >
                 <Grid className="w-4 h-4" />
                 Browse Listings
               </Link>
               {user && (
                 <>
-                  <Link to="/create-listing" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-2">
+                  <Link 
+                    to="/create-listing" 
+                    className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-2 ${location.pathname === "/create-listing" ? "font-bold" : ""}`}
+                  >
                     <Plus className="w-4 h-4" />
                     Sell Item
                   </Link>
-                  <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-2">
+                  <Link 
+                    to="/dashboard" 
+                    className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-2 ${location.pathname === "/dashboard" ? "font-bold" : ""}`}
+                  >
                     <User className="w-4 h-4" />
                     Dashboard
                   </Link>
