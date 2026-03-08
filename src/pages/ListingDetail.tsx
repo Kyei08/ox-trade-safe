@@ -10,7 +10,6 @@ import ReportDialog from "@/components/ReportDialog";
 import AuctionCountdown from "@/components/AuctionCountdown";
 import BidHistory from "@/components/BidHistory";
 import AuctionStatus from "@/components/AuctionStatus";
-import ShareButtons from "@/components/ShareButtons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MapPin, Package, Gavel, User, Star, Trash2, Pencil, Truck, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, MapPin, Package, Gavel, User, Star, Trash2, Pencil, Truck } from "lucide-react";
 import { formatZAR } from "@/lib/currency";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -74,7 +73,6 @@ export default function ListingDetail() {
   const [canReview, setCanReview] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
   const [winningBidderId, setWinningBidderId] = useState<string | null>(null);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
     if (id) {
@@ -472,84 +470,18 @@ export default function ListingDetail() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Images and Details */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Image Gallery Carousel */}
+              {/* Image Gallery */}
               <Card>
-                <CardContent className="p-0 relative">
+                <CardContent className="p-0">
                   {listing.images && listing.images.length > 0 ? (
-                    <div className="relative group">
-                      <img
-                        src={listing.images[selectedImageIndex]}
-                        alt={`${listing.title} - Image ${selectedImageIndex + 1}`}
-                        className="w-full h-96 object-cover rounded-t-lg"
-                      />
-                      {listing.images.length > 1 && (
-                        <>
-                          <Button
-                            variant="secondary"
-                            size="icon"
-                            className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 rounded-full"
-                            onClick={() =>
-                              setSelectedImageIndex((prev) =>
-                                prev === 0 ? listing.images.length - 1 : prev - 1
-                              )
-                            }
-                          >
-                            <ChevronLeft className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            size="icon"
-                            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 rounded-full"
-                            onClick={() =>
-                              setSelectedImageIndex((prev) =>
-                                prev === listing.images.length - 1 ? 0 : prev + 1
-                              )
-                            }
-                          >
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
-                          {/* Dot indicators */}
-                          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                            {listing.images.map((_, i) => (
-                              <button
-                                key={i}
-                                onClick={() => setSelectedImageIndex(i)}
-                                className={`h-2 w-2 rounded-full transition-colors ${
-                                  i === selectedImageIndex
-                                    ? "bg-primary-foreground"
-                                    : "bg-primary-foreground/50"
-                                }`}
-                              />
-                            ))}
-                          </div>
-                        </>
-                      )}
-                      {/* Image counter */}
-                      <div className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm px-2 py-1 rounded text-xs font-medium">
-                        {selectedImageIndex + 1} / {listing.images.length}
-                      </div>
-                    </div>
+                    <img
+                      src={listing.images[0]}
+                      alt={listing.title}
+                      className="w-full h-96 object-cover rounded-t-lg"
+                    />
                   ) : (
                     <div className="w-full h-96 bg-muted flex items-center justify-center rounded-t-lg">
                       <Package className="h-24 w-24 text-muted-foreground" />
-                    </div>
-                  )}
-                  {/* Thumbnails */}
-                  {listing.images && listing.images.length > 1 && (
-                    <div className="flex gap-2 p-3 overflow-x-auto">
-                      {listing.images.map((img, i) => (
-                        <button
-                          key={i}
-                          onClick={() => setSelectedImageIndex(i)}
-                          className={`shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-colors ${
-                            i === selectedImageIndex
-                              ? "border-primary"
-                              : "border-transparent hover:border-border"
-                          }`}
-                        >
-                          <img src={img} alt="" className="w-full h-full object-cover" />
-                        </button>
-                      ))}
                     </div>
                   )}
                 </CardContent>
@@ -565,8 +497,7 @@ export default function ListingDetail() {
                       </Badge>
                       <Badge variant="outline">{listing.listing_type}</Badge>
                     </div>
-                     <div className="flex items-center gap-2">
-                      <ShareButtons title={listing.title} />
+                    <div className="flex items-center gap-2">
                       {!isOwner && (
                         <ReportDialog
                           reportType="listing"

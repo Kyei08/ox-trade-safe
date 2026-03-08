@@ -4,7 +4,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { useState } from "react";
-import NotificationBell from "@/components/NotificationBell";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -101,7 +100,6 @@ const Header = () => {
             
             {user ? (
               <>
-                <NotificationBell />
                 <Button 
                   variant="ghost" 
                   size="icon"
