@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TrendingUp, Trophy, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatZAR } from "@/lib/currency";
 
 interface Bid {
   id: string;
