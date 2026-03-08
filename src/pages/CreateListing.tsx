@@ -17,6 +17,12 @@ import { toast } from "sonner";
 import { Loader2, Upload, X } from "lucide-react";
 import { compressImages } from "@/lib/imageCompression";
 
+const DELIVERY_OPTIONS = [
+  { value: "collect", label: "Collection (buyer picks up)" },
+  { value: "courier", label: "Courier delivery" },
+  { value: "post", label: "Postal service" },
+];
+
 const listingSchema = z.object({
   title: z.string().trim().min(5, "Title must be at least 5 characters").max(200, "Title must be less than 200 characters"),
   description: z.string().trim().min(20, "Description must be at least 20 characters").max(5000, "Description must be less than 5000 characters"),
@@ -24,6 +30,7 @@ const listingSchema = z.object({
   listing_type: z.enum(["fixed_price", "auction"]),
   condition: z.string().trim().min(1, "Condition is required").max(50),
   location: z.string().trim().min(1, "Location is required").max(200),
+  delivery_options: z.array(z.string()).min(1, "Select at least one delivery option"),
   fixed_price: z.string().optional(),
   starting_price: z.string().optional(),
   reserve_price: z.string().optional(),
