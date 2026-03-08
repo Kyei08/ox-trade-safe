@@ -853,6 +853,8 @@ export default function ListingDetail() {
             </div>
           </div>
         </div>
+
+        <RecentlyViewedListings excludeId={id} />
       </main>
     </>
   );
