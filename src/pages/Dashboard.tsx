@@ -9,6 +9,7 @@ import AvatarUpload from "@/components/AvatarUpload";
 import ImageGalleryManager from "@/components/ImageGalleryManager";
 import SellerAnalytics from "@/components/SellerAnalytics";
 import FavoritesTab from "@/components/FavoritesTab";
+import InvoiceDialog from "@/components/InvoiceDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
