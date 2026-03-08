@@ -60,6 +60,7 @@ const EditListing = () => {
       category_id: "",
       condition: "",
       location: "",
+      delivery_options: [],
       fixed_price: "",
     },
   });
