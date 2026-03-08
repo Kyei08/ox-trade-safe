@@ -682,6 +682,16 @@ export default function ListingDetail() {
                       <Alert>
                         <AlertDescription>This is your listing</AlertDescription>
                       </Alert>
+                      {(listing.status === "active" || listing.status === "draft") && (
+                        <Button 
+                          variant="outline" 
+                          className="w-full" 
+                          onClick={() => navigate(`/edit-listing/${listing.id}`)}
+                        >
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Edit Listing
+                        </Button>
+                      )}
                       {listing.status !== "removed" && (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
