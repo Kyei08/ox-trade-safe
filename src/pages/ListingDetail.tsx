@@ -565,7 +565,8 @@ export default function ListingDetail() {
                       </Badge>
                       <Badge variant="outline">{listing.listing_type}</Badge>
                     </div>
-                    <div className="flex items-center gap-2">
+                     <div className="flex items-center gap-2">
+                      <ShareButtons title={listing.title} />
                       {!isOwner && (
                         <ReportDialog
                           reportType="listing"
