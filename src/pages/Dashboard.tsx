@@ -418,11 +418,30 @@ const Dashboard = () => {
                               </div>
                               <div className="mt-2 flex items-center justify-between">
                                 <p className="text-lg font-bold text-primary">{formatZAR(order.amount)}</p>
-                                {order.tracking_number && (
-                                  <p className="text-sm text-muted-foreground">
-                                    Tracking: {order.tracking_number}
-                                  </p>
-                                )}
+                                <div className="flex items-center gap-2">
+                                  {order.tracking_number && (
+                                    <p className="text-sm text-muted-foreground">
+                                      Tracking: {order.tracking_number}
+                                    </p>
+                                  )}
+                                  {order.invoice_number && (
+                                    <div onClick={(e) => e.stopPropagation()}>
+                                      <InvoiceDialog
+                                        data={{
+                                          invoiceNumber: order.invoice_number,
+                                          orderDate: order.created_at,
+                                          buyerName: profile?.full_name || "Buyer",
+                                          buyerEmail: profile?.email || "",
+                                          sellerName: order.seller_profile?.full_name || "Seller",
+                                          listingTitle: order.listings?.title || "Item",
+                                          amount: order.amount,
+                                          deliveryOption: order.delivery_option,
+                                          status: order.status,
+                                        }}
+                                      />
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
