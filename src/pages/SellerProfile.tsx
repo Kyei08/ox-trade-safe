@@ -150,6 +150,13 @@ const SellerProfile = () => {
                         Verified
                       </Badge>
                     )}
+                    {user && user.id !== sellerId && (
+                      <ReportDialog
+                        reportType="user"
+                        reportedUserId={sellerId}
+                        reportedName={profile.full_name || "this seller"}
+                      />
+                    )}
                   </div>
                   
                   {profile.bio && (
