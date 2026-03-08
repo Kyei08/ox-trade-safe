@@ -206,7 +206,7 @@ const Header = () => {
                       
                       <Link 
                         to="/dashboard" 
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname === "/dashboard" ? "font-bold" : ""}`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <User className="w-5 h-5" />
@@ -215,7 +215,7 @@ const Header = () => {
                       
                       <Link 
                         to="/create-listing" 
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname === "/create-listing" ? "font-bold" : ""}`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <Plus className="w-5 h-5" />
@@ -224,7 +224,7 @@ const Header = () => {
                       
                       <Link 
                         to="/messages" 
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname === "/messages" ? "font-bold" : ""}`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <MessageSquare className="w-5 h-5" />
@@ -233,7 +233,7 @@ const Header = () => {
                       
                       <Link 
                         to="/kyc" 
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname === "/kyc" ? "font-bold" : ""}`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <Shield className="w-5 h-5" />
