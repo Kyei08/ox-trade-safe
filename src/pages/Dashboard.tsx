@@ -220,40 +220,42 @@ const Dashboard = () => {
 
           {/* Dashboard Tabs */}
           <Tabs defaultValue="analytics" className="w-full">
-            <TabsList className="grid w-full grid-cols-8 max-w-5xl">
-              <TabsTrigger value="analytics">
-                <BarChart3 className="w-4 h-4 mr-2" />
-                Analytics
-              </TabsTrigger>
-              <TabsTrigger value="listings">
-                <Package className="w-4 h-4 mr-2" />
-                Listings
-              </TabsTrigger>
-              <TabsTrigger value="favorites">
-                <Heart className="w-4 h-4 mr-2" />
-                Favorites
-              </TabsTrigger>
-              <TabsTrigger value="purchases">
-                <ShoppingBag className="w-4 h-4 mr-2" />
-                Purchases
-              </TabsTrigger>
-              <TabsTrigger value="bids">
-                <Gavel className="w-4 h-4 mr-2" />
-                Bids
-              </TabsTrigger>
-              <TabsTrigger value="reviews">
-                <MessageSquare className="w-4 h-4 mr-2" />
-                Reviews
-              </TabsTrigger>
-              <TabsTrigger value="images">
-                <Image className="w-4 h-4 mr-2" />
-                Images
-              </TabsTrigger>
-              <TabsTrigger value="profile">
-                <User className="w-4 h-4 mr-2" />
-                Profile
-              </TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto -mx-4 px-4 pb-2">
+              <TabsList className="inline-flex w-auto min-w-full sm:min-w-0 h-auto flex-nowrap gap-1 p-1">
+                <TabsTrigger value="analytics" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
+                  <BarChart3 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Analytics</span>
+                </TabsTrigger>
+                <TabsTrigger value="listings" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
+                  <Package className="w-4 h-4" />
+                  <span className="hidden sm:inline">Listings</span>
+                </TabsTrigger>
+                <TabsTrigger value="favorites" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
+                  <Heart className="w-4 h-4" />
+                  <span className="hidden sm:inline">Favorites</span>
+                </TabsTrigger>
+                <TabsTrigger value="purchases" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
+                  <ShoppingBag className="w-4 h-4" />
+                  <span className="hidden sm:inline">Purchases</span>
+                </TabsTrigger>
+                <TabsTrigger value="bids" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
+                  <Gavel className="w-4 h-4" />
+                  <span className="hidden sm:inline">Bids</span>
+                </TabsTrigger>
+                <TabsTrigger value="reviews" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
+                  <MessageSquare className="w-4 h-4" />
+                  <span className="hidden sm:inline">Reviews</span>
+                </TabsTrigger>
+                <TabsTrigger value="images" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
+                  <Image className="w-4 h-4" />
+                  <span className="hidden sm:inline">Images</span>
+                </TabsTrigger>
+                <TabsTrigger value="profile" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
+                  <User className="w-4 h-4" />
+                  <span className="hidden sm:inline">Profile</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             {/* Analytics Tab */}
             <TabsContent value="analytics" className="mt-6">
