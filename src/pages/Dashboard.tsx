@@ -385,34 +385,34 @@ const Dashboard = () => {
                         onClick={() => navigate(`/listings/${order.listing_id}`)}
                       >
                         <CardContent className="pt-6">
-                          <div className="flex gap-4">
+                          <div className="flex flex-col sm:flex-row gap-4">
                             {order.listings?.images?.[0] ? (
                               <img
                                 src={order.listings.images[0]}
                                 alt={order.listings.title}
-                                className="w-20 h-20 object-cover rounded-lg"
+                                className="w-full sm:w-20 h-40 sm:h-20 object-cover rounded-lg"
                               />
                             ) : (
-                              <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
+                              <div className="w-full sm:w-20 h-40 sm:h-20 bg-muted rounded-lg flex items-center justify-center">
                                 <Package className="w-8 h-8 text-muted-foreground" />
                               </div>
                             )}
-                            <div className="flex-1">
-                              <div className="flex items-start justify-between">
-                                <div>
-                                  <h3 className="font-semibold text-lg">{order.listings?.title}</h3>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <h3 className="font-semibold text-base sm:text-lg truncate">{order.listings?.title}</h3>
                                   <p className="text-sm text-muted-foreground">
                                     Purchased {new Date(order.created_at).toLocaleDateString()}
                                   </p>
                                 </div>
-                                <Badge variant={statusColors[order.status] as any || "secondary"}>
+                                <Badge className="flex-shrink-0" variant={statusColors[order.status] as any || "secondary"}>
                                   {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                                 </Badge>
                               </div>
-                              <div className="mt-2 flex items-center justify-between">
+                              <div className="mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                                 <p className="text-lg font-bold text-primary">{formatZAR(order.amount)}</p>
                                 {order.tracking_number && (
-                                  <p className="text-sm text-muted-foreground">
+                                  <p className="text-sm text-muted-foreground truncate">
                                     Tracking: {order.tracking_number}
                                   </p>
                                 )}
