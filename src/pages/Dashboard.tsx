@@ -265,9 +265,9 @@ const Dashboard = () => {
 
             {/* Listings Tab */}
             <TabsContent value="listings" className="mt-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold">My Listings</h2>
-                <Button variant="accent" onClick={() => navigate("/create-listing")}>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+                <h2 className="text-xl sm:text-2xl font-semibold">My Listings</h2>
+                <Button variant="accent" className="w-full sm:w-auto" onClick={() => navigate("/create-listing")}>
                   Create New Listing
                 </Button>
               </div>
