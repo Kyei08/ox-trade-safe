@@ -445,25 +445,25 @@ const Dashboard = () => {
                       onClick={() => navigate(`/listings/${bid.listing.id}`)}
                     >
                       <CardContent className="pt-6">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-lg mb-2">{bid.listing.title}</h3>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-base sm:text-lg mb-2 truncate">{bid.listing.title}</h3>
+                            <div className="grid grid-cols-2 gap-3 text-sm">
                               <div>
                                 <span className="text-muted-foreground">Your Bid:</span>
-                                <p className="font-semibold text-lg">{formatZAR(bid.amount)}</p>
+                                <p className="font-semibold text-base sm:text-lg">{formatZAR(bid.amount)}</p>
                               </div>
                               <div>
                                 <span className="text-muted-foreground">Current Bid:</span>
-                                <p className="font-semibold text-lg">
+                                <p className="font-semibold text-base sm:text-lg">
                                   {formatZAR(bid.listing.current_bid)}
                                 </p>
                               </div>
                             </div>
                           </div>
-                          <div className="text-right">
+                          <div className="flex sm:flex-col items-center sm:items-end gap-2 sm:text-right">
                             {bid.is_winning && (
-                              <Badge className="mb-2">Winning</Badge>
+                              <Badge className="mb-0 sm:mb-2">Winning</Badge>
                             )}
                             <p className="text-xs text-muted-foreground">
                               {new Date(bid.created_at).toLocaleDateString()}
