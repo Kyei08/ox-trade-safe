@@ -191,19 +191,19 @@ const Dashboard = () => {
       <main className="min-h-screen bg-background pt-24 pb-12">
         <div className="container px-4">
           {/* Dashboard Header */}
-          <div className="flex items-center gap-6 mb-8">
-            <Avatar className="h-20 w-20">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 mb-8 text-center sm:text-left">
+            <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
               <AvatarImage src={profile?.avatar_url || undefined} alt="Profile" />
-              <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
+              <AvatarFallback className="bg-primary text-primary-foreground text-xl sm:text-2xl">
                 {getInitials(user.email || "U", profile?.full_name)}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <h1 className="text-3xl font-bold mb-1">
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-1 truncate">
                 {profile?.full_name || "User Dashboard"}
               </h1>
-              <p className="text-muted-foreground">{user.email}</p>
-              <div className="flex items-center gap-2 mt-2">
+              <p className="text-muted-foreground text-sm sm:text-base truncate">{user.email}</p>
+              <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
                 <Badge variant={profile?.kyc_status === "verified" ? "default" : "secondary"}>
                   {profile?.kyc_status || "pending"}
                 </Badge>
