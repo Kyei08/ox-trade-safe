@@ -207,7 +207,6 @@ export type Database = {
           condition: string | null
           created_at: string
           current_bid: number | null
-          delivery_options: string[] | null
           description: string
           fixed_price: number | null
           id: string
@@ -229,7 +228,6 @@ export type Database = {
           condition?: string | null
           created_at?: string
           current_bid?: number | null
-          delivery_options?: string[] | null
           description: string
           fixed_price?: number | null
           id?: string
@@ -251,7 +249,6 @@ export type Database = {
           condition?: string | null
           created_at?: string
           current_bid?: number | null
-          delivery_options?: string[] | null
           description?: string
           fixed_price?: number | null
           id?: string
@@ -325,47 +322,12 @@ export type Database = {
           },
         ]
       }
-      notifications: {
-        Row: {
-          created_at: string
-          id: string
-          is_read: boolean
-          link: string | null
-          message: string
-          title: string
-          type: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_read?: boolean
-          link?: string | null
-          message: string
-          title: string
-          type: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_read?: boolean
-          link?: string | null
-          message?: string
-          title?: string
-          type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       orders: {
         Row: {
           amount: number
           buyer_id: string
           created_at: string
-          delivery_option: string | null
           id: string
-          invoice_number: string | null
           listing_id: string
           notes: string | null
           seller_id: string
@@ -379,9 +341,7 @@ export type Database = {
           amount: number
           buyer_id: string
           created_at?: string
-          delivery_option?: string | null
           id?: string
-          invoice_number?: string | null
           listing_id: string
           notes?: string | null
           seller_id: string
@@ -395,9 +355,7 @@ export type Database = {
           amount?: number
           buyer_id?: string
           created_at?: string
-          delivery_option?: string | null
           id?: string
-          invoice_number?: string | null
           listing_id?: string
           notes?: string | null
           seller_id?: string
