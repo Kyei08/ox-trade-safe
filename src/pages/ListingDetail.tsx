@@ -136,6 +136,7 @@ function ImageCarousel({ images, title }: { images: string[]; title: string }) {
   );
 }
 
+export default function ListingDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
