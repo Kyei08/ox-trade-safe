@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MapPin, Package, Gavel, User, Star, Trash2, Pencil, Truck, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, MapPin, Package, Gavel, User, Star, Trash2, Pencil, Truck, ChevronLeft, ChevronRight, X, ZoomIn } from "lucide-react";
 import { formatZAR } from "@/lib/currency";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -62,6 +62,7 @@ interface Listing {
 
 function ImageCarousel({ images, title }: { images: string[]; title: string }) {
   const [current, setCurrent] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const touchStart = useRef<number | null>(null);
 
   const prev = () => setCurrent((c) => (c === 0 ? images.length - 1 : c - 1));
@@ -77,62 +78,143 @@ function ImageCarousel({ images, title }: { images: string[]; title: string }) {
     touchStart.current = null;
   };
 
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") prev();
+      else if (e.key === "ArrowRight") next();
+      else if (e.key === "Escape") setLightboxOpen(false);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [lightboxOpen, images.length]);
+
   return (
-    <div className="relative" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-      <img
-        src={images[current]}
-        alt={`${title} - Image ${current + 1}`}
-        className="w-full h-96 object-cover rounded-t-lg transition-opacity duration-300"
-      />
-      {images.length > 1 && (
-        <>
-          <button
-            onClick={prev}
-            className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background rounded-full p-2 shadow-md transition-colors"
-            aria-label="Previous image"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            onClick={next}
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background rounded-full p-2 shadow-md transition-colors"
-            aria-label="Next image"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {images.map((_, i) => (
+    <>
+      <div className="relative" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        <img
+          src={images[current]}
+          alt={`${title} - Image ${current + 1}`}
+          className="w-full h-96 object-cover rounded-t-lg transition-opacity duration-300 cursor-pointer"
+          onClick={() => setLightboxOpen(true)}
+        />
+        <button
+          onClick={() => setLightboxOpen(true)}
+          className="absolute top-3 left-3 bg-background/80 hover:bg-background rounded-full p-2 shadow-md transition-colors"
+          aria-label="View fullscreen"
+        >
+          <ZoomIn className="w-4 h-4" />
+        </button>
+        {images.length > 1 && (
+          <>
+            <button
+              onClick={prev}
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background rounded-full p-2 shadow-md transition-colors"
+              aria-label="Previous image"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={next}
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background rounded-full p-2 shadow-md transition-colors"
+              aria-label="Next image"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+              {images.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrent(i)}
+                  className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                    i === current ? "bg-primary" : "bg-background/60"
+                  }`}
+                  aria-label={`Go to image ${i + 1}`}
+                />
+              ))}
+            </div>
+            <div className="absolute top-3 right-3 bg-background/80 text-foreground text-xs px-2 py-1 rounded-full">
+              {current + 1} / {images.length}
+            </div>
+          </>
+        )}
+        {images.length > 1 && (
+          <div className="flex gap-2 p-3 overflow-x-auto">
+            {images.map((img, i) => (
               <button
                 key={i}
                 onClick={() => setCurrent(i)}
-                className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                  i === current ? "bg-primary" : "bg-background/60"
+                className={`shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-colors ${
+                  i === current ? "border-primary" : "border-transparent"
                 }`}
-                aria-label={`Go to image ${i + 1}`}
-              />
+              >
+                <img src={img} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover" />
+              </button>
             ))}
           </div>
-          <div className="absolute top-3 right-3 bg-background/80 text-foreground text-xs px-2 py-1 rounded-full">
+        )}
+      </div>
+
+      {/* Fullscreen Lightbox */}
+      {lightboxOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+          onClick={() => setLightboxOpen(false)}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+        >
+          <button
+            onClick={() => setLightboxOpen(false)}
+            className="absolute top-4 right-4 bg-background/20 hover:bg-background/40 rounded-full p-2 transition-colors z-10"
+            aria-label="Close lightbox"
+          >
+            <X className="w-6 h-6 text-white" />
+          </button>
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white/80 text-sm">
             {current + 1} / {images.length}
           </div>
-        </>
-      )}
-      {images.length > 1 && (
-        <div className="flex gap-2 p-3 overflow-x-auto">
-          {images.map((img, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrent(i)}
-              className={`shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-colors ${
-                i === current ? "border-primary" : "border-transparent"
-              }`}
-            >
-              <img src={img} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover" />
-            </button>
-          ))}
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); prev(); }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/20 hover:bg-background/40 rounded-full p-3 transition-colors"
+                aria-label="Previous image"
+              >
+                <ChevronLeft className="w-6 h-6 text-white" />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); next(); }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/20 hover:bg-background/40 rounded-full p-3 transition-colors"
+                aria-label="Next image"
+              >
+                <ChevronRight className="w-6 h-6 text-white" />
+              </button>
+            </>
+          )}
+          <img
+            src={images[current]}
+            alt={`${title} - Image ${current + 1}`}
+            className="max-h-[90vh] max-w-[90vw] object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          {images.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+              {images.map((img, i) => (
+                <button
+                  key={i}
+                  onClick={(e) => { e.stopPropagation(); setCurrent(i); }}
+                  className={`shrink-0 w-12 h-12 rounded overflow-hidden border-2 transition-colors ${
+                    i === current ? "border-white" : "border-white/30"
+                  }`}
+                >
+                  <img src={img} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
-    </div>
+    </>
   );
 }
 
