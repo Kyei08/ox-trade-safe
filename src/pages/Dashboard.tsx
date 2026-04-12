@@ -10,13 +10,14 @@ import ImageGalleryManager from "@/components/ImageGalleryManager";
 import SellerAnalytics from "@/components/SellerAnalytics";
 import FavoritesTab from "@/components/FavoritesTab";
 import InvoiceDialog from "@/components/InvoiceDialog";
+import SellerOrderManagement from "@/components/SellerOrderManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Package, Gavel, User, Star, MapPin, Phone, MessageSquare, Image, BarChart3, Heart, Pencil, ShoppingBag } from "lucide-react";
+import { Package, Gavel, User, Star, MapPin, Phone, MessageSquare, Image, BarChart3, Heart, Pencil, ShoppingBag, Truck } from "lucide-react";
 import { formatZAR } from "@/lib/currency";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -88,6 +89,7 @@ const Dashboard = () => {
   const [listings, setListings] = useState<Listing[]>([]);
   const [bids, setBids] = useState<Bid[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [sellerOrders, setSellerOrders] = useState<any[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -154,6 +156,30 @@ const Dashboard = () => {
 
       if (ordersError) throw ordersError;
       setOrders((ordersData as any) || []);
+
+      // Fetch seller orders (orders where user is the seller)
+      const { data: sellerOrdersData, error: sellerOrdersError } = await supabase
+        .from("orders")
+        .select(`
+          id,
+          listing_id,
+          amount,
+          status,
+          tracking_number,
+          shipping_address,
+          delivery_option,
+          invoice_number,
+          notes,
+          created_at,
+          updated_at,
+          listings(id, title, images),
+          buyer_profile:public_profiles!buyer_id(full_name)
+        `)
+        .eq("seller_id", user!.id)
+        .order("created_at", { ascending: false });
+
+      if (sellerOrdersError) throw sellerOrdersError;
+      setSellerOrders((sellerOrdersData as any) || []);
 
       // Fetch user profile
       const { data: profileData, error: profileError } = await supabase
@@ -229,7 +255,7 @@ const Dashboard = () => {
 
           {/* Dashboard Tabs */}
           <Tabs defaultValue="analytics" className="w-full">
-            <TabsList className="grid w-full grid-cols-8 max-w-5xl">
+            <TabsList className="grid w-full grid-cols-9 max-w-5xl">
               <TabsTrigger value="analytics">
                 <BarChart3 className="w-4 h-4 mr-2" />
                 Analytics
@@ -245,6 +271,10 @@ const Dashboard = () => {
               <TabsTrigger value="purchases">
                 <ShoppingBag className="w-4 h-4 mr-2" />
                 Purchases
+              </TabsTrigger>
+              <TabsTrigger value="sales">
+                <Truck className="w-4 h-4 mr-2" />
+                Sales
               </TabsTrigger>
               <TabsTrigger value="bids">
                 <Gavel className="w-4 h-4 mr-2" />
@@ -451,6 +481,12 @@ const Dashboard = () => {
                   })}
                 </div>
               )}
+            </TabsContent>
+
+            {/* Sales Tab */}
+            <TabsContent value="sales" className="mt-6">
+              <h2 className="text-2xl font-semibold mb-4">Order Management</h2>
+              <SellerOrderManagement orders={sellerOrders} onOrderUpdated={fetchDashboardData} />
             </TabsContent>
 
             <TabsContent value="bids" className="mt-6">
