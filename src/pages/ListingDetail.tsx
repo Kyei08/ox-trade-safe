@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MapPin, Package, Gavel, User, Star, Trash2, Pencil, Truck } from "lucide-react";
+import { Loader2, MapPin, Package, Gavel, User, Star, Trash2, Pencil, Truck, ChevronLeft, ChevronRight } from "lucide-react";
 import { formatZAR } from "@/lib/currency";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -58,6 +58,82 @@ interface Listing {
     rating: number | null;
     total_reviews: number | null;
   };
+}
+
+function ImageCarousel({ images, title }: { images: string[]; title: string }) {
+  const [current, setCurrent] = useState(0);
+  const touchStart = useRef<number | null>(null);
+
+  const prev = () => setCurrent((c) => (c === 0 ? images.length - 1 : c - 1));
+  const next = () => setCurrent((c) => (c === images.length - 1 ? 0 : c + 1));
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStart.current = e.touches[0].clientX;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStart.current === null) return;
+    const diff = touchStart.current - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) diff > 0 ? next() : prev();
+    touchStart.current = null;
+  };
+
+  return (
+    <div className="relative" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      <img
+        src={images[current]}
+        alt={`${title} - Image ${current + 1}`}
+        className="w-full h-96 object-cover rounded-t-lg transition-opacity duration-300"
+      />
+      {images.length > 1 && (
+        <>
+          <button
+            onClick={prev}
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background rounded-full p-2 shadow-md transition-colors"
+            aria-label="Previous image"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button
+            onClick={next}
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background rounded-full p-2 shadow-md transition-colors"
+            aria-label="Next image"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+            {images.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrent(i)}
+                className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                  i === current ? "bg-primary" : "bg-background/60"
+                }`}
+                aria-label={`Go to image ${i + 1}`}
+              />
+            ))}
+          </div>
+          <div className="absolute top-3 right-3 bg-background/80 text-foreground text-xs px-2 py-1 rounded-full">
+            {current + 1} / {images.length}
+          </div>
+        </>
+      )}
+      {images.length > 1 && (
+        <div className="flex gap-2 p-3 overflow-x-auto">
+          {images.map((img, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrent(i)}
+              className={`shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-colors ${
+                i === current ? "border-primary" : "border-transparent"
+              }`}
+            >
+              <img src={img} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function ListingDetail() {
@@ -470,15 +546,11 @@ export default function ListingDetail() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Images and Details */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Image Gallery */}
+              {/* Image Carousel */}
               <Card>
-                <CardContent className="p-0">
+                <CardContent className="p-0 relative">
                   {listing.images && listing.images.length > 0 ? (
-                    <img
-                      src={listing.images[0]}
-                      alt={listing.title}
-                      className="w-full h-96 object-cover rounded-t-lg"
-                    />
+                    <ImageCarousel images={listing.images} title={listing.title} />
                   ) : (
                     <div className="w-full h-96 bg-muted flex items-center justify-center rounded-t-lg">
                       <Package className="h-24 w-24 text-muted-foreground" />
