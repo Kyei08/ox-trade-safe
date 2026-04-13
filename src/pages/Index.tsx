@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Categories from "@/components/Categories";
+import RecentlyViewed from "@/components/RecentlyViewed";
 import HowItWorks from "@/components/HowItWorks";
 import TrustSection from "@/components/TrustSection";
 import PricingSection from "@/components/PricingSection";
@@ -14,6 +15,7 @@ const Index = () => {
       <main className="pt-16">
         <Hero />
         <Categories />
+        <RecentlyViewed />
         <HowItWorks />
         <TrustSection />
         <PricingSection />

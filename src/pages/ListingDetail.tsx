@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -231,6 +232,7 @@ export default function ListingDetail() {
   const [canReview, setCanReview] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
   const [winningBidderId, setWinningBidderId] = useState<string | null>(null);
+  const { addRecentlyViewed } = useRecentlyViewed();
 
   useEffect(() => {
     if (id) {
@@ -321,6 +323,15 @@ export default function ListingDetail() {
 
       if (error) throw error;
       setListing(data);
+
+      // Track recently viewed
+      addRecentlyViewed({
+        id: data.id,
+        title: data.title,
+        image: data.images?.[0] || null,
+        price: data.listing_type === "fixed_price" ? data.fixed_price : (data.current_bid || data.starting_price),
+        listing_type: data.listing_type,
+      });
     } catch (error) {
       console.error("Error fetching listing:", error);
       toast({
