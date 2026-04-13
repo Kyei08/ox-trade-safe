@@ -226,19 +226,19 @@ const Dashboard = () => {
       <main className="min-h-screen bg-background pt-24 pb-12">
         <div className="container px-4">
           {/* Dashboard Header */}
-          <div className="flex items-center gap-6 mb-8">
-            <Avatar className="h-20 w-20">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 mb-8 text-center sm:text-left">
+            <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
               <AvatarImage src={profile?.avatar_url || undefined} alt="Profile" />
-              <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
+              <AvatarFallback className="bg-primary text-primary-foreground text-xl sm:text-2xl">
                 {getInitials(user.email || "U", profile?.full_name)}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <h1 className="text-3xl font-bold mb-1">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-3xl font-bold mb-1 truncate">
                 {profile?.full_name || "User Dashboard"}
               </h1>
-              <p className="text-muted-foreground">{user.email}</p>
-              <div className="flex items-center gap-2 mt-2">
+              <p className="text-sm sm:text-base text-muted-foreground truncate">{user.email}</p>
+              <div className="flex items-center justify-center sm:justify-start gap-2 mt-2 flex-wrap">
                 <Badge variant={profile?.kyc_status === "verified" ? "default" : "secondary"}>
                   {profile?.kyc_status || "pending"}
                 </Badge>
@@ -255,42 +255,42 @@ const Dashboard = () => {
 
           {/* Dashboard Tabs */}
           <Tabs defaultValue="analytics" className="w-full">
-            <TabsList className="grid w-full grid-cols-9 max-w-5xl">
-              <TabsTrigger value="analytics">
-                <BarChart3 className="w-4 h-4 mr-2" />
-                Analytics
+            <TabsList className="flex w-full overflow-x-auto no-scrollbar h-auto flex-nowrap justify-start md:justify-center gap-1 p-1">
+              <TabsTrigger value="analytics" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
+                <BarChart3 className="w-4 h-4" />
+                <span className="hidden sm:inline">Analytics</span>
               </TabsTrigger>
-              <TabsTrigger value="listings">
-                <Package className="w-4 h-4 mr-2" />
-                Listings
+              <TabsTrigger value="listings" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
+                <Package className="w-4 h-4" />
+                <span className="hidden sm:inline">Listings</span>
               </TabsTrigger>
-              <TabsTrigger value="favorites">
-                <Heart className="w-4 h-4 mr-2" />
-                Favorites
+              <TabsTrigger value="favorites" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
+                <Heart className="w-4 h-4" />
+                <span className="hidden sm:inline">Favorites</span>
               </TabsTrigger>
-              <TabsTrigger value="purchases">
-                <ShoppingBag className="w-4 h-4 mr-2" />
-                Purchases
+              <TabsTrigger value="purchases" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
+                <ShoppingBag className="w-4 h-4" />
+                <span className="hidden sm:inline">Purchases</span>
               </TabsTrigger>
-              <TabsTrigger value="sales">
-                <Truck className="w-4 h-4 mr-2" />
-                Sales
+              <TabsTrigger value="sales" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
+                <Truck className="w-4 h-4" />
+                <span className="hidden sm:inline">Sales</span>
               </TabsTrigger>
-              <TabsTrigger value="bids">
-                <Gavel className="w-4 h-4 mr-2" />
-                Bids
+              <TabsTrigger value="bids" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
+                <Gavel className="w-4 h-4" />
+                <span className="hidden sm:inline">Bids</span>
               </TabsTrigger>
-              <TabsTrigger value="reviews">
-                <MessageSquare className="w-4 h-4 mr-2" />
-                Reviews
+              <TabsTrigger value="reviews" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
+                <MessageSquare className="w-4 h-4" />
+                <span className="hidden sm:inline">Reviews</span>
               </TabsTrigger>
-              <TabsTrigger value="images">
-                <Image className="w-4 h-4 mr-2" />
-                Images
+              <TabsTrigger value="images" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
+                <Image className="w-4 h-4" />
+                <span className="hidden sm:inline">Images</span>
               </TabsTrigger>
-              <TabsTrigger value="profile">
-                <User className="w-4 h-4 mr-2" />
-                Profile
+              <TabsTrigger value="profile" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">Profile</span>
               </TabsTrigger>
             </TabsList>
 
@@ -302,9 +302,9 @@ const Dashboard = () => {
 
             {/* Listings Tab */}
             <TabsContent value="listings" className="mt-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold">My Listings</h2>
-                <Button variant="accent" onClick={() => navigate("/create-listing")}>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+                <h2 className="text-xl sm:text-2xl font-semibold">My Listings</h2>
+                <Button variant="accent" size="sm" className="sm:size-default" onClick={() => navigate("/create-listing")}>
                   Create New Listing
                 </Button>
               </div>
@@ -422,35 +422,35 @@ const Dashboard = () => {
                         onClick={() => navigate(`/listings/${order.listing_id}`)}
                       >
                         <CardContent className="pt-6">
-                          <div className="flex gap-4">
+                          <div className="flex flex-col sm:flex-row gap-4">
                             {order.listings?.images?.[0] ? (
                               <img
                                 src={order.listings.images[0]}
                                 alt={order.listings.title}
-                                className="w-20 h-20 object-cover rounded-lg"
+                                className="w-full sm:w-20 h-40 sm:h-20 object-cover rounded-lg"
                               />
                             ) : (
-                              <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
+                              <div className="w-full sm:w-20 h-40 sm:h-20 bg-muted rounded-lg flex items-center justify-center">
                                 <Package className="w-8 h-8 text-muted-foreground" />
                               </div>
                             )}
-                            <div className="flex-1">
-                              <div className="flex items-start justify-between">
-                                <div>
-                                  <h3 className="font-semibold text-lg">{order.listings?.title}</h3>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <h3 className="font-semibold text-base sm:text-lg truncate">{order.listings?.title}</h3>
                                   <p className="text-sm text-muted-foreground">
                                     Purchased {new Date(order.created_at).toLocaleDateString()}
                                   </p>
                                 </div>
-                                <Badge variant={statusColors[order.status] as any || "secondary"}>
+                                <Badge variant={statusColors[order.status] as any || "secondary"} className="shrink-0">
                                   {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                                 </Badge>
                               </div>
-                              <div className="mt-2 flex items-center justify-between">
+                              <div className="mt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                                 <p className="text-lg font-bold text-primary">{formatZAR(order.amount)}</p>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 flex-wrap">
                                   {order.tracking_number && (
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-xs sm:text-sm text-muted-foreground">
                                       Tracking: {order.tracking_number}
                                     </p>
                                   )}
