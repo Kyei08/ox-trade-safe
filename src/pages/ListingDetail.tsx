@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MapPin, Package, Gavel, User, Star, Trash2, Pencil, Truck, ChevronLeft, ChevronRight, X, ZoomIn } from "lucide-react";
+import { Loader2, MapPin, Package, Gavel, User, Star, Trash2, Pencil, Truck, ChevronLeft, ChevronRight, X, ZoomIn, Share2 } from "lucide-react";
 import { formatZAR } from "@/lib/currency";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -652,6 +652,23 @@ export default function ListingDetail() {
                       <Badge variant="outline">{listing.listing_type}</Badge>
                     </div>
                     <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={async () => {
+                          const url = `${window.location.origin}/listings/${listing.id}`;
+                          if (navigator.share) {
+                            try {
+                              await navigator.share({ title: listing.title, url });
+                            } catch {}
+                          } else {
+                            await navigator.clipboard.writeText(url);
+                            toast({ title: "Link copied!", description: "Listing link copied to clipboard." });
+                          }
+                        }}
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </Button>
                       {!isOwner && (
                         <ReportDialog
                           reportType="listing"
