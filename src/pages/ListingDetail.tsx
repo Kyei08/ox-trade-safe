@@ -232,6 +232,7 @@ export default function ListingDetail() {
   const [canReview, setCanReview] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
   const [winningBidderId, setWinningBidderId] = useState<string | null>(null);
+  const { addRecentlyViewed } = useRecentlyViewed();
 
   useEffect(() => {
     if (id) {
