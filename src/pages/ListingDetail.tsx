@@ -11,6 +11,7 @@ import ReportDialog from "@/components/ReportDialog";
 import AuctionCountdown from "@/components/AuctionCountdown";
 import BidHistory from "@/components/BidHistory";
 import AuctionStatus from "@/components/AuctionStatus";
+import SimilarListings from "@/components/SimilarListings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,6 +52,7 @@ interface Listing {
   view_count: number;
   auction_ends_at: string | null;
   seller_id: string;
+  category_id: string | null;
   created_at: string;
   delivery_options: string[] | null;
   public_profiles: {
@@ -953,6 +955,8 @@ export default function ListingDetail() {
               )}
             </div>
           </div>
+
+          <SimilarListings categoryId={listing.category_id} currentListingId={listing.id} />
         </div>
       </main>
     </>
