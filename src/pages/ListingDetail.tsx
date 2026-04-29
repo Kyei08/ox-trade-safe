@@ -956,7 +956,7 @@ export default function ListingDetail() {
             </div>
           </div>
 
-          <SimilarListings categoryId={listing.category_id} currentListingId={listing.id} />
+          <SimilarListings categoryId={listing.category_id} currentListingId={listing.id} currentTitle={listing.title} />
         </div>
       </main>
     </>
