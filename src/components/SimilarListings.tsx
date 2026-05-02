@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Gavel, Package, ShieldCheck, Star } from "lucide-react";
+import { Clock, Gavel, Package, ShieldCheck, Star } from "lucide-react";
 import { formatZAR } from "@/lib/currency";
 
 interface SimilarListing {
@@ -121,6 +121,7 @@ export default function SimilarListings({ categoryId, currentListingId, currentT
           const image = item.images?.[0];
           const seller = sellers[item.seller_id];
           const isVerified = seller?.kyc_status === "verified";
+          const isKycPending = seller?.kyc_status === "pending";
           const hasRating = seller?.rating != null && seller.rating > 0 && (seller.total_reviews || 0) > 0;
 
           return (
@@ -138,7 +139,7 @@ export default function SimilarListings({ categoryId, currentListingId, currentT
                       <Package className="w-8 h-8" />
                     </div>
                   )}
-                  {isVerified && (
+                  {isVerified ? (
                     <Badge
                       variant="secondary"
                       className="absolute top-2 left-2 text-xs gap-1 bg-background/90 backdrop-blur-sm"
@@ -147,7 +148,16 @@ export default function SimilarListings({ categoryId, currentListingId, currentT
                       <ShieldCheck className="w-3 h-3 text-primary" />
                       Verified
                     </Badge>
-                  )}
+                  ) : isKycPending ? (
+                    <Badge
+                      variant="outline"
+                      className="absolute top-2 left-2 text-xs gap-1 bg-background/90 backdrop-blur-sm border-amber-500/50 text-amber-700 dark:text-amber-400"
+                      title="Seller KYC verification pending"
+                    >
+                      <Clock className="w-3 h-3" />
+                      KYC pending
+                    </Badge>
+                  ) : null}
                 </div>
                 <CardContent className="p-3 space-y-1.5">
                   <Badge variant={isAuction ? "default" : "secondary"} className="text-xs">
