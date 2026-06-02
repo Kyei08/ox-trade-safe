@@ -297,7 +297,7 @@ const SellerAnalytics = ({ userId }: SellerAnalyticsProps) => {
       {/* Time-Based Charts */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Views & Bids Trend */}
-        <Card>
+        <Card className="min-w-0 overflow-hidden">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
@@ -305,8 +305,9 @@ const SellerAnalytics = ({ userId }: SellerAnalyticsProps) => {
             </CardTitle>
             <CardDescription>Views and bids over the past 30 days</CardDescription>
           </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+          <CardContent className="px-2 sm:px-6">
+            <ChartContainer config={chartConfig} className="h-[260px] sm:h-[300px] w-full">
+
               <AreaChart data={analytics.dailyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">
