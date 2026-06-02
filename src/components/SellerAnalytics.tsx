@@ -365,7 +365,7 @@ const SellerAnalytics = ({ userId }: SellerAnalyticsProps) => {
         </Card>
 
         {/* Sales & Revenue Trend */}
-        <Card>
+        <Card className="min-w-0 overflow-hidden">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-emerald-500" />
@@ -375,8 +375,9 @@ const SellerAnalytics = ({ userId }: SellerAnalyticsProps) => {
               {last30DaysSales} sales • {formatCurrency(last30DaysRevenue)} revenue (30 days)
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+          <CardContent className="px-2 sm:px-6">
+            <ChartContainer config={chartConfig} className="h-[260px] sm:h-[300px] w-full">
+
               <BarChart data={analytics.dailyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis 
