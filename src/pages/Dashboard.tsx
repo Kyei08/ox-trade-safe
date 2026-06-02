@@ -122,6 +122,10 @@ const Dashboard = () => {
     el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
   }, [activeTab]);
 
+  useEffect(() => {
+    localStorage.setItem("dashboard_active_tab", activeTab);
+  }, [activeTab]);
+
 
   useEffect(() => {
     if (!authLoading && !user) {
