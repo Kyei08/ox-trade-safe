@@ -93,6 +93,33 @@ const Dashboard = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const TAB_ORDER = ["analytics", "listings", "favorites", "purchases", "sales", "bids", "reviews", "images", "profile"];
+  const [activeTab, setActiveTab] = useState<string>("analytics");
+  const tabsListRef = useRef<HTMLDivElement | null>(null);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    touchStart.current = { x: t.clientX, y: t.clientY };
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStart.current) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStart.current.x;
+    const dy = t.clientY - touchStart.current.y;
+    touchStart.current = null;
+    if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx)) return;
+    const idx = TAB_ORDER.indexOf(activeTab);
+    if (dx < 0 && idx < TAB_ORDER.length - 1) setActiveTab(TAB_ORDER[idx + 1]);
+    if (dx > 0 && idx > 0) setActiveTab(TAB_ORDER[idx - 1]);
+  };
+
+  useEffect(() => {
+    const el = tabsListRef.current?.querySelector<HTMLElement>(`[data-state="active"]`);
+    el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }, [activeTab]);
+
+
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/auth");
