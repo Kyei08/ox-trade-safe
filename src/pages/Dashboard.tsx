@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -92,6 +92,33 @@ const Dashboard = () => {
   const [sellerOrders, setSellerOrders] = useState<any[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const TAB_ORDER = ["analytics", "listings", "favorites", "purchases", "sales", "bids", "reviews", "images", "profile"];
+  const [activeTab, setActiveTab] = useState<string>("analytics");
+  const tabsListRef = useRef<HTMLDivElement | null>(null);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    touchStart.current = { x: t.clientX, y: t.clientY };
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStart.current) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStart.current.x;
+    const dy = t.clientY - touchStart.current.y;
+    touchStart.current = null;
+    if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx)) return;
+    const idx = TAB_ORDER.indexOf(activeTab);
+    if (dx < 0 && idx < TAB_ORDER.length - 1) setActiveTab(TAB_ORDER[idx + 1]);
+    if (dx > 0 && idx > 0) setActiveTab(TAB_ORDER[idx - 1]);
+  };
+
+  useEffect(() => {
+    const el = tabsListRef.current?.querySelector<HTMLElement>(`[data-state="active"]`);
+    el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }, [activeTab]);
+
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -255,8 +282,9 @@ const Dashboard = () => {
           </div>
 
           {/* Dashboard Tabs */}
-          <Tabs defaultValue="analytics" className="w-full">
-            <TabsList className="flex w-full overflow-x-auto no-scrollbar h-auto flex-nowrap justify-start md:justify-center gap-1 p-1">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList ref={tabsListRef} className="flex w-full overflow-x-auto no-scrollbar h-auto flex-nowrap justify-start md:justify-center gap-1 p-1">
+
               <TabsTrigger value="analytics" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
                 <BarChart3 className="w-4 h-4" />
                 <span className="hidden sm:inline">Analytics</span>
@@ -295,7 +323,9 @@ const Dashboard = () => {
               </TabsTrigger>
             </TabsList>
 
+            <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} className="touch-pan-y">
             {/* Analytics Tab */}
+
             <TabsContent value="analytics" className="mt-6">
               <h2 className="text-2xl font-semibold mb-4">Seller Analytics</h2>
               <SellerAnalytics userId={user.id} />
@@ -658,7 +688,9 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
             </TabsContent>
+            </div>
           </Tabs>
+
         </div>
       </main>
     </>
