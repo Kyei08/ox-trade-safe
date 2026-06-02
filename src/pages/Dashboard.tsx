@@ -323,7 +323,9 @@ const Dashboard = () => {
               </TabsTrigger>
             </TabsList>
 
+            <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} className="touch-pan-y">
             {/* Analytics Tab */}
+
             <TabsContent value="analytics" className="mt-6">
               <h2 className="text-2xl font-semibold mb-4">Seller Analytics</h2>
               <SellerAnalytics userId={user.id} />
