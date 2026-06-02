@@ -94,7 +94,10 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   const TAB_ORDER = ["analytics", "listings", "favorites", "purchases", "sales", "bids", "reviews", "images", "profile"];
-  const [activeTab, setActiveTab] = useState<string>("analytics");
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    const saved = localStorage.getItem("dashboard_active_tab");
+    return saved && TAB_ORDER.includes(saved) ? saved : "analytics";
+  });
   const tabsListRef = useRef<HTMLDivElement | null>(null);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
 
