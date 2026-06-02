@@ -688,7 +688,9 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
             </TabsContent>
+            </div>
           </Tabs>
+
         </div>
       </main>
     </>
