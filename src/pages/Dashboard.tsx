@@ -223,8 +223,9 @@ const Dashboard = () => {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-background pt-24 pb-12">
-        <div className="container px-4">
+      <main className="min-h-screen bg-background pt-24 pb-12 overflow-x-hidden">
+        <div className="container px-4 max-w-full">
+
           {/* Dashboard Header */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 mb-8 text-center sm:text-left">
             <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
