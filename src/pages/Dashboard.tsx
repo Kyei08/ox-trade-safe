@@ -282,8 +282,9 @@ const Dashboard = () => {
           </div>
 
           {/* Dashboard Tabs */}
-          <Tabs defaultValue="analytics" className="w-full">
-            <TabsList className="flex w-full overflow-x-auto no-scrollbar h-auto flex-nowrap justify-start md:justify-center gap-1 p-1">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList ref={tabsListRef} className="flex w-full overflow-x-auto no-scrollbar h-auto flex-nowrap justify-start md:justify-center gap-1 p-1">
+
               <TabsTrigger value="analytics" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
                 <BarChart3 className="w-4 h-4" />
                 <span className="hidden sm:inline">Analytics</span>
