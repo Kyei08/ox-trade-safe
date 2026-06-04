@@ -238,6 +238,8 @@ const EditListing = () => {
         title: values.title,
         description: values.description,
         category_id: values.category_id,
+        subcategory_id: values.subcategory_id || null,
+
         condition: values.condition,
         location: values.location,
         delivery_options: values.delivery_options,
