@@ -218,6 +218,7 @@ export type Database = {
           seller_id: string
           starting_price: number | null
           status: Database["public"]["Enums"]["listing_status"]
+          subcategory_id: string | null
           title: string
           updated_at: string
           view_count: number | null
@@ -240,6 +241,7 @@ export type Database = {
           seller_id: string
           starting_price?: number | null
           status?: Database["public"]["Enums"]["listing_status"]
+          subcategory_id?: string | null
           title: string
           updated_at?: string
           view_count?: number | null
@@ -262,6 +264,7 @@ export type Database = {
           seller_id?: string
           starting_price?: number | null
           status?: Database["public"]["Enums"]["listing_status"]
+          subcategory_id?: string | null
           title?: string
           updated_at?: string
           view_count?: number | null
@@ -286,6 +289,13 @@ export type Database = {
             columns: ["seller_id"]
             isOneToOne: false
             referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listings_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "subcategories"
             referencedColumns: ["id"]
           },
         ]
@@ -585,6 +595,41 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subcategories: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subcategories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
             referencedColumns: ["id"]
           },
         ]
