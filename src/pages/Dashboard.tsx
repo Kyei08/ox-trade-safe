@@ -98,6 +98,7 @@ const Dashboard = () => {
     const saved = localStorage.getItem("dashboard_active_tab");
     return saved && TAB_ORDER.includes(saved) ? saved : "analytics";
   });
+  const tabHydrated = useRef(false);
   const tabsListRef = useRef<HTMLDivElement | null>(null);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
 
@@ -122,9 +123,38 @@ const Dashboard = () => {
     el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
   }, [activeTab]);
 
+  // Load saved tab from server profile once user is available
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("dashboard_active_tab")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      const serverTab = (data as any)?.dashboard_active_tab as string | null;
+      if (serverTab && TAB_ORDER.includes(serverTab)) {
+        setActiveTab(serverTab);
+      }
+      tabHydrated.current = true;
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  // Persist tab changes locally (fast) and to the server (cross-device)
   useEffect(() => {
     localStorage.setItem("dashboard_active_tab", activeTab);
-  }, [activeTab]);
+    if (!user || !tabHydrated.current) return;
+    supabase
+      .from("profiles")
+      .update({ dashboard_active_tab: activeTab })
+      .eq("id", user.id)
+      .then(() => {});
+  }, [activeTab, user]);
 
 
   useEffect(() => {
