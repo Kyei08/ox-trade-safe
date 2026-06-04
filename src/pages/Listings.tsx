@@ -43,16 +43,27 @@ interface Category {
   icon: string | null;
 }
 
+interface Subcategory {
+  id: string;
+  category_id: string;
+  name: string;
+  slug: string;
+  sort_order: number;
+}
+
 const Listings = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [listings, setListings] = useState<Listing[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "all");
+  const [selectedSubcategory, setSelectedSubcategory] = useState(searchParams.get("subcategory") || "all");
   const [listingType, setListingType] = useState(searchParams.get("type") || "all");
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "newest");
+
 
   useEffect(() => {
     fetchCategories();
@@ -60,7 +71,32 @@ const Listings = () => {
 
   useEffect(() => {
     fetchListings();
-  }, [selectedCategory, listingType, sortBy]);
+  }, [selectedCategory, selectedSubcategory, listingType, sortBy]);
+
+  // Sync search params -> state (e.g. when arriving via homepage category card)
+  useEffect(() => {
+    const cat = searchParams.get("category") || "all";
+    const sub = searchParams.get("subcategory") || "all";
+    setSelectedCategory(cat);
+    setSelectedSubcategory(sub);
+  }, [searchParams]);
+
+  // Load subcategories whenever the selected category changes
+  useEffect(() => {
+    const fetchSubcategories = async () => {
+      if (selectedCategory === "all") {
+        setSubcategories([]);
+        return;
+      }
+      const { data } = await supabase
+        .from("subcategories")
+        .select("id, category_id, name, slug, sort_order")
+        .eq("category_id", selectedCategory)
+        .order("sort_order", { ascending: true });
+      setSubcategories(data || []);
+    };
+    fetchSubcategories();
+  }, [selectedCategory]);
 
   const fetchCategories = async () => {
     try {
@@ -75,6 +111,7 @@ const Listings = () => {
       console.error("Failed to load categories:", error);
     }
   };
+
 
   const fetchListings = async () => {
     try {
@@ -96,10 +133,16 @@ const Listings = () => {
         query = query.eq("category_id", selectedCategory);
       }
 
+      // Apply subcategory filter
+      if (selectedSubcategory !== "all") {
+        query = query.eq("subcategory_id", selectedSubcategory);
+      }
+
       // Apply listing type filter
       if (listingType === "fixed_price" || listingType === "auction") {
         query = query.eq("listing_type", listingType);
       }
+
 
       // Apply sorting
       switch (sortBy) {
@@ -149,6 +192,7 @@ const Listings = () => {
     const params = new URLSearchParams();
     if (searchQuery) params.set("search", searchQuery);
     if (selectedCategory !== "all") params.set("category", selectedCategory);
+    if (selectedSubcategory !== "all") params.set("subcategory", selectedSubcategory);
     if (listingType !== "all") params.set("type", listingType);
     if (sortBy !== "newest") params.set("sort", sortBy);
     setSearchParams(params);
@@ -157,11 +201,24 @@ const Listings = () => {
 
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
+    setSelectedSubcategory("all"); // reset subcategory when category changes
     const params = new URLSearchParams(searchParams);
     if (value === "all") {
       params.delete("category");
     } else {
       params.set("category", value);
+    }
+    params.delete("subcategory");
+    setSearchParams(params);
+  };
+
+  const handleSubcategoryChange = (value: string) => {
+    setSelectedSubcategory(value);
+    const params = new URLSearchParams(searchParams);
+    if (value === "all") {
+      params.delete("subcategory");
+    } else {
+      params.set("subcategory", value);
     }
     setSearchParams(params);
   };
@@ -176,6 +233,7 @@ const Listings = () => {
     }
     setSearchParams(params);
   };
+
 
   const handleSortChange = (value: string) => {
     setSortBy(value);
@@ -287,7 +345,39 @@ const Listings = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Subcategory chips — only visible once a category is selected */}
+            {selectedCategory !== "all" && subcategories.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-thin">
+                <button
+                  type="button"
+                  onClick={() => handleSubcategoryChange("all")}
+                  className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                    selectedSubcategory === "all"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background text-foreground border-border hover:bg-muted"
+                  }`}
+                >
+                  All
+                </button>
+                {subcategories.map((sub) => (
+                  <button
+                    key={sub.id}
+                    type="button"
+                    onClick={() => handleSubcategoryChange(sub.id)}
+                    className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                      selectedSubcategory === sub.id
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-foreground border-border hover:bg-muted"
+                    }`}
+                  >
+                    {sub.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
+
 
           {/* Results Count */}
           <div className="mb-4">

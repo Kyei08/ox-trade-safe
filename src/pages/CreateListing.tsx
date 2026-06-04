@@ -28,6 +28,8 @@ const listingSchema = z.object({
   title: z.string().trim().min(5, "Title must be at least 5 characters").max(200, "Title must be less than 200 characters"),
   description: z.string().trim().min(20, "Description must be at least 20 characters").max(5000, "Description must be less than 5000 characters"),
   category_id: z.string().uuid("Please select a category"),
+  subcategory_id: z.string().optional(),
+
   listing_type: z.enum(["fixed_price", "auction"]),
   condition: z.string().trim().min(1, "Condition is required").max(50),
   location: z.string().trim().min(1, "Location is required").max(200),
@@ -69,13 +71,23 @@ interface Category {
   name: string;
 }
 
+interface Subcategory {
+  id: string;
+  category_id: string;
+  name: string;
+  sort_order: number;
+}
+
+
 const CreateListing = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+
 
   const form = useForm<ListingFormValues>({
     resolver: zodResolver(listingSchema),
@@ -83,7 +95,9 @@ const CreateListing = () => {
       title: "",
       description: "",
       category_id: "",
+      subcategory_id: "",
       listing_type: "fixed_price",
+
       condition: "",
       location: "",
       delivery_options: [],
@@ -95,6 +109,26 @@ const CreateListing = () => {
   });
 
   const listingType = form.watch("listing_type");
+  const selectedCategoryId = form.watch("category_id");
+
+  // Load subcategories whenever the chosen category changes
+  useEffect(() => {
+    const loadSubs = async () => {
+      if (!selectedCategoryId) {
+        setSubcategories([]);
+        return;
+      }
+      const { data } = await supabase
+        .from("subcategories")
+        .select("id, category_id, name, sort_order")
+        .eq("category_id", selectedCategoryId)
+        .order("sort_order", { ascending: true });
+      setSubcategories(data || []);
+    };
+    loadSubs();
+  }, [selectedCategoryId]);
+
+
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -197,6 +231,8 @@ const CreateListing = () => {
         title: values.title,
         description: values.description,
         category_id: values.category_id,
+        subcategory_id: values.subcategory_id || null,
+
         listing_type: values.listing_type,
         condition: values.condition,
         location: values.location,
@@ -327,7 +363,13 @@ const CreateListing = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Category *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            form.setValue("subcategory_id", "");
+                          }}
+                          value={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a category" />
@@ -345,6 +387,35 @@ const CreateListing = () => {
                       </FormItem>
                     )}
                   />
+
+                  {/* Subcategory (optional, depends on category) */}
+                  {selectedCategoryId && subcategories.length > 0 && (
+                    <FormField
+                      control={form.control}
+                      name="subcategory_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Subcategory</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value || ""}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a subcategory (optional)" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {subcategories.map((sub) => (
+                                <SelectItem key={sub.id} value={sub.id}>
+                                  {sub.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
 
                   {/* Listing Type */}
                   <FormField
