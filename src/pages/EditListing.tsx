@@ -70,12 +70,32 @@ const EditListing = () => {
       title: "",
       description: "",
       category_id: "",
+      subcategory_id: "",
       condition: "",
       location: "",
       delivery_options: [],
       fixed_price: "",
     },
   });
+
+  const selectedCategoryId = form.watch("category_id");
+
+  useEffect(() => {
+    const loadSubs = async () => {
+      if (!selectedCategoryId) {
+        setSubcategories([]);
+        return;
+      }
+      const { data } = await supabase
+        .from("subcategories")
+        .select("id, category_id, name, sort_order")
+        .eq("category_id", selectedCategoryId)
+        .order("sort_order", { ascending: true });
+      setSubcategories(data || []);
+    };
+    loadSubs();
+  }, [selectedCategoryId]);
+
 
   useEffect(() => {
     if (!authLoading && !user) {
