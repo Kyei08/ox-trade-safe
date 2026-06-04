@@ -345,7 +345,39 @@ const Listings = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Subcategory chips — only visible once a category is selected */}
+            {selectedCategory !== "all" && subcategories.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-thin">
+                <button
+                  type="button"
+                  onClick={() => handleSubcategoryChange("all")}
+                  className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                    selectedSubcategory === "all"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background text-foreground border-border hover:bg-muted"
+                  }`}
+                >
+                  All
+                </button>
+                {subcategories.map((sub) => (
+                  <button
+                    key={sub.id}
+                    type="button"
+                    onClick={() => handleSubcategoryChange(sub.id)}
+                    className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                      selectedSubcategory === sub.id
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-foreground border-border hover:bg-muted"
+                    }`}
+                  >
+                    {sub.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
+
 
           {/* Results Count */}
           <div className="mb-4">
