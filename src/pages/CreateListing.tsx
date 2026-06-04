@@ -231,6 +231,8 @@ const CreateListing = () => {
         title: values.title,
         description: values.description,
         category_id: values.category_id,
+        subcategory_id: values.subcategory_id || null,
+
         listing_type: values.listing_type,
         condition: values.condition,
         location: values.location,
