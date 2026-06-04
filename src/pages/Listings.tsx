@@ -71,7 +71,32 @@ const Listings = () => {
 
   useEffect(() => {
     fetchListings();
-  }, [selectedCategory, listingType, sortBy]);
+  }, [selectedCategory, selectedSubcategory, listingType, sortBy]);
+
+  // Sync search params -> state (e.g. when arriving via homepage category card)
+  useEffect(() => {
+    const cat = searchParams.get("category") || "all";
+    const sub = searchParams.get("subcategory") || "all";
+    setSelectedCategory(cat);
+    setSelectedSubcategory(sub);
+  }, [searchParams]);
+
+  // Load subcategories whenever the selected category changes
+  useEffect(() => {
+    const fetchSubcategories = async () => {
+      if (selectedCategory === "all") {
+        setSubcategories([]);
+        return;
+      }
+      const { data } = await supabase
+        .from("subcategories")
+        .select("id, category_id, name, slug, sort_order")
+        .eq("category_id", selectedCategory)
+        .order("sort_order", { ascending: true });
+      setSubcategories(data || []);
+    };
+    fetchSubcategories();
+  }, [selectedCategory]);
 
   const fetchCategories = async () => {
     try {
@@ -86,6 +111,7 @@ const Listings = () => {
       console.error("Failed to load categories:", error);
     }
   };
+
 
   const fetchListings = async () => {
     try {
