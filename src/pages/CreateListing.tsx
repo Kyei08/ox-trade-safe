@@ -363,7 +363,13 @@ const CreateListing = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Category *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            form.setValue("subcategory_id", "");
+                          }}
+                          value={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a category" />
@@ -381,6 +387,35 @@ const CreateListing = () => {
                       </FormItem>
                     )}
                   />
+
+                  {/* Subcategory (optional, depends on category) */}
+                  {selectedCategoryId && subcategories.length > 0 && (
+                    <FormField
+                      control={form.control}
+                      name="subcategory_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Subcategory</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value || ""}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a subcategory (optional)" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {subcategories.map((sub) => (
+                                <SelectItem key={sub.id} value={sub.id}>
+                                  {sub.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
 
                   {/* Listing Type */}
                   <FormField
