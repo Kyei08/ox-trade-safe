@@ -133,10 +133,16 @@ const Listings = () => {
         query = query.eq("category_id", selectedCategory);
       }
 
+      // Apply subcategory filter
+      if (selectedSubcategory !== "all") {
+        query = query.eq("subcategory_id", selectedSubcategory);
+      }
+
       // Apply listing type filter
       if (listingType === "fixed_price" || listingType === "auction") {
         query = query.eq("listing_type", listingType);
       }
+
 
       // Apply sorting
       switch (sortBy) {
