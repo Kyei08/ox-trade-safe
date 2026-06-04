@@ -152,11 +152,13 @@ const EditListing = () => {
         title: data.title,
         description: data.description,
         category_id: data.category_id || "",
+        subcategory_id: (data as any).subcategory_id || "",
         condition: data.condition || "",
         location: data.location || "",
         delivery_options: data.delivery_options || [],
         fixed_price: data.fixed_price?.toString() || "",
       });
+
     } catch (error) {
       toast.error("Failed to load listing");
       navigate("/dashboard");
