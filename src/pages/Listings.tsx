@@ -192,6 +192,7 @@ const Listings = () => {
     const params = new URLSearchParams();
     if (searchQuery) params.set("search", searchQuery);
     if (selectedCategory !== "all") params.set("category", selectedCategory);
+    if (selectedSubcategory !== "all") params.set("subcategory", selectedSubcategory);
     if (listingType !== "all") params.set("type", listingType);
     if (sortBy !== "newest") params.set("sort", sortBy);
     setSearchParams(params);
@@ -200,11 +201,24 @@ const Listings = () => {
 
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
+    setSelectedSubcategory("all"); // reset subcategory when category changes
     const params = new URLSearchParams(searchParams);
     if (value === "all") {
       params.delete("category");
     } else {
       params.set("category", value);
+    }
+    params.delete("subcategory");
+    setSearchParams(params);
+  };
+
+  const handleSubcategoryChange = (value: string) => {
+    setSelectedSubcategory(value);
+    const params = new URLSearchParams(searchParams);
+    if (value === "all") {
+      params.delete("subcategory");
+    } else {
+      params.set("subcategory", value);
     }
     setSearchParams(params);
   };
@@ -219,6 +233,7 @@ const Listings = () => {
     }
     setSearchParams(params);
   };
+
 
   const handleSortChange = (value: string) => {
     setSortBy(value);
