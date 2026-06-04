@@ -83,9 +83,11 @@ const CreateListing = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+
 
   const form = useForm<ListingFormValues>({
     resolver: zodResolver(listingSchema),
