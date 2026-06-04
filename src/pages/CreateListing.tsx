@@ -71,6 +71,14 @@ interface Category {
   name: string;
 }
 
+interface Subcategory {
+  id: string;
+  category_id: string;
+  name: string;
+  sort_order: number;
+}
+
+
 const CreateListing = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
