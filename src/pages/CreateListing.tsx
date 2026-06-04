@@ -109,6 +109,26 @@ const CreateListing = () => {
   });
 
   const listingType = form.watch("listing_type");
+  const selectedCategoryId = form.watch("category_id");
+
+  // Load subcategories whenever the chosen category changes
+  useEffect(() => {
+    const loadSubs = async () => {
+      if (!selectedCategoryId) {
+        setSubcategories([]);
+        return;
+      }
+      const { data } = await supabase
+        .from("subcategories")
+        .select("id, category_id, name, sort_order")
+        .eq("category_id", selectedCategoryId)
+        .order("sort_order", { ascending: true });
+      setSubcategories(data || []);
+    };
+    loadSubs();
+  }, [selectedCategoryId]);
+
+
 
   useEffect(() => {
     if (!authLoading && !user) {
