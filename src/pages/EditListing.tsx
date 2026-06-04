@@ -27,6 +27,8 @@ const editListingSchema = z.object({
   title: z.string().trim().min(5, "Title must be at least 5 characters").max(200, "Title must be less than 200 characters"),
   description: z.string().trim().min(20, "Description must be at least 20 characters").max(5000, "Description must be less than 5000 characters"),
   category_id: z.string().uuid("Please select a category"),
+  subcategory_id: z.string().optional(),
+
   condition: z.string().trim().min(1, "Condition is required").max(50),
   location: z.string().trim().min(1, "Location is required").max(200),
   delivery_options: z.array(z.string()).min(1, "Select at least one delivery option"),
