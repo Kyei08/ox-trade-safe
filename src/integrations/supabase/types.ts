@@ -422,6 +422,7 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          dashboard_active_tab: string | null
           email: string
           facebook_url: string | null
           full_name: string | null
@@ -445,6 +446,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          dashboard_active_tab?: string | null
           email: string
           facebook_url?: string | null
           full_name?: string | null
@@ -468,6 +470,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          dashboard_active_tab?: string | null
           email?: string
           facebook_url?: string | null
           full_name?: string | null
