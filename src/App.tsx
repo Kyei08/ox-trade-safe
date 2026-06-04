@@ -13,6 +13,8 @@ import ListingDetail from "./pages/ListingDetail";
 import KYCSubmission from "./pages/KYCSubmission";
 import AdminKYC from "./pages/AdminKYC";
 import AdminReports from "./pages/AdminReports";
+import AdminCategories from "./pages/AdminCategories";
+
 import Messages from "./pages/Messages";
 import Conversation from "./pages/Conversation";
 import PaymentSuccess from "./pages/PaymentSuccess";
@@ -41,6 +43,8 @@ const App = () => (
           <Route path="/kyc" element={<KYCSubmission />} />
           <Route path="/admin/kyc" element={<AdminKYC />} />
           <Route path="/admin/reports" element={<AdminReports />} />
+          <Route path="/admin/categories" element={<AdminCategories />} />
+
           <Route path="/messages" element={<Messages />} />
           <Route path="/messages/:id" element={<Conversation />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />

@@ -103,7 +103,7 @@ const Listings = () => {
       const { data, error } = await supabase
         .from("categories")
         .select("id, name, icon")
-        .order("name");
+        .order("sort_order", { ascending: true });
 
       if (error) throw error;
       setCategories(data || []);
