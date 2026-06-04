@@ -95,7 +95,9 @@ const CreateListing = () => {
       title: "",
       description: "",
       category_id: "",
+      subcategory_id: "",
       listing_type: "fixed_price",
+
       condition: "",
       location: "",
       delivery_options: [],
