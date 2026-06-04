@@ -42,6 +42,14 @@ interface Category {
   name: string;
 }
 
+interface Subcategory {
+  id: string;
+  category_id: string;
+  name: string;
+  sort_order: number;
+}
+
+
 const EditListing = () => {
   const { id } = useParams<{ id: string }>();
   const { user, loading: authLoading } = useAuth();
