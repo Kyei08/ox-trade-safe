@@ -118,7 +118,7 @@ const EditListing = () => {
       const { data, error } = await supabase
         .from("categories")
         .select("id, name")
-        .order("name");
+        .order("sort_order", { ascending: true });
 
       if (error) throw error;
       setCategories(data || []);
