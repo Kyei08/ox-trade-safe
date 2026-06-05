@@ -335,7 +335,7 @@ const AdminCategories = () => {
             <h1 className="text-3xl font-bold mb-2">Categories</h1>
             <p className="text-muted-foreground">
               Create, edit, and remove top-level categories and their subcategories. Drag the
-              handle on the left to reorder.
+              handle on the left to reorder, or focus it with Tab and use Space then Arrow keys.
             </p>
           </div>
 
