@@ -85,8 +85,8 @@ const DragHandle = ({
     type="button"
     {...attributes}
     {...listeners}
-    aria-label="Drag to reorder"
-    className={`flex items-center justify-center text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing touch-none rounded-md hover:bg-muted ${
+    aria-label="Reorder. Press Space or Enter to pick up, Arrow keys to move, Space or Enter to drop, Escape to cancel."
+    className={`flex items-center justify-center text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-grab active:cursor-grabbing touch-none rounded-md hover:bg-muted ${
       size === "sm" ? "h-6 w-6" : "h-8 w-8"
     }`}
   >
@@ -335,7 +335,7 @@ const AdminCategories = () => {
             <h1 className="text-3xl font-bold mb-2">Categories</h1>
             <p className="text-muted-foreground">
               Create, edit, and remove top-level categories and their subcategories. Drag the
-              handle on the left to reorder.
+              handle on the left to reorder, or focus it with Tab and use Space then Arrow keys.
             </p>
           </div>
 
