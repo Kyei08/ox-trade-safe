@@ -581,7 +581,6 @@ const AdminCategories = () => {
                                     </p>
                                   )}
 
-                                  const subAnnouncements = makeSubAnnouncements(cat.name, subs);
                                   <DndContext
                                     sensors={sensors}
                                     collisionDetection={closestCenter}
