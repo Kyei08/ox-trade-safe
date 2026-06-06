@@ -71,6 +71,33 @@ const slugify = (s: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
+const makeSubAnnouncements = (catName: string, subs: Subcategory[]) => ({
+  onDragStart({ active }: { active: any }) {
+    const name = active.data.current?.name || "Subcategory";
+    return `Picked up subcategory ${name} in ${catName}. Press arrow keys to move, space or enter to drop, escape to cancel.`;
+  },
+  onDragOver({ active, over }: { active: any; over: any }) {
+    const name = active.data.current?.name || "Subcategory";
+    if (over) {
+      const idx = subs.findIndex((s) => s.id === over.id) + 1;
+      return `Moving subcategory ${name} to position ${idx} of ${subs.length} in ${catName}.`;
+    }
+    return `Moving subcategory ${name}.`;
+  },
+  onDragEnd({ active, over }: { active: any; over: any }) {
+    const name = active.data.current?.name || "Subcategory";
+    if (over) {
+      const idx = subs.findIndex((s) => s.id === over.id) + 1;
+      return `Dropped subcategory ${name} at position ${idx} of ${subs.length} in ${catName}.`;
+    }
+    return `Dropped subcategory ${name}.`;
+  },
+  onDragCancel({ active }: { active: any }) {
+    const name = active.data.current?.name || "Subcategory";
+    return `Cancelled reordering. Subcategory ${name} returned to original position in ${catName}.`;
+  },
+});
+
 // Drag handle button used by sortable rows
 const DragHandle = ({
   attributes,
@@ -235,6 +262,33 @@ const AdminCategories = () => {
     }
   };
 
+  const categoryAnnouncements = {
+    onDragStart({ active }: { active: any }) {
+      const name = active.data.current?.name || "Category";
+      return `Picked up category ${name}. Press arrow keys to move, space or enter to drop, escape to cancel.`;
+    },
+    onDragOver({ active, over }: { active: any; over: any }) {
+      const name = active.data.current?.name || "Category";
+      if (over) {
+        const idx = categories.findIndex((c) => c.id === over.id) + 1;
+        return `Moving category ${name} to position ${idx} of ${categories.length}.`;
+      }
+      return `Moving category ${name}.`;
+    },
+    onDragEnd({ active, over }: { active: any; over: any }) {
+      const name = active.data.current?.name || "Category";
+      if (over) {
+        const idx = categories.findIndex((c) => c.id === over.id) + 1;
+        return `Dropped category ${name} at position ${idx} of ${categories.length}.`;
+      }
+      return `Dropped category ${name}.`;
+    },
+    onDragCancel({ active }: { active: any }) {
+      const name = active.data.current?.name || "Category";
+      return `Cancelled reordering. Category ${name} returned to original position.`;
+    },
+  };
+
   const onCategoryDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -379,6 +433,7 @@ const AdminCategories = () => {
               sensors={sensors}
               collisionDetection={closestCenter}
               onDragEnd={onCategoryDragEnd}
+              accessibility={{ announcements: categoryAnnouncements }}
             >
               <SortableContext
                 items={categories.map((c) => c.id)}
@@ -390,9 +445,10 @@ const AdminCategories = () => {
                     const isEditing = editingCatId === cat.id;
                     const subs = subsByCat[cat.id] || [];
                     const subDraftNew = newSubByCat[cat.id] || { name: "", slug: "" };
+                    const subAnnouncements = makeSubAnnouncements(cat.name, subs);
 
                     return (
-                      <SortableCategoryCard key={cat.id} id={cat.id}>
+                      <SortableCategoryCard key={cat.id} id={cat.id} data={{ name: cat.name }}>
                         {({ attributes, listeners }) => (
                           <Card>
                             <CardContent className="p-4">
@@ -529,6 +585,7 @@ const AdminCategories = () => {
                                     sensors={sensors}
                                     collisionDetection={closestCenter}
                                     onDragEnd={onSubDragEnd(cat.id)}
+                                    accessibility={{ announcements: subAnnouncements }}
                                   >
                                     <SortableContext
                                       items={subs.map((s) => s.id)}
@@ -537,7 +594,7 @@ const AdminCategories = () => {
                                       {subs.map((sub) => {
                                         const isSubEditing = editingSubId === sub.id;
                                         return (
-                                          <SortableSubRow key={sub.id} id={sub.id}>
+                                          <SortableSubRow key={sub.id} id={sub.id} data={{ name: sub.name }}>
                                             {({ attributes, listeners }) => (
                                               <div className="flex items-center gap-2 flex-wrap">
                                                 <DragHandle
@@ -700,13 +757,16 @@ const AdminCategories = () => {
 // Sortable wrappers — render-prop pattern keeps drag listeners scoped to the handle.
 const SortableCategoryCard = ({
   id,
+  data,
   children,
 }: {
   id: string;
+  data?: Record<string, any>;
   children: (args: { attributes: any; listeners: any }) => React.ReactNode;
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
+    data,
   });
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -723,13 +783,16 @@ const SortableCategoryCard = ({
 
 const SortableSubRow = ({
   id,
+  data,
   children,
 }: {
   id: string;
+  data?: Record<string, any>;
   children: (args: { attributes: any; listeners: any }) => React.ReactNode;
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
+    data,
   });
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
