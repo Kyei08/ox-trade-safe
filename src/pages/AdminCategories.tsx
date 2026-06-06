@@ -594,7 +594,7 @@ const AdminCategories = () => {
                                       {subs.map((sub) => {
                                         const isSubEditing = editingSubId === sub.id;
                                         return (
-                                          <SortableSubRow key={sub.id} id={sub.id}>
+                                          <SortableSubRow key={sub.id} id={sub.id} data={{ name: sub.name }}>
                                             {({ attributes, listeners }) => (
                                               <div className="flex items-center gap-2 flex-wrap">
                                                 <DragHandle
