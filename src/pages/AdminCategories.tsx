@@ -580,10 +580,12 @@ const AdminCategories = () => {
                                     </p>
                                   )}
 
+                                  const subAnnouncements = makeSubAnnouncements(cat.name, subs);
                                   <DndContext
                                     sensors={sensors}
                                     collisionDetection={closestCenter}
                                     onDragEnd={onSubDragEnd(cat.id)}
+                                    accessibility={{ announcements: subAnnouncements }}
                                   >
                                     <SortableContext
                                       items={subs.map((s) => s.id)}
