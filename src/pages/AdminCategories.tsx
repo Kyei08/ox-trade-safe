@@ -754,13 +754,16 @@ const SortableCategoryCard = ({
 
 const SortableSubRow = ({
   id,
+  data,
   children,
 }: {
   id: string;
+  data?: Record<string, any>;
   children: (args: { attributes: any; listeners: any }) => React.ReactNode;
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
+    data,
   });
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
