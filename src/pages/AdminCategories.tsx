@@ -445,6 +445,7 @@ const AdminCategories = () => {
                     const isEditing = editingCatId === cat.id;
                     const subs = subsByCat[cat.id] || [];
                     const subDraftNew = newSubByCat[cat.id] || { name: "", slug: "" };
+                    const subAnnouncements = makeSubAnnouncements(cat.name, subs);
 
                     return (
                       <SortableCategoryCard key={cat.id} id={cat.id} data={{ name: cat.name }}>
