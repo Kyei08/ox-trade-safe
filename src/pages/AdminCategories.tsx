@@ -236,11 +236,11 @@ const AdminCategories = () => {
   };
 
   const categoryAnnouncements = {
-    start({ active }: { active: any }) {
+    onDragStart({ active }: { active: any }) {
       const name = active.data.current?.name || "Category";
       return `Picked up category ${name}. Press arrow keys to move, space or enter to drop, escape to cancel.`;
     },
-    move({ active, over }: { active: any; over: any }) {
+    onDragOver({ active, over }: { active: any; over: any }) {
       const name = active.data.current?.name || "Category";
       if (over) {
         const idx = categories.findIndex((c) => c.id === over.id) + 1;
@@ -248,7 +248,7 @@ const AdminCategories = () => {
       }
       return `Moving category ${name}.`;
     },
-    end({ active, over }: { active: any; over: any }) {
+    onDragEnd({ active, over }: { active: any; over: any }) {
       const name = active.data.current?.name || "Category";
       if (over) {
         const idx = categories.findIndex((c) => c.id === over.id) + 1;
@@ -256,7 +256,7 @@ const AdminCategories = () => {
       }
       return `Dropped category ${name}.`;
     },
-    cancel({ active }: { active: any }) {
+    onDragCancel({ active }: { active: any }) {
       const name = active.data.current?.name || "Category";
       return `Cancelled reordering. Category ${name} returned to original position.`;
     },
