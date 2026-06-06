@@ -406,6 +406,7 @@ const AdminCategories = () => {
               sensors={sensors}
               collisionDetection={closestCenter}
               onDragEnd={onCategoryDragEnd}
+              accessibility={{ announcements: categoryAnnouncements }}
             >
               <SortableContext
                 items={categories.map((c) => c.id)}
