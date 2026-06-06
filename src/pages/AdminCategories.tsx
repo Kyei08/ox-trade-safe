@@ -553,38 +553,10 @@ const AdminCategories = () => {
                                     </p>
                                   )}
 
-                                  const subAnnouncements = {
-                                    onDragStart({ active }: { active: any }) {
-                                      const name = active.data.current?.name || "Subcategory";
-                                      return `Picked up subcategory ${name} in ${cat.name}. Press arrow keys to move, space or enter to drop, escape to cancel.`;
-                                    },
-                                    onDragOver({ active, over }: { active: any; over: any }) {
-                                      const name = active.data.current?.name || "Subcategory";
-                                      if (over) {
-                                        const idx = subs.findIndex((s) => s.id === over.id) + 1;
-                                        return `Moving subcategory ${name} to position ${idx} of ${subs.length} in ${cat.name}.`;
-                                      }
-                                      return `Moving subcategory ${name}.`;
-                                    },
-                                    onDragEnd({ active, over }: { active: any; over: any }) {
-                                      const name = active.data.current?.name || "Subcategory";
-                                      if (over) {
-                                        const idx = subs.findIndex((s) => s.id === over.id) + 1;
-                                        return `Dropped subcategory ${name} at position ${idx} of ${subs.length} in ${cat.name}.`;
-                                      }
-                                      return `Dropped subcategory ${name}.`;
-                                    },
-                                    onDragCancel({ active }: { active: any }) {
-                                      const name = active.data.current?.name || "Subcategory";
-                                      return `Cancelled reordering. Subcategory ${name} returned to original position in ${cat.name}.`;
-                                    },
-                                  };
-
                                   <DndContext
                                     sensors={sensors}
                                     collisionDetection={closestCenter}
                                     onDragEnd={onSubDragEnd(cat.id)}
-                                    accessibility={{ announcements: subAnnouncements }}
                                   >
                                     <SortableContext
                                       items={subs.map((s) => s.id)}
