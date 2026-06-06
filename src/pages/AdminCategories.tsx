@@ -71,6 +71,33 @@ const slugify = (s: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
+const makeSubAnnouncements = (catName: string, subs: Subcategory[]) => ({
+  onDragStart({ active }: { active: any }) {
+    const name = active.data.current?.name || "Subcategory";
+    return `Picked up subcategory ${name} in ${catName}. Press arrow keys to move, space or enter to drop, escape to cancel.`;
+  },
+  onDragOver({ active, over }: { active: any; over: any }) {
+    const name = active.data.current?.name || "Subcategory";
+    if (over) {
+      const idx = subs.findIndex((s) => s.id === over.id) + 1;
+      return `Moving subcategory ${name} to position ${idx} of ${subs.length} in ${catName}.`;
+    }
+    return `Moving subcategory ${name}.`;
+  },
+  onDragEnd({ active, over }: { active: any; over: any }) {
+    const name = active.data.current?.name || "Subcategory";
+    if (over) {
+      const idx = subs.findIndex((s) => s.id === over.id) + 1;
+      return `Dropped subcategory ${name} at position ${idx} of ${subs.length} in ${catName}.`;
+    }
+    return `Dropped subcategory ${name}.`;
+  },
+  onDragCancel({ active }: { active: any }) {
+    const name = active.data.current?.name || "Subcategory";
+    return `Cancelled reordering. Subcategory ${name} returned to original position in ${catName}.`;
+  },
+});
+
 // Drag handle button used by sortable rows
 const DragHandle = ({
   attributes,
