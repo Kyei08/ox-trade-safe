@@ -728,13 +728,16 @@ const AdminCategories = () => {
 // Sortable wrappers — render-prop pattern keeps drag listeners scoped to the handle.
 const SortableCategoryCard = ({
   id,
+  data,
   children,
 }: {
   id: string;
+  data?: Record<string, any>;
   children: (args: { attributes: any; listeners: any }) => React.ReactNode;
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
+    data,
   });
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
