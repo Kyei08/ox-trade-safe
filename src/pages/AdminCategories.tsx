@@ -420,7 +420,7 @@ const AdminCategories = () => {
                     const subDraftNew = newSubByCat[cat.id] || { name: "", slug: "" };
 
                     return (
-                      <SortableCategoryCard key={cat.id} id={cat.id}>
+                      <SortableCategoryCard key={cat.id} id={cat.id} data={{ name: cat.name }}>
                         {({ attributes, listeners }) => (
                           <Card>
                             <CardContent className="p-4">
