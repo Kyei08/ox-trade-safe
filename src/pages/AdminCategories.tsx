@@ -235,6 +235,33 @@ const AdminCategories = () => {
     }
   };
 
+  const categoryAnnouncements = {
+    start({ active }: { active: any }) {
+      const name = active.data.current?.name || "Category";
+      return `Picked up category ${name}. Press arrow keys to move, space or enter to drop, escape to cancel.`;
+    },
+    move({ active, over }: { active: any; over: any }) {
+      const name = active.data.current?.name || "Category";
+      if (over) {
+        const idx = categories.findIndex((c) => c.id === over.id) + 1;
+        return `Moving category ${name} to position ${idx} of ${categories.length}.`;
+      }
+      return `Moving category ${name}.`;
+    },
+    end({ active, over }: { active: any; over: any }) {
+      const name = active.data.current?.name || "Category";
+      if (over) {
+        const idx = categories.findIndex((c) => c.id === over.id) + 1;
+        return `Dropped category ${name} at position ${idx} of ${categories.length}.`;
+      }
+      return `Dropped category ${name}.`;
+    },
+    cancel({ active }: { active: any }) {
+      const name = active.data.current?.name || "Category";
+      return `Cancelled reordering. Category ${name} returned to original position.`;
+    },
+  };
+
   const onCategoryDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
