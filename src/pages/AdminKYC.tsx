@@ -385,6 +385,6 @@ export default function AdminKYC() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AdminLayout>
   );
 }
