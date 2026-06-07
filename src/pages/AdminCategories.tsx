@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import Header from "@/components/Header";
+import AdminLayout from "@/components/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -369,29 +369,21 @@ const AdminCategories = () => {
 
   if (authLoading || !isAdmin) {
     return (
-      <>
-        <Header />
-        <main className="min-h-screen bg-background pt-24 pb-12">
-          <div className="container px-4 flex justify-center">
-            <Loader2 className="w-8 h-8 animate-spin" />
-          </div>
-        </main>
-      </>
+      <AdminLayout>
+        <div className="flex justify-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin" />
+        </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <>
-      <Header />
-      <main className="min-h-screen bg-background pt-24 pb-12">
-        <div className="container px-4 max-w-4xl">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Categories</h1>
-            <p className="text-muted-foreground">
-              Create, edit, and remove top-level categories and their subcategories. Drag the
-              handle on the left to reorder, or focus it with Tab and use Space then Arrow keys.
-            </p>
-          </div>
+    <AdminLayout
+      title="Categories"
+      description="Create, edit, and remove top-level categories and their subcategories. Drag the handle on the left to reorder, or focus it with Tab and use Space then Arrow keys."
+    >
+      <div className="max-w-4xl">
+
 
           {/* Add new category */}
           <Card className="mb-6">
@@ -748,11 +740,11 @@ const AdminCategories = () => {
               </SortableContext>
             </DndContext>
           )}
-        </div>
-      </main>
-    </>
+      </div>
+    </AdminLayout>
   );
 };
+
 
 // Sortable wrappers — render-prop pattern keeps drag listeners scoped to the handle.
 const SortableCategoryCard = ({

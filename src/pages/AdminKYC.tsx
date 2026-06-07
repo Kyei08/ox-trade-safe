@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle, XCircle, Eye, FileText } from "lucide-react";
+import AdminLayout from "@/components/AdminLayout";
 import {
   Dialog,
   DialogContent,
@@ -261,9 +262,11 @@ export default function AdminKYC() {
 
   if (authLoading || loading || !isAdmin) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <AdminLayout>
+        <div className="flex justify-center items-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </AdminLayout>
     );
   }
 
@@ -272,9 +275,7 @@ export default function AdminKYC() {
   const rejectedSubmissions = submissions.filter(s => s.status === "rejected");
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">KYC Review Panel</h1>
-
+    <AdminLayout title="KYC Review" description="Approve or reject identity verification submissions">
       <Tabs defaultValue="pending" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="pending">
@@ -384,6 +385,6 @@ export default function AdminKYC() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AdminLayout>
   );
 }
