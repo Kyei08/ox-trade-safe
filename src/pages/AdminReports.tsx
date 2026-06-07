@@ -118,45 +118,35 @@ const AdminReports = () => {
 
   if (authLoading || loading) {
     return (
-      <>
-        <Header />
-        <main className="min-h-screen bg-background pt-24 pb-12">
-          <div className="container px-4 max-w-4xl">
-            <Skeleton className="h-12 w-64 mb-8" />
-            <Skeleton className="h-96 w-full" />
-          </div>
-        </main>
-      </>
+      <AdminLayout>
+        <Skeleton className="h-12 w-64 mb-8" />
+        <Skeleton className="h-96 w-full" />
+      </AdminLayout>
     );
   }
 
   if (!isAdmin) return null;
 
   return (
-    <>
-      <Header />
-      <main className="min-h-screen bg-background pt-24 pb-12">
-        <div className="container px-4 max-w-4xl">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-bold">Reports</h1>
-              <p className="text-muted-foreground">
-                {reports.filter((r) => r.status === "pending").length} pending reports
-              </p>
-            </div>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="reviewed">Reviewed</SelectItem>
-                <SelectItem value="resolved">Resolved</SelectItem>
-                <SelectItem value="dismissed">Dismissed</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+    <AdminLayout
+      title="Reports"
+      description={`${reports.filter((r) => r.status === "pending").length} pending reports`}
+    >
+      <div className="flex items-center justify-end mb-6">
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="reviewed">Reviewed</SelectItem>
+            <SelectItem value="resolved">Resolved</SelectItem>
+            <SelectItem value="dismissed">Dismissed</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
 
           {filteredReports.length === 0 ? (
             <Card>
@@ -284,10 +274,8 @@ const AdminReports = () => {
                 );
               })}
             </div>
-          )}
-        </div>
-      </main>
-    </>
+      )}
+    </AdminLayout>
   );
 };
 
