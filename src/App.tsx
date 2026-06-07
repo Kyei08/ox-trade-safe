@@ -15,6 +15,7 @@ import AdminKYC from "./pages/AdminKYC";
 import AdminReports from "./pages/AdminReports";
 import AdminCategories from "./pages/AdminCategories";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminRoute from "@/components/AdminRoute";
 
 import Messages from "./pages/Messages";
 import Conversation from "./pages/Conversation";
