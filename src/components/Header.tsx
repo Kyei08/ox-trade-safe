@@ -3,7 +3,8 @@ import { Menu, Search, LogOut, MessageSquare, Home, Grid, Plus, User, Gavel, Shi
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +28,21 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
+    supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle()
+      .then(({ data }) => setIsAdmin(!!data));
+  }, [user]);
 
   const handleSignOut = async () => {
     const { error } = await signOut();
