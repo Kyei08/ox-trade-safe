@@ -265,7 +265,19 @@ const Header = () => {
                         <span className="font-medium">KYC Verification</span>
                       </Link>
 
+                      {isAdmin && (
+                        <Link
+                          to="/admin"
+                          className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname.startsWith("/admin") ? "font-bold" : ""}`}
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <Shield className="w-5 h-5" />
+                          <span className="font-medium">Admin Panel</span>
+                        </Link>
+                      )}
+
                       <Separator className="my-2" />
+                      
                       
                       <Button 
                         variant="outline" 
