@@ -15,6 +15,7 @@ import AdminKYC from "./pages/AdminKYC";
 import AdminReports from "./pages/AdminReports";
 import AdminCategories from "./pages/AdminCategories";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminRoute from "@/components/AdminRoute";
 
 import Messages from "./pages/Messages";
 import Conversation from "./pages/Conversation";
@@ -42,10 +43,38 @@ const App = () => (
           <Route path="/listing/:id" element={<ListingDetail />} />
           <Route path="/seller/:sellerId" element={<SellerProfile />} />
           <Route path="/kyc" element={<KYCSubmission />} />
-          <Route path="/admin/kyc" element={<AdminKYC />} />
-          <Route path="/admin/reports" element={<AdminReports />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/categories" element={<AdminCategories />} />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/kyc"
+            element={
+              <AdminRoute>
+                <AdminKYC />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/reports"
+            element={
+              <AdminRoute>
+                <AdminReports />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/categories"
+            element={
+              <AdminRoute>
+                <AdminCategories />
+              </AdminRoute>
+            }
+          />
 
           <Route path="/messages" element={<Messages />} />
           <Route path="/messages/:id" element={<Conversation />} />
