@@ -473,7 +473,7 @@ const SellerVerification = () => {
                       </div>
                     </div>
                   </div>
-                ))}
+                );})}
               </CardContent>
             </Card>
           )}
