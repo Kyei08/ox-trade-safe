@@ -773,6 +773,7 @@ export type Database = {
     Views: {
       public_profiles: {
         Row: {
+          address_verified_at: string | null
           avatar_url: string | null
           bio: string | null
           created_at: string | null
@@ -782,7 +783,12 @@ export type Database = {
           instagram_url: string | null
           kyc_status: Database["public"]["Enums"]["kyc_status"] | null
           linkedin_url: string | null
+          phone_verified_at: string | null
           rating: number | null
+          seller_type: Database["public"]["Enums"]["seller_type"] | null
+          seller_verification_status:
+            | Database["public"]["Enums"]["seller_verification_status"]
+            | null
           tiktok_url: string | null
           total_reviews: number | null
           twitter_url: string | null
@@ -791,6 +797,7 @@ export type Database = {
           youtube_url: string | null
         }
         Insert: {
+          address_verified_at?: string | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
@@ -800,7 +807,12 @@ export type Database = {
           instagram_url?: string | null
           kyc_status?: Database["public"]["Enums"]["kyc_status"] | null
           linkedin_url?: string | null
+          phone_verified_at?: string | null
           rating?: number | null
+          seller_type?: Database["public"]["Enums"]["seller_type"] | null
+          seller_verification_status?:
+            | Database["public"]["Enums"]["seller_verification_status"]
+            | null
           tiktok_url?: string | null
           total_reviews?: number | null
           twitter_url?: string | null
@@ -809,6 +821,7 @@ export type Database = {
           youtube_url?: string | null
         }
         Update: {
+          address_verified_at?: string | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
@@ -818,7 +831,12 @@ export type Database = {
           instagram_url?: string | null
           kyc_status?: Database["public"]["Enums"]["kyc_status"] | null
           linkedin_url?: string | null
+          phone_verified_at?: string | null
           rating?: number | null
+          seller_type?: Database["public"]["Enums"]["seller_type"] | null
+          seller_verification_status?:
+            | Database["public"]["Enums"]["seller_verification_status"]
+            | null
           tiktok_url?: string | null
           total_reviews?: number | null
           twitter_url?: string | null
