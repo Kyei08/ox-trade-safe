@@ -87,6 +87,21 @@ const CreateListing = () => {
   const [loading, setLoading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
+  const [checkingVerification, setCheckingVerification] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("seller_verification_status")
+        .eq("id", user.id)
+        .maybeSingle();
+      setVerificationStatus(data?.seller_verification_status ?? "not_started");
+      setCheckingVerification(false);
+    })();
+  }, [user]);
 
 
   const form = useForm<ListingFormValues>({
@@ -293,6 +308,51 @@ const CreateListing = () => {
   }
 
   if (!user) return null;
+
+  if (!checkingVerification && verificationStatus !== "approved") {
+    const labels: Record<string, { title: string; description: string; cta: string }> = {
+      not_started: {
+        title: "Verify your seller account",
+        description: "Complete seller verification before creating listings. This keeps the marketplace safe for buyers.",
+        cta: "Start verification",
+      },
+      pending_review: {
+        title: "Verification in review",
+        description: "Your submission is being reviewed. You'll be able to create listings once it's approved.",
+        cta: "View status",
+      },
+      requires_more_info: {
+        title: "More information needed",
+        description: "We've requested updates to your verification. Please provide them to continue.",
+        cta: "Update submission",
+      },
+      rejected: {
+        title: "Verification rejected",
+        description: "Your previous submission was rejected. Review the notes and resubmit to continue.",
+        cta: "Resubmit",
+      },
+    };
+    const meta = labels[verificationStatus || "not_started"] || labels.not_started;
+    return (
+      <>
+        <Header />
+        <main className="min-h-screen bg-background pt-24 pb-12">
+          <div className="container px-4 max-w-2xl">
+            <Card>
+              <CardHeader>
+                <CardTitle>{meta.title}</CardTitle>
+                <CardDescription>{meta.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button onClick={() => navigate("/seller-verification")}>{meta.cta}</Button>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </>
+    );
+  }
+
 
   return (
     <>
