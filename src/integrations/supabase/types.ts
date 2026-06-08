@@ -432,6 +432,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address_verified_at: string | null
           avatar_url: string | null
           bio: string | null
           created_at: string
@@ -446,7 +447,10 @@ export type Database = {
           linkedin_url: string | null
           location: string | null
           phone: string | null
+          phone_verified_at: string | null
           rating: number | null
+          seller_type: Database["public"]["Enums"]["seller_type"] | null
+          seller_verification_status: Database["public"]["Enums"]["seller_verification_status"]
           tiktok_url: string | null
           total_reviews: number | null
           twitter_url: string | null
@@ -456,6 +460,7 @@ export type Database = {
           youtube_url: string | null
         }
         Insert: {
+          address_verified_at?: string | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
@@ -470,7 +475,10 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           phone?: string | null
+          phone_verified_at?: string | null
           rating?: number | null
+          seller_type?: Database["public"]["Enums"]["seller_type"] | null
+          seller_verification_status?: Database["public"]["Enums"]["seller_verification_status"]
           tiktok_url?: string | null
           total_reviews?: number | null
           twitter_url?: string | null
@@ -480,6 +488,7 @@ export type Database = {
           youtube_url?: string | null
         }
         Update: {
+          address_verified_at?: string | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
@@ -494,7 +503,10 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           phone?: string | null
+          phone_verified_at?: string | null
           rating?: number | null
+          seller_type?: Database["public"]["Enums"]["seller_type"] | null
+          seller_verification_status?: Database["public"]["Enums"]["seller_verification_status"]
           tiktok_url?: string | null
           total_reviews?: number | null
           twitter_url?: string | null
@@ -601,6 +613,90 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      seller_verifications: {
+        Row: {
+          business_address: string | null
+          cipc_document_path: string | null
+          company_name: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          id_document_path: string | null
+          phone: string | null
+          physical_address: string | null
+          proof_of_business_address_path: string | null
+          proof_of_business_banking_path: string | null
+          proof_of_residence_path: string | null
+          registration_number: string | null
+          representative_id_path: string | null
+          representative_name: string | null
+          requested_documents: string[] | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          selfie_path: string | null
+          seller_type: Database["public"]["Enums"]["seller_type"]
+          status: Database["public"]["Enums"]["seller_verification_status"]
+          updated_at: string
+          user_id: string
+          vat_number: string | null
+        }
+        Insert: {
+          business_address?: string | null
+          cipc_document_path?: string | null
+          company_name?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          id_document_path?: string | null
+          phone?: string | null
+          physical_address?: string | null
+          proof_of_business_address_path?: string | null
+          proof_of_business_banking_path?: string | null
+          proof_of_residence_path?: string | null
+          registration_number?: string | null
+          representative_id_path?: string | null
+          representative_name?: string | null
+          requested_documents?: string[] | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_path?: string | null
+          seller_type: Database["public"]["Enums"]["seller_type"]
+          status?: Database["public"]["Enums"]["seller_verification_status"]
+          updated_at?: string
+          user_id: string
+          vat_number?: string | null
+        }
+        Update: {
+          business_address?: string | null
+          cipc_document_path?: string | null
+          company_name?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          id_document_path?: string | null
+          phone?: string | null
+          physical_address?: string | null
+          proof_of_business_address_path?: string | null
+          proof_of_business_banking_path?: string | null
+          proof_of_residence_path?: string | null
+          registration_number?: string | null
+          representative_id_path?: string | null
+          representative_name?: string | null
+          requested_documents?: string[] | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_path?: string | null
+          seller_type?: Database["public"]["Enums"]["seller_type"]
+          status?: Database["public"]["Enums"]["seller_verification_status"]
+          updated_at?: string
+          user_id?: string
+          vat_number?: string | null
+        }
+        Relationships: []
       }
       subcategories: {
         Row: {
@@ -756,6 +852,13 @@ export type Database = {
         | "refunded"
       report_status: "pending" | "reviewed" | "resolved" | "dismissed"
       report_type: "listing" | "user"
+      seller_type: "individual" | "business"
+      seller_verification_status:
+        | "not_started"
+        | "pending_review"
+        | "approved"
+        | "rejected"
+        | "requires_more_info"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -897,6 +1000,14 @@ export const Constants = {
       ],
       report_status: ["pending", "reviewed", "resolved", "dismissed"],
       report_type: ["listing", "user"],
+      seller_type: ["individual", "business"],
+      seller_verification_status: [
+        "not_started",
+        "pending_review",
+        "approved",
+        "rejected",
+        "requires_more_info",
+      ],
     },
   },
 } as const
