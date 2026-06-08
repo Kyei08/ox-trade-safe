@@ -63,10 +63,12 @@ const AdminSellers = () => {
 
   const openDetail = async (item: any) => {
     setSelected(item);
-    const keys = item.seller_type === "business" ? DOC_KEYS_BUSINESS : DOC_KEYS_INDIVIDUAL;
+    const keys: ReadonlyArray<readonly [string, string]> =
+      item.seller_type === "business" ? DOC_KEYS_BUSINESS : DOC_KEYS_INDIVIDUAL;
     const urls: Record<string, string> = {};
     await Promise.all(
-      keys.map(async ([key]) => {
+      keys.map(async (entry) => {
+        const key = entry[0];
         const path = item[key];
         if (path) {
           const { data } = await supabase.storage
