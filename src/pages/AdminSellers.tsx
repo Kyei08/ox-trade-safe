@@ -48,12 +48,23 @@ const AdminSellers = () => {
 
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase
+    const { data: verifications } = await supabase
       .from("seller_verifications")
-      .select("*, profiles!seller_verifications_user_id_fkey(email, full_name)")
+      .select("*")
       .eq("status", tab)
       .order("created_at", { ascending: false });
-    setItems(data || []);
+
+    const userIds = (verifications || []).map((v) => v.user_id);
+    let profilesMap: Record<string, { email: string | null; full_name: string | null }> = {};
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, email, full_name")
+        .in("id", userIds);
+      profilesMap = Object.fromEntries((profiles || []).map((p) => [p.id, { email: p.email, full_name: p.full_name }]));
+    }
+    const merged = (verifications || []).map((v) => ({ ...v, profiles: profilesMap[v.user_id] || null }));
+    setItems(merged);
     setLoading(false);
   };
 
