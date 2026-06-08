@@ -15,6 +15,8 @@ import AdminKYC from "./pages/AdminKYC";
 import AdminReports from "./pages/AdminReports";
 import AdminCategories from "./pages/AdminCategories";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminSellers from "./pages/AdminSellers";
+import SellerVerification from "./pages/SellerVerification";
 import AdminRoute from "@/components/AdminRoute";
 
 import Messages from "./pages/Messages";
@@ -43,6 +45,15 @@ const App = () => (
           <Route path="/listing/:id" element={<ListingDetail />} />
           <Route path="/seller/:sellerId" element={<SellerProfile />} />
           <Route path="/kyc" element={<KYCSubmission />} />
+          <Route path="/seller-verification" element={<SellerVerification />} />
+          <Route
+            path="/admin/sellers"
+            element={
+              <AdminRoute>
+                <AdminSellers />
+              </AdminRoute>
+            }
+          />
           <Route
             path="/admin"
             element={
