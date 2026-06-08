@@ -99,7 +99,20 @@ const SellerVerification = () => {
         const docFields = data.seller_type === "business" ? BUSINESS_DOC_FIELDS : INDIVIDUAL_DOC_FIELDS;
         const initialDocs: Record<string, string | undefined> = {};
         docFields.forEach((f) => (initialDocs[f.key] = (data as any)[f.key] ?? undefined));
+        // Clear paths for documents the admin explicitly requested again, so the seller must re-upload.
+        if (data.status === "requires_more_info" && Array.isArray(data.requested_documents)) {
+          docFields.forEach((f) => {
+            const requested = data.requested_documents.some((r: string) =>
+              r.toLowerCase().includes(f.label.toLowerCase()) || r.toLowerCase().includes(f.key.toLowerCase())
+            );
+            if (requested) initialDocs[f.key] = undefined;
+          });
+        }
         setDocs(initialDocs);
+        // Jump straight to documents step when resubmitting
+        if (data.status === "requires_more_info" || data.status === "rejected") {
+          setStep(3);
+        }
       }
       setLoading(false);
     })();
@@ -399,12 +412,31 @@ const SellerVerification = () => {
                 <CardDescription>JPG, PNG or PDF, up to 5MB each.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {docFields.map((f) => (
-                  <div key={f.key} className="border rounded-lg p-4">
+                {(existing?.status === "requires_more_info" || existing?.status === "rejected") && existing?.review_notes && (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Admin notes</AlertTitle>
+                    <AlertDescription>{existing.review_notes}</AlertDescription>
+                  </Alert>
+                )}
+                {docFields.map((f) => {
+                  const requestedAgain =
+                    existing?.status === "requires_more_info" &&
+                    Array.isArray(existing?.requested_documents) &&
+                    existing.requested_documents.some((r: string) =>
+                      r.toLowerCase().includes(f.label.toLowerCase()) || r.toLowerCase().includes(f.key.toLowerCase())
+                    );
+                  return (
+                  <div key={f.key} className={`border rounded-lg p-4 ${requestedAgain ? "border-orange-500/50 bg-orange-500/5" : ""}`}>
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <div className="font-medium flex items-center gap-2">
+                        <div className="font-medium flex items-center gap-2 flex-wrap">
                           <FileText className="w-4 h-4" /> {f.label}
+                          {requestedAgain && (
+                            <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-orange-500/15 text-orange-700 border border-orange-500/30">
+                              Requested again
+                            </span>
+                          )}
                         </div>
                         <p className="text-sm text-muted-foreground">{f.description}</p>
                         {docs[f.key] && (
@@ -441,7 +473,7 @@ const SellerVerification = () => {
                       </div>
                     </div>
                   </div>
-                ))}
+                );})}
               </CardContent>
             </Card>
           )}
