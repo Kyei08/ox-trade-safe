@@ -295,7 +295,12 @@ const SellerVerification = () => {
       <main className="min-h-screen bg-background pt-24 pb-12">
         <div className="container px-4 max-w-3xl space-y-6">
           <div>
-            <h1 className="text-3xl font-bold mb-1">Seller Verification</h1>
+            <div className="flex items-center justify-between gap-3 flex-wrap mb-1">
+              <h1 className="text-3xl font-bold">Seller Verification</h1>
+              {submissionCount > 0 && (
+                <Badge variant="outline">Attempt #{submissionCount + (existing?.status === "requires_more_info" || existing?.status === "rejected" ? 1 : 0)}</Badge>
+              )}
+            </div>
             <p className="text-muted-foreground">
               Verify your account to start listing items. Step {step} of 4.
             </p>
