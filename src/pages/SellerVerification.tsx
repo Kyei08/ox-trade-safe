@@ -185,6 +185,7 @@ const SellerVerification = () => {
     if (!user) return;
     const err = validateStep();
     if (err) return toast.error(err);
+    const isResubmission = !!existing && (existing.status === "requires_more_info" || existing.status === "rejected");
     setSubmitting(true);
     try {
       const payload = {
