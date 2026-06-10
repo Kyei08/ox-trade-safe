@@ -676,6 +676,53 @@ export type Database = {
           },
         ]
       }
+      seller_verification_documents: {
+        Row: {
+          content_type: string | null
+          created_at: string
+          field_key: string
+          file_size: number | null
+          id: string
+          is_current: boolean
+          storage_path: string
+          user_id: string
+          verification_id: string
+          version: number
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string
+          field_key: string
+          file_size?: number | null
+          id?: string
+          is_current?: boolean
+          storage_path: string
+          user_id: string
+          verification_id: string
+          version?: number
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string
+          field_key?: string
+          file_size?: number | null
+          id?: string
+          is_current?: boolean
+          storage_path?: string
+          user_id?: string
+          verification_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_verification_documents_verification_id_fkey"
+            columns: ["verification_id"]
+            isOneToOne: false
+            referencedRelation: "seller_verifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       seller_verifications: {
         Row: {
           business_address: string | null
