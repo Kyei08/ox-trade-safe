@@ -541,7 +541,7 @@ const SellerVerification = () => {
             ) : (
               <Button onClick={submit} disabled={submitting}>
                 {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Submit for Review
+                {existing && (existing.status === "requires_more_info" || existing.status === "rejected") ? "Resubmit for Review" : "Submit for Review"}
               </Button>
             )}
           </div>
