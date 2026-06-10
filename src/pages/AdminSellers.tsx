@@ -91,6 +91,13 @@ const AdminSellers = () => {
       })
     );
     setDocUrls(urls);
+
+    const { data: logs } = await (supabase as any)
+      .from("seller_verification_audit_log")
+      .select("*")
+      .eq("verification_id", item.id)
+      .order("created_at", { ascending: false });
+    setAuditLog(logs || []);
   };
 
   const updateStatus = async (status: Status, payload: { review_notes?: string | null; requested_documents?: string[] | null } = {}) => {
