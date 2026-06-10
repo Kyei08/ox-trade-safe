@@ -54,6 +54,7 @@ const SellerVerification = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [existing, setExisting] = useState<any>(null);
+  const [submissionCount, setSubmissionCount] = useState(0);
   const [step, setStep] = useState(1);
 
   // Form state
@@ -114,6 +115,13 @@ const SellerVerification = () => {
           setStep(3);
         }
       }
+      // Count prior submissions from the audit log to show attempt number.
+      const { count } = await (supabase as any)
+        .from("seller_verification_audit_log")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .in("event_type", ["submitted", "resubmitted"]);
+      setSubmissionCount(count || 0);
       setLoading(false);
     })();
   }, [user]);
@@ -177,6 +185,7 @@ const SellerVerification = () => {
     if (!user) return;
     const err = validateStep();
     if (err) return toast.error(err);
+    const isResubmission = !!existing && (existing.status === "requires_more_info" || existing.status === "rejected");
     setSubmitting(true);
     try {
       const payload = {
@@ -201,13 +210,14 @@ const SellerVerification = () => {
         .upsert(payload, { onConflict: "user_id" });
       if (error) throw error;
 
-      toast.success("Verification submitted for review");
+      toast.success(isResubmission ? "Resubmitted for review" : "Verification submitted for review");
       const { data } = await supabase
         .from("seller_verifications")
         .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
       setExisting(data);
+      setSubmissionCount((c) => c + 1);
       setStep(1);
     } catch (err: any) {
       toast.error(err.message || "Submission failed");
@@ -285,7 +295,12 @@ const SellerVerification = () => {
       <main className="min-h-screen bg-background pt-24 pb-12">
         <div className="container px-4 max-w-3xl space-y-6">
           <div>
-            <h1 className="text-3xl font-bold mb-1">Seller Verification</h1>
+            <div className="flex items-center justify-between gap-3 flex-wrap mb-1">
+              <h1 className="text-3xl font-bold">Seller Verification</h1>
+              {submissionCount > 0 && (
+                <Badge variant="outline">Attempt #{submissionCount + (existing?.status === "requires_more_info" || existing?.status === "rejected" ? 1 : 0)}</Badge>
+              )}
+            </div>
             <p className="text-muted-foreground">
               Verify your account to start listing items. Step {step} of 4.
             </p>
@@ -526,7 +541,7 @@ const SellerVerification = () => {
             ) : (
               <Button onClick={submit} disabled={submitting}>
                 {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Submit for Review
+                {existing && (existing.status === "requires_more_info" || existing.status === "rejected") ? "Resubmit for Review" : "Submit for Review"}
               </Button>
             )}
           </div>
