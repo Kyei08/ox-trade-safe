@@ -115,6 +115,13 @@ const SellerVerification = () => {
           setStep(3);
         }
       }
+      // Count prior submissions from the audit log to show attempt number.
+      const { count } = await (supabase as any)
+        .from("seller_verification_audit_log")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .in("event_type", ["submitted", "resubmitted"]);
+      setSubmissionCount(count || 0);
       setLoading(false);
     })();
   }, [user]);
