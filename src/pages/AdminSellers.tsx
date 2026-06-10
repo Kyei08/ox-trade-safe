@@ -41,6 +41,7 @@ const AdminSellers = () => {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any | null>(null);
   const [docUrls, setDocUrls] = useState<Record<string, string>>({});
+  const [auditLog, setAuditLog] = useState<any[]>([]);
   const [actionOpen, setActionOpen] = useState<"reject" | "more_info" | null>(null);
   const [notes, setNotes] = useState("");
   const [requestedDocs, setRequestedDocs] = useState("");
