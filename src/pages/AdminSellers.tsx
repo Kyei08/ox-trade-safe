@@ -240,10 +240,19 @@ const AdminSellers = () => {
                       const url = docUrls[key];
                       const path = selected[key];
                       const isPdf = path?.toLowerCase().endsWith(".pdf");
+                      const versions = docVersions[key] || [];
+                      const olderVersions = versions.filter((v) => v.storage_path !== path);
                       return (
                         <div key={key} className="border rounded-lg p-3">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium">{label}</span>
+                          <div className="flex items-center justify-between mb-2 gap-2">
+                            <span className="text-sm font-medium">
+                              {label}
+                              {versions.length > 0 && (
+                                <Badge variant="outline" className="ml-2 text-[10px]">
+                                  v{versions[0]?.version ?? 1}
+                                </Badge>
+                              )}
+                            </span>
                             {url && (
                               <a href={url} target="_blank" rel="noreferrer" className="text-xs text-primary underline">
                                 Open
@@ -260,6 +269,39 @@ const AdminSellers = () => {
                             )
                           ) : (
                             <div className="text-xs text-muted-foreground">Not provided</div>
+                          )}
+
+                          {olderVersions.length > 0 && (
+                            <details className="mt-2">
+                              <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
+                                {olderVersions.length} previous version{olderVersions.length === 1 ? "" : "s"}
+                              </summary>
+                              <ul className="mt-2 space-y-2">
+                                {olderVersions.map((v) => {
+                                  const vIsPdf = v.storage_path.toLowerCase().endsWith(".pdf");
+                                  return (
+                                    <li key={v.id} className="border rounded p-2">
+                                      <div className="flex items-center justify-between text-xs mb-1">
+                                        <span>v{v.version} · {new Date(v.created_at).toLocaleString()}</span>
+                                        {v.url && (
+                                          <a href={v.url} target="_blank" rel="noreferrer" className="text-primary underline">
+                                            Open
+                                          </a>
+                                        )}
+                                      </div>
+                                      {v.url && !vIsPdf && (
+                                        <img src={v.url} alt={`${label} v${v.version}`} className="w-full h-24 object-cover rounded" />
+                                      )}
+                                      {vIsPdf && (
+                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                          <FileText className="w-3 h-3" /> PDF
+                                        </div>
+                                      )}
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            </details>
                           )}
                         </div>
                       );
