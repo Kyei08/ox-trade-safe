@@ -54,6 +54,7 @@ const SellerVerification = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [existing, setExisting] = useState<any>(null);
+  const [submissionCount, setSubmissionCount] = useState(0);
   const [step, setStep] = useState(1);
 
   // Form state
