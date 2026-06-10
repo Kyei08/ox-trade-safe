@@ -247,6 +247,29 @@ const SellerVerification = () => {
         .eq("user_id", user.id)
         .maybeSingle();
       setExisting(data);
+
+      // Seed version rows for docs uploaded before the verification row existed.
+      if (data?.id) {
+        const { data: existingDocs } = await (supabase as any)
+          .from("seller_verification_documents")
+          .select("storage_path")
+          .eq("verification_id", data.id);
+        const known = new Set((existingDocs || []).map((d: any) => d.storage_path));
+        const toInsert = Object.entries(docs)
+          .filter(([, path]) => path && !known.has(path))
+          .map(([key, path]) => ({
+            verification_id: data.id,
+            user_id: user.id,
+            field_key: key,
+            storage_path: path as string,
+            version: 1,
+            is_current: true,
+          }));
+        if (toInsert.length > 0) {
+          await (supabase as any).from("seller_verification_documents").insert(toInsert);
+        }
+      }
+
       setSubmissionCount((c) => c + 1);
       setStep(1);
     } catch (err: any) {
