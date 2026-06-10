@@ -209,13 +209,14 @@ const SellerVerification = () => {
         .upsert(payload, { onConflict: "user_id" });
       if (error) throw error;
 
-      toast.success("Verification submitted for review");
+      toast.success(isResubmission ? "Resubmitted for review" : "Verification submitted for review");
       const { data } = await supabase
         .from("seller_verifications")
         .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
       setExisting(data);
+      setSubmissionCount((c) => c + 1);
       setStep(1);
     } catch (err: any) {
       toast.error(err.message || "Submission failed");
