@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Eye, CheckCircle2, XCircle, AlertCircle, FileText, Loader2 } from "lucide-react";
+import { Eye, CheckCircle2, XCircle, AlertCircle, FileText, Loader2, History } from "lucide-react";
 
 type Status = "pending_review" | "approved" | "rejected" | "requires_more_info";
 
@@ -41,6 +41,7 @@ const AdminSellers = () => {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any | null>(null);
   const [docUrls, setDocUrls] = useState<Record<string, string>>({});
+  const [auditLog, setAuditLog] = useState<any[]>([]);
   const [actionOpen, setActionOpen] = useState<"reject" | "more_info" | null>(null);
   const [notes, setNotes] = useState("");
   const [requestedDocs, setRequestedDocs] = useState("");
@@ -90,6 +91,13 @@ const AdminSellers = () => {
       })
     );
     setDocUrls(urls);
+
+    const { data: logs } = await (supabase as any)
+      .from("seller_verification_audit_log")
+      .select("*")
+      .eq("verification_id", item.id)
+      .order("created_at", { ascending: false });
+    setAuditLog(logs || []);
   };
 
   const updateStatus = async (status: Status, payload: { review_notes?: string | null; requested_documents?: string[] | null } = {}) => {
@@ -172,7 +180,7 @@ const AdminSellers = () => {
       )}
 
       {/* Detail dialog */}
-      <Dialog open={!!selected} onOpenChange={(o) => { if (!o) { setSelected(null); setDocUrls({}); } }}>
+      <Dialog open={!!selected} onOpenChange={(o) => { if (!o) { setSelected(null); setDocUrls({}); setAuditLog([]); } }}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           {selected && (
             <>
@@ -246,6 +254,44 @@ const AdminSellers = () => {
                     <span className="text-muted-foreground">Previous notes: </span>{selected.review_notes}
                   </div>
                 )}
+
+                <div>
+                  <h3 className="font-medium mb-2 flex items-center gap-2">
+                    <History className="w-4 h-4" /> Audit Log
+                  </h3>
+                  {auditLog.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">No history yet.</p>
+                  ) : (
+                    <ol className="relative border-l pl-4 space-y-3">
+                      {auditLog.map((entry) => (
+                        <li key={entry.id} className="text-sm">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge variant="outline" className="capitalize">
+                              {entry.event_type.replace(/_/g, " ")}
+                            </Badge>
+                            {entry.status_from && entry.status_to && entry.status_from !== entry.status_to && (
+                              <span className="text-xs text-muted-foreground">
+                                {entry.status_from.replace(/_/g, " ")} → {entry.status_to.replace(/_/g, " ")}
+                              </span>
+                            )}
+                            <span className="text-xs text-muted-foreground ml-auto">
+                              {new Date(entry.created_at).toLocaleString()}
+                            </span>
+                          </div>
+                          {entry.review_notes && (
+                            <p className="text-xs mt-1"><span className="text-muted-foreground">Notes: </span>{entry.review_notes}</p>
+                          )}
+                          {entry.requested_documents?.length > 0 && (
+                            <p className="text-xs mt-1">
+                              <span className="text-muted-foreground">Requested: </span>
+                              {entry.requested_documents.join(", ")}
+                            </p>
+                          )}
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </div>
               </div>
 
               <DialogFooter className="flex-col sm:flex-row gap-2">
