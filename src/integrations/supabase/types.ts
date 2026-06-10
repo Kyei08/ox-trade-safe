@@ -614,6 +614,68 @@ export type Database = {
           },
         ]
       }
+      seller_verification_audit_log: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          requested_documents: string[] | null
+          review_notes: string | null
+          snapshot: Json | null
+          status_from:
+            | Database["public"]["Enums"]["seller_verification_status"]
+            | null
+          status_to:
+            | Database["public"]["Enums"]["seller_verification_status"]
+            | null
+          user_id: string
+          verification_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          requested_documents?: string[] | null
+          review_notes?: string | null
+          snapshot?: Json | null
+          status_from?:
+            | Database["public"]["Enums"]["seller_verification_status"]
+            | null
+          status_to?:
+            | Database["public"]["Enums"]["seller_verification_status"]
+            | null
+          user_id: string
+          verification_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          requested_documents?: string[] | null
+          review_notes?: string | null
+          snapshot?: Json | null
+          status_from?:
+            | Database["public"]["Enums"]["seller_verification_status"]
+            | null
+          status_to?:
+            | Database["public"]["Enums"]["seller_verification_status"]
+            | null
+          user_id?: string
+          verification_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_verification_audit_log_verification_id_fkey"
+            columns: ["verification_id"]
+            isOneToOne: false
+            referencedRelation: "seller_verifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       seller_verifications: {
         Row: {
           business_address: string | null
