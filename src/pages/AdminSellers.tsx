@@ -93,6 +93,23 @@ const AdminSellers = () => {
     );
     setDocUrls(urls);
 
+    // Load all document versions and sign each one for inline viewing/comparison.
+    const { data: versions } = await (supabase as any)
+      .from("seller_verification_documents")
+      .select("*")
+      .eq("verification_id", item.id)
+      .order("version", { ascending: false });
+    const grouped: Record<string, any[]> = {};
+    await Promise.all(
+      (versions || []).map(async (v: any) => {
+        const { data: signed } = await supabase.storage
+          .from("seller-verification")
+          .createSignedUrl(v.storage_path, 60 * 30);
+        (grouped[v.field_key] ||= []).push({ ...v, url: signed?.signedUrl });
+      })
+    );
+    setDocVersions(grouped);
+
     const { data: logs } = await (supabase as any)
       .from("seller_verification_audit_log")
       .select("*")
