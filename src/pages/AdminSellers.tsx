@@ -254,6 +254,44 @@ const AdminSellers = () => {
                     <span className="text-muted-foreground">Previous notes: </span>{selected.review_notes}
                   </div>
                 )}
+
+                <div>
+                  <h3 className="font-medium mb-2 flex items-center gap-2">
+                    <History className="w-4 h-4" /> Audit Log
+                  </h3>
+                  {auditLog.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">No history yet.</p>
+                  ) : (
+                    <ol className="relative border-l pl-4 space-y-3">
+                      {auditLog.map((entry) => (
+                        <li key={entry.id} className="text-sm">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge variant="outline" className="capitalize">
+                              {entry.event_type.replace(/_/g, " ")}
+                            </Badge>
+                            {entry.status_from && entry.status_to && entry.status_from !== entry.status_to && (
+                              <span className="text-xs text-muted-foreground">
+                                {entry.status_from.replace(/_/g, " ")} → {entry.status_to.replace(/_/g, " ")}
+                              </span>
+                            )}
+                            <span className="text-xs text-muted-foreground ml-auto">
+                              {new Date(entry.created_at).toLocaleString()}
+                            </span>
+                          </div>
+                          {entry.review_notes && (
+                            <p className="text-xs mt-1"><span className="text-muted-foreground">Notes: </span>{entry.review_notes}</p>
+                          )}
+                          {entry.requested_documents?.length > 0 && (
+                            <p className="text-xs mt-1">
+                              <span className="text-muted-foreground">Requested: </span>
+                              {entry.requested_documents.join(", ")}
+                            </p>
+                          )}
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </div>
               </div>
 
               <DialogFooter className="flex-col sm:flex-row gap-2">
