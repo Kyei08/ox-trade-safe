@@ -198,7 +198,7 @@ const AdminSellers = () => {
       )}
 
       {/* Detail dialog */}
-      <Dialog open={!!selected} onOpenChange={(o) => { if (!o) { setSelected(null); setDocUrls({}); setAuditLog([]); } }}>
+      <Dialog open={!!selected} onOpenChange={(o) => { if (!o) { setSelected(null); setDocUrls({}); setAuditLog([]); setDocVersions({}); } }}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           {selected && (
             <>
