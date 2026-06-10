@@ -144,9 +144,39 @@ const SellerVerification = () => {
       const path = `${user.id}/${key}-${Date.now()}.${ext}`;
       const { error } = await supabase.storage
         .from("seller-verification")
-        .upload(path, file, { contentType: file.type, upsert: true });
+        .upload(path, file, { contentType: file.type, upsert: false });
       if (error) throw error;
       setDocs((prev) => ({ ...prev, [key]: path }));
+
+      // Record a new version row (older versions remain accessible to admins).
+      if (existing?.id) {
+        const { data: prev } = await (supabase as any)
+          .from("seller_verification_documents")
+          .select("version")
+          .eq("verification_id", existing.id)
+          .eq("field_key", key)
+          .order("version", { ascending: false })
+          .limit(1);
+        const nextVersion = (prev?.[0]?.version ?? 0) + 1;
+
+        await (supabase as any)
+          .from("seller_verification_documents")
+          .update({ is_current: false })
+          .eq("verification_id", existing.id)
+          .eq("field_key", key);
+
+        await (supabase as any).from("seller_verification_documents").insert({
+          verification_id: existing.id,
+          user_id: user.id,
+          field_key: key,
+          storage_path: path,
+          file_size: file.size,
+          content_type: file.type,
+          version: nextVersion,
+          is_current: true,
+        });
+      }
+
       toast.success(`${key.replace(/_/g, " ")} uploaded`);
     } catch (err: any) {
       toast.error(err.message || "Upload failed");
