@@ -47,6 +47,19 @@ const AdminSellers = () => {
   const [notes, setNotes] = useState("");
   const [requestedDocs, setRequestedDocs] = useState("");
   const [acting, setActing] = useState(false);
+  const [compareKey, setCompareKey] = useState<string | null>(null);
+  const [compareLabel, setCompareLabel] = useState<string>("");
+  const [compareLeft, setCompareLeft] = useState<number | null>(null);
+  const [compareRight, setCompareRight] = useState<number | null>(null);
+
+  const openCompare = (key: string, label: string) => {
+    const versions = docVersions[key] || [];
+    if (versions.length < 1) return;
+    setCompareKey(key);
+    setCompareLabel(label);
+    setCompareRight(versions[0]?.version ?? null); // newest
+    setCompareLeft(versions[1]?.version ?? versions[0]?.version ?? null); // prior or same
+  };
 
   const load = async () => {
     setLoading(true);
