@@ -362,6 +362,7 @@ const SellerVerification = () => {
             {existing.status === "approved" && (
               <Button onClick={() => navigate("/create-listing")}>Create your first listing</Button>
             )}
+            <SubmissionHistory auditLog={auditLog} docVersions={docVersions} docFields={existing.seller_type === "business" ? BUSINESS_DOC_FIELDS : INDIVIDUAL_DOC_FIELDS} />
           </div>
         </main>
       </>
