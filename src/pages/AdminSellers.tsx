@@ -266,11 +266,22 @@ const AdminSellers = () => {
                                 </Badge>
                               )}
                             </span>
-                            {url && (
-                              <a href={url} target="_blank" rel="noreferrer" className="text-xs text-primary underline">
-                                Open
-                              </a>
-                            )}
+                            <div className="flex items-center gap-2">
+                              {versions.length >= 2 && (
+                                <button
+                                  type="button"
+                                  onClick={() => openCompare(key, label)}
+                                  className="text-xs text-primary inline-flex items-center gap-1 hover:underline"
+                                >
+                                  <GitCompare className="w-3 h-3" /> Compare
+                                </button>
+                              )}
+                              {url && (
+                                <a href={url} target="_blank" rel="noreferrer" className="text-xs text-primary underline">
+                                  Open
+                                </a>
+                              )}
+                            </div>
                           </div>
                           {url ? (
                             isPdf ? (
