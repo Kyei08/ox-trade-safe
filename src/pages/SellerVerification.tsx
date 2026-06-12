@@ -124,6 +124,32 @@ const SellerVerification = () => {
         .eq("user_id", user.id)
         .in("event_type", ["submitted", "resubmitted"]);
       setSubmissionCount(count || 0);
+
+      // Full audit log for the seller's own submission history view.
+      if (data?.id) {
+        const { data: logs } = await (supabase as any)
+          .from("seller_verification_audit_log")
+          .select("*")
+          .eq("verification_id", data.id)
+          .order("created_at", { ascending: false });
+        setAuditLog(logs || []);
+
+        const { data: versions } = await (supabase as any)
+          .from("seller_verification_documents")
+          .select("*")
+          .eq("verification_id", data.id)
+          .order("version", { ascending: false });
+        const grouped: Record<string, any[]> = {};
+        await Promise.all(
+          (versions || []).map(async (v: any) => {
+            const { data: signed } = await supabase.storage
+              .from("seller-verification")
+              .createSignedUrl(v.storage_path, 60 * 30);
+            (grouped[v.field_key] ||= []).push({ ...v, url: signed?.signedUrl });
+          })
+        );
+        setDocVersions(grouped);
+      }
       setLoading(false);
     })();
   }, [user]);
