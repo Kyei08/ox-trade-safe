@@ -13,7 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { Loader2, Upload, CheckCircle2, Clock, XCircle, AlertCircle, User, Building2, FileText } from "lucide-react";
+import { Loader2, Upload, CheckCircle2, Clock, XCircle, AlertCircle, User, Building2, FileText, History } from "lucide-react";
 
 type SellerType = "individual" | "business";
 type VerificationStatus =
