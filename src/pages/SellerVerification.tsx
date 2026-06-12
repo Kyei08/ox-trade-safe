@@ -635,4 +635,110 @@ const SellerVerification = () => {
   );
 };
 
+type DocField = { key: string; label: string; description: string };
+
+const SubmissionHistory = ({
+  auditLog,
+  docVersions,
+  docFields,
+}: {
+  auditLog: any[];
+  docVersions: Record<string, Array<{ id: string; storage_path: string; version: number; created_at: string; is_current: boolean; url?: string }>>;
+  docFields: ReadonlyArray<DocField>;
+}) => {
+  const hasVersions = Object.values(docVersions).some((v) => v && v.length > 0);
+  if (auditLog.length === 0 && !hasVersions) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <History className="w-4 h-4" /> Submission History
+        </CardTitle>
+        <CardDescription>Every submission, review decision, and document version you've uploaded.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {hasVersions && (
+          <div>
+            <h4 className="text-sm font-medium mb-2">Document versions</h4>
+            <div className="space-y-3">
+              {docFields.map((f) => {
+                const versions = docVersions[f.key] || [];
+                if (versions.length === 0) return null;
+                return (
+                  <div key={f.key} className="border rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">{f.label}</span>
+                      <Badge variant="outline" className="text-[10px]">
+                        {versions.length} version{versions.length === 1 ? "" : "s"}
+                      </Badge>
+                    </div>
+                    <ul className="space-y-1 text-xs">
+                      {versions.map((v) => (
+                        <li key={v.id} className="flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-2">
+                            <FileText className="w-3 h-3 text-muted-foreground" />
+                            v{v.version}
+                            {v.is_current && (
+                              <Badge variant="secondary" className="text-[10px] h-4 px-1">current</Badge>
+                            )}
+                            <span className="text-muted-foreground">
+                              {new Date(v.created_at).toLocaleString()}
+                            </span>
+                          </span>
+                          {v.url && (
+                            <a href={v.url} target="_blank" rel="noreferrer" className="text-primary underline">
+                              View
+                            </a>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {auditLog.length > 0 && (
+          <div>
+            <h4 className="text-sm font-medium mb-2">Activity timeline</h4>
+            <ol className="relative border-l pl-4 space-y-3">
+              {auditLog.map((entry) => (
+                <li key={entry.id} className="text-sm">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant="outline" className="capitalize">
+                      {entry.event_type.replace(/_/g, " ")}
+                    </Badge>
+                    {entry.status_from && entry.status_to && entry.status_from !== entry.status_to && (
+                      <span className="text-xs text-muted-foreground">
+                        {entry.status_from.replace(/_/g, " ")} → {entry.status_to.replace(/_/g, " ")}
+                      </span>
+                    )}
+                    <span className="text-xs text-muted-foreground ml-auto">
+                      {new Date(entry.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                  {entry.review_notes && (
+                    <p className="text-xs mt-1">
+                      <span className="text-muted-foreground">Notes: </span>{entry.review_notes}
+                    </p>
+                  )}
+                  {entry.requested_documents?.length > 0 && (
+                    <p className="text-xs mt-1">
+                      <span className="text-muted-foreground">Requested: </span>
+                      {entry.requested_documents.join(", ")}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 export default SellerVerification;
