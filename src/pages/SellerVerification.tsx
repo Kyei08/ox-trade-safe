@@ -55,6 +55,8 @@ const SellerVerification = () => {
   const [submitting, setSubmitting] = useState(false);
   const [existing, setExisting] = useState<any>(null);
   const [submissionCount, setSubmissionCount] = useState(0);
+  const [auditLog, setAuditLog] = useState<any[]>([]);
+  const [docVersions, setDocVersions] = useState<Record<string, Array<{ id: string; storage_path: string; version: number; created_at: string; is_current: boolean; url?: string }>>>({});
   const [step, setStep] = useState(1);
 
   // Form state
