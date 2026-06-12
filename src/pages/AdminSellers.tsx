@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Eye, CheckCircle2, XCircle, AlertCircle, FileText, Loader2, History } from "lucide-react";
+import { Eye, CheckCircle2, XCircle, AlertCircle, FileText, Loader2, History, GitCompare } from "lucide-react";
 
 type Status = "pending_review" | "approved" | "rejected" | "requires_more_info";
 
