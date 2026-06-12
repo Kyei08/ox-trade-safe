@@ -438,6 +438,80 @@ const AdminSellers = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Side-by-side compare dialog */}
+      <Dialog
+        open={!!compareKey}
+        onOpenChange={(o) => { if (!o) { setCompareKey(null); setCompareLeft(null); setCompareRight(null); } }}
+      >
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <GitCompare className="w-4 h-4" /> Compare {compareLabel}
+            </DialogTitle>
+            <DialogDescription>
+              Side-by-side view of document versions. Pick any two to compare.
+            </DialogDescription>
+          </DialogHeader>
+          {compareKey && (() => {
+            const versions = docVersions[compareKey] || [];
+            const left = versions.find((v) => v.version === compareLeft);
+            const right = versions.find((v) => v.version === compareRight);
+            const renderPane = (v: typeof left, side: "left" | "right") => {
+              if (!v) return <div className="text-sm text-muted-foreground">No version selected</div>;
+              const isPdf = v.storage_path.toLowerCase().endsWith(".pdf");
+              return (
+                <div className="border rounded-lg p-3 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <select
+                      className="text-xs bg-background border rounded px-2 py-1"
+                      value={v.version}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        if (side === "left") setCompareLeft(val);
+                        else setCompareRight(val);
+                      }}
+                    >
+                      {versions.map((opt) => (
+                        <option key={opt.id} value={opt.version}>
+                          v{opt.version} · {new Date(opt.created_at).toLocaleDateString()}
+                          {opt.is_current ? " (current)" : ""}
+                        </option>
+                      ))}
+                    </select>
+                    {v.url && (
+                      <a href={v.url} target="_blank" rel="noreferrer" className="text-xs text-primary underline">
+                        Open full
+                      </a>
+                    )}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">
+                    Uploaded {new Date(v.created_at).toLocaleString()}
+                  </div>
+                  {v.url ? (
+                    isPdf ? (
+                      <iframe src={v.url} title={`v${v.version}`} className="w-full h-[60vh] rounded border" />
+                    ) : (
+                      <img src={v.url} alt={`v${v.version}`} className="w-full max-h-[60vh] object-contain rounded border bg-muted" />
+                    )
+                  ) : (
+                    <div className="text-xs text-muted-foreground">Preview unavailable</div>
+                  )}
+                </div>
+              );
+            };
+            return (
+              <div className="grid md:grid-cols-2 gap-3">
+                {renderPane(left, "left")}
+                {renderPane(right, "right")}
+              </div>
+            );
+          })()}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCompareKey(null)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };
