@@ -411,6 +411,8 @@ const SellerVerification = () => {
             </Alert>
           )}
 
+          <SubmissionHistory auditLog={auditLog} docVersions={docVersions} docFields={docFields} />
+
           <Progress value={progress} />
 
           {step === 1 && (
