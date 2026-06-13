@@ -360,7 +360,10 @@ const SellerVerification = () => {
               </CardContent>
             </Card>
             {existing.status === "approved" && (
-              <Button onClick={() => navigate("/create-listing")}>Create your first listing</Button>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button onClick={() => navigate("/create-listing")}>Create a listing</Button>
+                <Button variant="outline" onClick={() => navigate("/dashboard")}>Go to seller dashboard</Button>
+              </div>
             )}
             <SubmissionHistory auditLog={auditLog} docVersions={docVersions} docFields={existing.seller_type === "business" ? BUSINESS_DOC_FIELDS : INDIVIDUAL_DOC_FIELDS} />
           </div>
