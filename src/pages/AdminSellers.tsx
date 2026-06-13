@@ -147,7 +147,23 @@ const AdminSellers = () => {
         })
         .eq("id", selected.id);
       if (error) throw error;
-      toast.success(`Marked as ${status.replace("_", " ")}`);
+
+      const applicantName = selected.seller_type === "business"
+        ? selected.company_name
+        : selected.full_name;
+
+      if (status === "approved") {
+        toast.success(
+          `${applicantName || "Applicant"} has been approved as a seller`,
+          {
+            description: "They can now access the seller dashboard and list items for sale.",
+            duration: 5000,
+          }
+        );
+      } else {
+        toast.success(`Marked as ${status.replace("_", " ")}`);
+      }
+
       setSelected(null);
       setActionOpen(null);
       setNotes("");
