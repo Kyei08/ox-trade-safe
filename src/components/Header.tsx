@@ -3,7 +3,7 @@ import { Menu, Search, LogOut, MessageSquare, Home, Grid, Plus, User, Gavel, Shi
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
