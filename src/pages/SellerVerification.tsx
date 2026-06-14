@@ -13,7 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { Loader2, Upload, CheckCircle2, Clock, XCircle, AlertCircle, User, Building2, FileText, History } from "lucide-react";
+import { Loader2, Upload, CheckCircle2, Clock, XCircle, AlertCircle, User, Building2, FileText, History, RefreshCw, ShieldCheck } from "lucide-react";
 
 type SellerType = "individual" | "business";
 type VerificationStatus =
@@ -53,6 +53,7 @@ const SellerVerification = () => {
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [existing, setExisting] = useState<any>(null);
   const [submissionCount, setSubmissionCount] = useState(0);
   const [auditLog, setAuditLog] = useState<any[]>([]);
