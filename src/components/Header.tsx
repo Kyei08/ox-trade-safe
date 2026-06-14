@@ -194,7 +194,7 @@ const Header = () => {
                   Sign In
                 </Button>
                 
-                <Button variant="accent" onClick={() => navigate("/auth")}>
+                <Button variant="accent" size="sm" className="sm:h-10 sm:px-4" onClick={() => navigate("/auth")}>
                   Get Started
                 </Button>
               </>
@@ -203,13 +203,16 @@ const Header = () => {
             {/* Mobile Menu */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
+                <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open menu">
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-                <SheetHeader>
-                  <SheetTitle className="flex items-center gap-2">
+              <SheetContent
+                side="right"
+                className="w-[88vw] max-w-[360px] sm:max-w-[400px] p-0 flex flex-col"
+              >
+                <SheetHeader className="px-5 pt-5 pb-3 border-b">
+                  <SheetTitle className="flex items-center gap-2 text-left">
                     <div className="w-8 h-8 rounded-lg bg-gradient-hero flex items-center justify-center">
                       <span className="text-xl font-bold text-primary-foreground">OX</span>
                     </div>
