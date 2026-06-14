@@ -13,7 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { Loader2, Upload, CheckCircle2, Clock, XCircle, AlertCircle, User, Building2, FileText, History } from "lucide-react";
+import { Loader2, Upload, CheckCircle2, Clock, XCircle, AlertCircle, User, Building2, FileText, History, RefreshCw, ShieldCheck } from "lucide-react";
 
 type SellerType = "individual" | "business";
 type VerificationStatus =
@@ -53,6 +53,7 @@ const SellerVerification = () => {
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [existing, setExisting] = useState<any>(null);
   const [submissionCount, setSubmissionCount] = useState(0);
   const [auditLog, setAuditLog] = useState<any[]>([]);
@@ -324,6 +325,118 @@ const SellerVerification = () => {
   if (existing && !isEditable) {
     const meta = statusMeta[existing.status as VerificationStatus];
     const Icon = meta.icon;
+
+    const refreshStatus = async () => {
+      if (!user) return;
+      setRefreshing(true);
+      const { data } = await supabase
+        .from("seller_verifications")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (data) {
+        setExisting(data);
+        if (data.status !== "pending_review") {
+          toast.info("Your verification status has been updated");
+        }
+      }
+      setRefreshing(false);
+    };
+
+    if (existing.status === "pending_review") {
+      const pendingDocFields =
+        existing.seller_type === "business" ? BUSINESS_DOC_FIELDS : INDIVIDUAL_DOC_FIELDS;
+      return (
+        <>
+          <Header />
+          <main className="min-h-screen bg-background pt-24 pb-12">
+            <div className="container px-4 max-w-3xl space-y-6">
+              <h1 className="text-3xl font-bold">Seller Verification</h1>
+
+              <Card className="border-yellow-500/20 bg-yellow-500/5">
+                <CardHeader>
+                  <div className="flex flex-col items-center text-center gap-4 py-2">
+                    <div className="w-16 h-16 rounded-full bg-yellow-500/10 flex items-center justify-center">
+                      <Clock className="w-8 h-8 text-yellow-600 animate-pulse" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl">{meta.label}</CardTitle>
+                      <CardDescription className="max-w-md mx-auto mt-2">
+                        Your documents are being reviewed by our team. We'll let you know as soon as a decision is made.
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* What happens next */}
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="flex flex-col items-center text-center gap-2 p-4 rounded-lg bg-background border">
+                      <FileText className="w-5 h-5 text-primary" />
+                      <span className="text-sm font-medium">Document check</span>
+                      <span className="text-xs text-muted-foreground">IDs, proofs & registrations verified</span>
+                    </div>
+                    <div className="flex flex-col items-center text-center gap-2 p-4 rounded-lg bg-background border">
+                      <ShieldCheck className="w-5 h-5 text-primary" />
+                      <span className="text-sm font-medium">Compliance review</span>
+                      <span className="text-xs text-muted-foreground">Fraud & policy screening</span>
+                    </div>
+                    <div className="flex flex-col items-center text-center gap-2 p-4 rounded-lg bg-background border">
+                      <CheckCircle2 className="w-5 h-5 text-primary" />
+                      <span className="text-sm font-medium">Approval</span>
+                      <span className="text-xs text-muted-foreground">Unlock seller dashboard</span>
+                    </div>
+                  </div>
+
+                  {/* Submitted documents checklist */}
+                  <div>
+                    <h4 className="text-sm font-medium mb-3">Documents you submitted</h4>
+                    <div className="grid gap-2">
+                      {pendingDocFields.map((f) => {
+                        const submitted = !!(existing as any)[f.key];
+                        return (
+                          <div key={f.key} className="flex items-center justify-between p-3 rounded-lg border text-sm">
+                            <span className="flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-muted-foreground" />
+                              {f.label}
+                            </span>
+                            {submitted ? (
+                              <Badge variant="outline" className="text-emerald-600 border-emerald-200 bg-emerald-50">
+                                Submitted
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-muted-foreground">
+                                Missing
+                              </Badge>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 items-center justify-between rounded-lg border p-4 bg-background">
+                    <p className="text-sm text-muted-foreground">
+                      Reviews usually take <span className="font-medium text-foreground">1–2 business days</span>. If you haven't heard back within 3 days, contact our support team.
+                    </p>
+                    <Button variant="outline" size="sm" onClick={refreshStatus} disabled={refreshing}>
+                      {refreshing ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                      )}
+                      Check status
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <SubmissionHistory auditLog={auditLog} docVersions={docVersions} docFields={pendingDocFields} />
+            </div>
+          </main>
+        </>
+      );
+    }
+
     return (
       <>
         <Header />
@@ -337,9 +450,9 @@ const SellerVerification = () => {
                   <CardTitle>{meta.label}</CardTitle>
                 </div>
                 <CardDescription>
-                  {existing.status === "pending_review"
-                    ? "Your verification is being reviewed. We'll notify you when it's complete."
-                    : "Your seller account is verified. You can now create listings."}
+                  {existing.status === "approved"
+                    ? "Your seller account is verified. You can now create listings."
+                    : "Your verification status."}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
