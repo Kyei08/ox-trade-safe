@@ -44,6 +44,15 @@ const Header = () => {
       .then(({ data }) => setIsAdmin(!!data));
   }, [user]);
 
+  // Auto-close mobile sheet on route change
+  const prevPath = useRef(location.pathname);
+  useEffect(() => {
+    if (prevPath.current !== location.pathname) {
+      setMobileMenuOpen(false);
+      prevPath.current = location.pathname;
+    }
+  }, [location.pathname]);
+
   const handleSignOut = async () => {
     const { error } = await signOut();
     if (error) {
