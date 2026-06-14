@@ -118,8 +118,8 @@ const Header = () => {
           </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="hidden sm:flex">
+          <div className="flex items-center gap-1 sm:gap-3 shrink-0">
+            <Button variant="ghost" size="icon" className="hidden sm:flex" aria-label="Search">
               <Search className="w-5 h-5" />
             </Button>
             
@@ -128,7 +128,9 @@ const Header = () => {
                 <Button 
                   variant="ghost" 
                   size="icon"
+                  className="hidden sm:inline-flex"
                   onClick={() => navigate("/messages")}
+                  aria-label="Messages"
                 >
                   <MessageSquare className="h-5 w-5" />
                 </Button>
