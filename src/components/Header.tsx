@@ -69,15 +69,15 @@ const Header = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-      <div className="container px-4">
-        <div className="flex items-center justify-between h-16">
+      <div className="container px-3 sm:px-4">
+        <div className="flex items-center justify-between h-14 sm:h-16 gap-2">
           {/* Logo */}
-          <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-lg bg-gradient-hero flex items-center justify-center">
-                <span className="text-2xl font-bold text-primary-foreground">OX</span>
+          <div className="flex items-center gap-4 lg:gap-8 min-w-0">
+            <Link to="/" className="flex items-center gap-2 min-w-0" aria-label="OX Marketplace home">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-hero flex items-center justify-center shrink-0">
+                <span className="text-xl sm:text-2xl font-bold text-primary-foreground">OX</span>
               </div>
-              <span className="text-xl font-bold">OX Marketplace</span>
+              <span className="hidden sm:inline text-lg sm:text-xl font-bold truncate">OX Marketplace</span>
             </Link>
 
             {/* Desktop Navigation */}
