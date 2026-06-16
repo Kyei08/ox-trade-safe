@@ -346,7 +346,7 @@ export default function AdminKYC() {
           </Button>
         </div>
         {documentErrors[submission.id] && (
-          <DocumentUnavailableAlert submissionId={submission.id} />
+          <DocumentUnavailableAlert submissionId={submission.id} documentUrl={submission.document_url} />
         )}
       </CardContent>
     </Card>
@@ -432,7 +432,7 @@ export default function AdminKYC() {
               )}
 
               {selectedSubmission && documentErrors[selectedSubmission.id] && (
-                <DocumentUnavailableAlert submissionId={selectedSubmission.id} />
+                <DocumentUnavailableAlert submissionId={selectedSubmission.id} documentUrl={selectedSubmission.document_url} />
               )}
 
               {selectedSubmission.status === "pending" && (
