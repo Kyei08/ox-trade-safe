@@ -419,6 +419,10 @@ export default function AdminKYC() {
                 </div>
               )}
 
+              {selectedSubmission && documentErrors[selectedSubmission.id] && (
+                <DocumentUnavailableAlert submissionId={selectedSubmission.id} />
+              )}
+
               {selectedSubmission.status === "pending" && (
                 <div>
                   <Label htmlFor="rejectionReason">Rejection Reason (if rejecting)</Label>
@@ -435,7 +439,14 @@ export default function AdminKYC() {
           )}
 
           <DialogFooter>
-            {selectedSubmission?.status === "pending" && (
+            <Button
+              variant="outline"
+              onClick={() => selectedSubmission && openDocument(selectedSubmission.document_url, selectedSubmission.id)}
+              disabled={!selectedSubmission}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              View Document
+            </Button>
               <>
                 <Button
                   variant="destructive"
