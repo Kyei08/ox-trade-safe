@@ -250,7 +250,7 @@ export default function AdminKYC() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => window.open(submission.document_url, "_blank")}
+            onClick={() => openDocument(submission.document_url)}
           >
             <FileText className="mr-2 h-4 w-4" />
             View Document
