@@ -215,6 +215,29 @@ export default function AdminKYC() {
     setRejectionReason("");
   };
 
+  const extractStoragePath = (urlOrPath: string) => {
+    const marker = "/kyc-documents/";
+    const idx = urlOrPath.indexOf(marker);
+    return idx >= 0 ? urlOrPath.slice(idx + marker.length) : urlOrPath;
+  };
+
+  const openDocument = async (urlOrPath: string) => {
+    try {
+      const path = extractStoragePath(urlOrPath);
+      const { data, error } = await supabase.storage
+        .from("kyc-documents")
+        .createSignedUrl(path, 300);
+      if (error || !data?.signedUrl) throw error || new Error("Could not generate link");
+      window.open(data.signedUrl, "_blank");
+    } catch (err: any) {
+      toast({
+        title: "Unable to open document",
+        description: err.message || "Document not found.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const renderSubmissionCard = (submission: KYCSubmission) => (
     <Card key={submission.id}>
       <CardHeader>
@@ -250,7 +273,7 @@ export default function AdminKYC() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => window.open(submission.document_url, "_blank")}
+            onClick={() => openDocument(submission.document_url)}
           >
             <FileText className="mr-2 h-4 w-4" />
             View Document
