@@ -327,12 +327,15 @@ export default function AdminKYC() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => openDocument(submission.document_url)}
+            onClick={() => openDocument(submission.document_url, submission.id)}
           >
             <FileText className="mr-2 h-4 w-4" />
             View Document
           </Button>
         </div>
+        {documentErrors[submission.id] && (
+          <DocumentUnavailableAlert submissionId={submission.id} />
+        )}
       </CardContent>
     </Card>
   );
