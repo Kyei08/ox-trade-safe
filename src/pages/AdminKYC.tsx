@@ -275,19 +275,31 @@ export default function AdminKYC() {
     });
   };
 
-  const DocumentUnavailableAlert = ({ submissionId }: { submissionId: string }) => (
+  const DocumentUnavailableAlert = ({ submissionId, documentUrl }: { submissionId: string; documentUrl?: string }) => (
     <Alert variant="destructive" className="mt-2">
       <AlertTriangle className="h-4 w-4" />
       <AlertTitle>Document unavailable</AlertTitle>
-      <AlertDescription className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <span>{documentErrors[submissionId]}</span>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => clearDocumentError(submissionId)}
-        >
-          Dismiss
-        </Button>
+        <div className="flex gap-2">
+          {documentUrl && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openDocument(documentUrl, submissionId)}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Retry
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => clearDocumentError(submissionId)}
+          >
+            Dismiss
+          </Button>
+        </div>
       </AlertDescription>
     </Alert>
   );
