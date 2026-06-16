@@ -48,7 +48,6 @@ export default function AdminKYC() {
   const [processing, setProcessing] = useState(false);
   const [documentErrors, setDocumentErrors] = useState<Record<string, string>>({});
 
-
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/auth");
