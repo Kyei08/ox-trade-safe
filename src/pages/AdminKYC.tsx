@@ -225,22 +225,72 @@ export default function AdminKYC() {
     return idx >= 0 ? urlOrPath.slice(idx + marker.length) : urlOrPath;
   };
 
-  const openDocument = async (urlOrPath: string) => {
+  const openDocument = async (urlOrPath: string, submissionId?: string) => {
     try {
       const path = extractStoragePath(urlOrPath);
       const { data, error } = await supabase.storage
         .from("kyc-documents")
         .createSignedUrl(path, 300);
-      if (error || !data?.signedUrl) throw error || new Error("Could not generate link");
+
+      if (error || !data?.signedUrl) {
+        // Log structured failure context for debugging
+        console.error("[AdminKYC] Signed URL generation failed", {
+          submissionId,
+          bucket: "kyc-documents",
+          path,
+          originalUrl: urlOrPath,
+          error: error?.message || "No signedUrl returned",
+          timestamp: new Date().toISOString(),
+        });
+        throw error || new Error("Could not generate a secure document link.");
+      }
+
+      if (submissionId) {
+        setDocumentErrors((prev) => {
+          const next = { ...prev };
+          delete next[submissionId];
+          return next;
+        });
+      }
+
       window.open(data.signedUrl, "_blank");
     } catch (err: any) {
+      const message = err.message || "Document unavailable. Please try again later or contact support.";
+      if (submissionId) {
+        setDocumentErrors((prev) => ({ ...prev, [submissionId]: message }));
+      }
       toast({
         title: "Unable to open document",
-        description: err.message || "Document not found.",
+        description: message,
         variant: "destructive",
       });
     }
   };
+
+  const clearDocumentError = (submissionId: string) => {
+    setDocumentErrors((prev) => {
+      const next = { ...prev };
+      delete next[submissionId];
+      return next;
+    });
+  };
+
+  const DocumentUnavailableAlert = ({ submissionId }: { submissionId: string }) => (
+    <Alert variant="destructive" className="mt-2">
+      <AlertTriangle className="h-4 w-4" />
+      <AlertTitle>Document unavailable</AlertTitle>
+      <AlertDescription className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <span>{documentErrors[submissionId]}</span>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => clearDocumentError(submissionId)}
+        >
+          Dismiss
+        </Button>
+      </AlertDescription>
+    </Alert>
+  );
 
   const renderSubmissionCard = (submission: KYCSubmission) => (
     <Card key={submission.id}>
