@@ -8,8 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, CheckCircle, XCircle, Eye, FileText } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, Eye, FileText, RefreshCw, AlertTriangle } from "lucide-react";
 import AdminLayout from "@/components/AdminLayout";
 import {
   Dialog,
@@ -19,6 +20,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+
 
 interface KYCSubmission {
   id: string;
