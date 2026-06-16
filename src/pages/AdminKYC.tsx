@@ -47,6 +47,8 @@ export default function AdminKYC() {
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [documentErrors, setDocumentErrors] = useState<Record<string, string>>({});
+
 
   useEffect(() => {
     if (!authLoading && !user) {
