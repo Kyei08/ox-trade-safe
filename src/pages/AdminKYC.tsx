@@ -21,7 +21,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
-
 interface KYCSubmission {
   id: string;
   user_id: string;
