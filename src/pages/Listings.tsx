@@ -31,11 +31,13 @@ interface Listing {
   created_at: string;
   category_id: string;
   seller_id: string;
+  images: string[] | null;
   public_profiles: {
     full_name: string | null;
     avatar_url: string | null;
   } | null;
 }
+
 
 interface Category {
   id: string;
