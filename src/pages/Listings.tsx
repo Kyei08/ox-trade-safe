@@ -151,17 +151,14 @@ const Listings = () => {
         case "newest":
           query = query.order("created_at", { ascending: false });
           break;
-        case "oldest":
-          query = query.order("created_at", { ascending: true });
+        case "ending-soon":
+          query = query.order("auction_ends_at", { ascending: true, nullsFirst: false });
           break;
         case "price-low":
           query = query.order("fixed_price", { ascending: true, nullsFirst: false });
           break;
         case "price-high":
           query = query.order("fixed_price", { ascending: false, nullsFirst: false });
-          break;
-        case "popular":
-          query = query.order("view_count", { ascending: false });
           break;
       }
 
