@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { Search, Filter, Clock, MapPin, Eye, User, ArrowUp, ArrowDown } from "lucide-react";
 import { formatZAR } from "@/lib/currency";
+import { trackEvent } from "@/lib/analytics";
 
 interface Listing {
   id: string;
@@ -246,6 +247,7 @@ const Listings = () => {
       params.set("sort", value);
     }
     setSearchParams(params);
+    trackEvent("listings_sort_changed", { sort_by: value });
   };
 
   const handlePriceSortClick = () => {
