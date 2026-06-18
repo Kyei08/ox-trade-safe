@@ -160,6 +160,9 @@ const Listings = () => {
         case "price-high":
           query = query.order("fixed_price", { ascending: false, nullsFirst: false });
           break;
+        default:
+          query = query.order("created_at", { ascending: false });
+          break;
       }
 
       const { data, error } = await query;
