@@ -337,18 +337,45 @@ const Listings = () => {
                 </SelectContent>
               </Select>
 
-              <Select value={sortBy} onValueChange={handleSortChange}>
-                <SelectTrigger className="w-auto min-w-[160px] rounded-full bg-card shadow-sm border-border">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent className="bg-popover z-50">
-                  <SelectItem value="newest">Newest First</SelectItem>
-                  <SelectItem value="oldest">Oldest First</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
-                  <SelectItem value="popular">Most Popular</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-2 ml-auto">
+                <span className="text-muted-foreground font-medium text-sm hidden sm:inline">Sort:</span>
+                <button
+                  type="button"
+                  onClick={() => handleSortChange("newest")}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                    sortBy === "newest"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card text-foreground border-border hover:bg-muted"
+                  }`}
+                >
+                  Newest
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSortChange("ending-soon")}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors flex items-center gap-1 ${
+                    sortBy === "ending-soon"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card text-foreground border-border hover:bg-muted"
+                  }`}
+                >
+                  <Clock className="w-3 h-3" />
+                  Ending Soon
+                </button>
+                <button
+                  type="button"
+                  onClick={handlePriceSortClick}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors flex items-center gap-1 ${
+                    sortBy === "price-low" || sortBy === "price-high"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card text-foreground border-border hover:bg-muted"
+                  }`}
+                >
+                  Price
+                  {sortBy === "price-low" && <ArrowUp className="w-3 h-3" />}
+                  {sortBy === "price-high" && <ArrowDown className="w-3 h-3" />}
+                </button>
+              </div>
             </div>
 
             {/* Subcategory chips */}
