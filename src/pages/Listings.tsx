@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { Search, Filter, Clock, MapPin, Eye, User } from "lucide-react";
+import { Search, Filter, Clock, MapPin, Eye, User, ArrowUp, ArrowDown } from "lucide-react";
 import { formatZAR } from "@/lib/currency";
 
 interface Listing {
