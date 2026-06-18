@@ -247,6 +247,7 @@ const Listings = () => {
       params.set("sort", value);
     }
     setSearchParams(params);
+    trackEvent("listings_sort_changed", { sort_by: value });
   };
 
   const handlePriceSortClick = () => {
