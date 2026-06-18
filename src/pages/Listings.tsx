@@ -245,6 +245,14 @@ const Listings = () => {
     setSearchParams(params);
   };
 
+  const handlePriceSortClick = () => {
+    if (sortBy === "price-low") {
+      handleSortChange("price-high");
+    } else {
+      handleSortChange("price-low");
+    }
+  };
+
   const getPrice = (listing: Listing) => {
     if (listing.listing_type === "fixed_price") {
       return formatZAR(listing.fixed_price);
