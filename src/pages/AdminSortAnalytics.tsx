@@ -48,6 +48,8 @@ const COLORS = [
 
 const AdminSortAnalytics = () => {
   const [events, setEvents] = useState<AnalyticsEvent[]>([]);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
   const refresh = () => setEvents(getStoredEvents());
 
@@ -55,10 +57,20 @@ const AdminSortAnalytics = () => {
     refresh();
   }, []);
 
-  const sortEvents = useMemo(
-    () => events.filter((e) => e.event === "listings_sort_changed"),
-    [events]
-  );
+  const sortEvents = useMemo(() => {
+    let filtered = events.filter((e) => e.event === "listings_sort_changed");
+    if (startDate) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      filtered = filtered.filter((e) => new Date(e.timestamp) >= start);
+    }
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      filtered = filtered.filter((e) => new Date(e.timestamp) <= end);
+    }
+    return filtered;
+  }, [events, startDate, endDate]);
 
   const counts = useMemo(() => {
     const map = new Map<string, number>();
@@ -76,15 +88,33 @@ const AdminSortAnalytics = () => {
   }, [sortEvents]);
 
   const trend = useMemo(() => {
-    // Group by day for last 14 days
-    const days: string[] = [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    for (let i = 13; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      days.push(d.toISOString().slice(0, 10));
+    let days: string[] = [];
+
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(endDate);
+      end.setHours(0, 0, 0, 0);
+      const msPerDay = 86400000;
+      const totalDays = Math.min(
+        Math.floor((end.getTime() - start.getTime()) / msPerDay) + 1,
+        60
+      );
+      for (let i = 0; i < totalDays; i++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i);
+        days.push(d.toISOString().slice(0, 10));
+      }
+    } else {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        days.push(d.toISOString().slice(0, 10));
+      }
     }
+
     const keys = Array.from(
       new Set(sortEvents.map((e) => String(e.properties.sort_by ?? "unknown")))
     );
@@ -99,7 +129,7 @@ const AdminSortAnalytics = () => {
       });
       return row;
     });
-  }, [sortEvents]);
+  }, [sortEvents, startDate, endDate]);
 
   const trendKeys = useMemo(
     () =>
@@ -121,18 +151,82 @@ const AdminSortAnalytics = () => {
   }, [trendKeys]);
 
   const total = sortEvents.length;
+  const isFiltered = startDate || endDate;
 
   return (
     <AdminLayout
       title="Sort Analytics"
       description="Track which sorting options users select on the listings page."
     >
-      <div className="flex items-center justify-between mb-4 gap-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
         <p className="text-sm text-muted-foreground">
           {total} sort selection{total === 1 ? "" : "s"} recorded
-          (local-only data).
+          {isFiltered ? " for selected range" : " (last 14 days)"}.
         </p>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "justify-start text-left font-normal",
+                  !startDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {startDate ? format(startDate, "PP") : "Start date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={startDate}
+                onSelect={setStartDate}
+                initialFocus
+                className="p-3 pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "justify-start text-left font-normal",
+                  !endDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {endDate ? format(endDate, "PP") : "End date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={endDate}
+                onSelect={setEndDate}
+                initialFocus
+                className="p-3 pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
+
+          {isFiltered && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setStartDate(undefined);
+                setEndDate(undefined);
+              }}
+            >
+              <X className="mr-1 h-4 w-4" /> Clear range
+            </Button>
+          )}
+
           <Button variant="outline" size="sm" onClick={refresh}>
             <RefreshCw className="w-4 h-4 mr-1" /> Refresh
           </Button>
@@ -153,7 +247,7 @@ const AdminSortAnalytics = () => {
         {counts.length === 0 && (
           <Card className="md:col-span-2">
             <CardContent className="py-10 text-center text-muted-foreground">
-              No sort events yet. Try changing sort options on the Listings page.
+              No sort events for the selected period. Try changing sort options on the Listings page.
             </CardContent>
           </Card>
         )}
@@ -195,7 +289,9 @@ const AdminSortAnalytics = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Trend (last 14 days)</CardTitle>
+              <CardTitle>
+                Trend{isFiltered ? "" : " (last 14 days)"}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <ChartContainer config={chartConfig} className="h-64 w-full">
