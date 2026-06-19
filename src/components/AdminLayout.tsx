@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import Header from "@/components/Header";
-import { LayoutDashboard, ShieldCheck, Flag, FolderTree } from "lucide-react";
+import { LayoutDashboard, ShieldCheck, Flag, FolderTree, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -9,6 +9,7 @@ const navItems = [
   { to: "/admin/kyc", label: "KYC", icon: ShieldCheck },
   { to: "/admin/reports", label: "Reports", icon: Flag },
   { to: "/admin/categories", label: "Categories", icon: FolderTree },
+  { to: "/admin/analytics", label: "Sort Analytics", icon: BarChart3 },
 ];
 
 interface AdminLayoutProps {
