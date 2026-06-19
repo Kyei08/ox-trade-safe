@@ -78,7 +78,15 @@ const App = () => (
                 <AdminReports />
               </AdminRoute>
             }
+          <Route
+            path="/admin/analytics"
+            element={
+              <AdminRoute>
+                <AdminSortAnalytics />
+              </AdminRoute>
+            }
           />
+
           <Route
             path="/admin/categories"
             element={
