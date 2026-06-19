@@ -15,6 +15,7 @@ import AdminKYC from "./pages/AdminKYC";
 import AdminReports from "./pages/AdminReports";
 import AdminCategories from "./pages/AdminCategories";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminSortAnalytics from "./pages/AdminSortAnalytics";
 import AdminSellers from "./pages/AdminSellers";
 import SellerVerification from "./pages/SellerVerification";
 import AdminRoute from "@/components/AdminRoute";
@@ -78,6 +79,15 @@ const App = () => (
               </AdminRoute>
             }
           />
+          <Route
+            path="/admin/analytics"
+            element={
+              <AdminRoute>
+                <AdminSortAnalytics />
+              </AdminRoute>
+            }
+          />
+
           <Route
             path="/admin/categories"
             element={

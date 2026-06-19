@@ -1,6 +1,29 @@
 type EventProperties = Record<string, string | number | boolean | null | undefined>;
 
-const ANALYTICS_KEY = "ox_analytics_events";
+export const ANALYTICS_KEY = "ox_analytics_events";
+
+export interface AnalyticsEvent {
+  event: string;
+  properties: EventProperties;
+  timestamp: string;
+  path: string;
+}
+
+export function getStoredEvents(): AnalyticsEvent[] {
+  try {
+    return JSON.parse(localStorage.getItem(ANALYTICS_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+export function clearStoredEvents() {
+  try {
+    localStorage.removeItem(ANALYTICS_KEY);
+  } catch {
+    // ignore
+  }
+}
 
 function isDev() {
   return import.meta.env.DEV;
