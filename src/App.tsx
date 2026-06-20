@@ -26,6 +26,9 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import SellerProfile from "./pages/SellerProfile";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import LogisticsHome from "./modules/logistics/pages/LogisticsHome";
+import LogisticsProviders from "./modules/logistics/pages/LogisticsProviders";
+import LogisticsOrders from "./modules/logistics/pages/LogisticsOrders";
 
 const queryClient = new QueryClient();
 
@@ -101,6 +104,12 @@ const App = () => (
           <Route path="/messages/:id" element={<Conversation />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+
+          {/* OX Logistics module */}
+          <Route path="/logistics" element={<LogisticsHome />} />
+          <Route path="/logistics/providers" element={<LogisticsProviders />} />
+          <Route path="/logistics/orders" element={<LogisticsOrders />} />
+          <Route path="/logistics/account" element={<Dashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
