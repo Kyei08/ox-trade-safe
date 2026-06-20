@@ -29,6 +29,7 @@ import NotFound from "./pages/NotFound";
 import LogisticsHome from "./modules/logistics/pages/LogisticsHome";
 import LogisticsProviders from "./modules/logistics/pages/LogisticsProviders";
 import LogisticsOrders from "./modules/logistics/pages/LogisticsOrders";
+import BecomeCourier from "./modules/logistics/pages/BecomeCourier";
 
 const queryClient = new QueryClient();
 
