@@ -966,7 +966,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "user" | "verified_seller" | "admin"
+      app_role: "user" | "verified_seller" | "admin" | "courier"
       kyc_status: "pending" | "verified" | "rejected"
       listing_status: "draft" | "active" | "sold" | "expired" | "removed"
       listing_type: "auction" | "fixed_price"
@@ -1113,7 +1113,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["user", "verified_seller", "admin"],
+      app_role: ["user", "verified_seller", "admin", "courier"],
       kyc_status: ["pending", "verified", "rejected"],
       listing_status: ["draft", "active", "sold", "expired", "removed"],
       listing_type: ["auction", "fixed_price"],

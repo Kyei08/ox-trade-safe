@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, Building2, Phone, MapPin } from "lucide-react";
+import { ShieldCheck, Building2, Phone, MapPin, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface TrustBadgesProfile {
@@ -7,6 +7,7 @@ export interface TrustBadgesProfile {
   seller_verification_status?: string | null;
   phone_verified_at?: string | null;
   address_verified_at?: string | null;
+  is_courier?: boolean | null;
 }
 
 interface Props {
@@ -31,6 +32,12 @@ const TrustBadges = ({ profile, className, size = "md" }: Props) => {
       icon: Building2,
       show: approved && isBusiness,
       className: "bg-blue-500/10 text-blue-700 border-blue-500/30",
+    },
+    {
+      label: "Verified Courier",
+      icon: Truck,
+      show: !!profile.is_courier,
+      className: "bg-orange-500/10 text-orange-700 border-orange-500/30",
     },
     {
       label: "Phone Verified",
