@@ -1,0 +1,95 @@
+import { useMemo, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { ArrowLeft, SlidersHorizontal, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import LogisticsHeader from "../components/LogisticsHeader";
+import LogisticsBottomNav from "../components/LogisticsBottomNav";
+import ProviderCard from "../components/ProviderCard";
+import SortTabs, { type SortKey } from "../components/SortTabs";
+import { mockProviders } from "../data/mockProviders";
+
+const LogisticsProviders = () => {
+  const [params] = useSearchParams();
+  const navigate = useNavigate();
+  const pickup = params.get("pickup") || "Sandton";
+  const town = pickup.split(",")[0].trim();
+  const [sort, setSort] = useState<SortKey>("recommended");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const sorted = useMemo(() => {
+    const list = [...mockProviders];
+    switch (sort) {
+      case "price":
+        return list.sort((a, b) => (a.priceFrom ?? Infinity) - (b.priceFrom ?? Infinity));
+      case "rating":
+        return list.sort((a, b) => b.rating - a.rating);
+      case "eta":
+        return list.sort((a, b) => (a.etaLabel || "").localeCompare(b.etaLabel || ""));
+      default:
+        return list.sort((a, b) => Number(b.servesYourArea) - Number(a.servesYourArea));
+    }
+  }, [sort]);
+
+  return (
+    <div className="min-h-screen bg-background pb-24">
+      <LogisticsHeader location={town} />
+      <main className="container max-w-2xl px-3 sm:px-4 py-5 sm:py-6 space-y-5">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Edit request
+        </button>
+
+        <section>
+          <h1 className="text-2xl sm:text-3xl font-bold">Available in {town}</h1>
+          <div className="flex items-center justify-between gap-3 mt-3">
+            <Badge className="bg-success/15 text-success hover:bg-success/15 border-0 gap-1.5 font-semibold">
+              <Zap className="w-3 h-3" />
+              IN YOUR AREA
+            </Badge>
+            <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="gap-2 font-semibold">
+                  <SlidersHorizontal className="w-4 h-4" />
+                  Filters
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[88vw] max-w-[380px]">
+                <SheetHeader>
+                  <SheetTitle>Filters</SheetTitle>
+                </SheetHeader>
+                <div className="mt-5 text-sm text-muted-foreground space-y-4">
+                  <p>Price, rating, availability, coverage, vehicle, and capability filters will go here.</p>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+          <p className="text-sm text-muted-foreground mt-2">
+            {sorted.length} providers · <span className="text-accent font-medium">prioritised for your area</span>
+          </p>
+        </section>
+
+        <SortTabs value={sort} onChange={setSort} />
+
+        <div className="space-y-4">
+          {sorted.map((p, i) => (
+            <ProviderCard key={p.id} provider={p} highlight={i === 0 && p.servesYourArea} />
+          ))}
+        </div>
+      </main>
+      <LogisticsBottomNav />
+    </div>
+  );
+};
+
+export default LogisticsProviders;
