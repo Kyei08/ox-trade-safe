@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Menu, Search, LogOut, MessageSquare, Home, Grid, Plus, User, Gavel, Shield, X } from "lucide-react";
+import { Menu, Search, LogOut, MessageSquare, Home, Grid, Plus, User, Gavel, Shield, X, Truck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import EcosystemNav from "@/shared/EcosystemNav";
 
 const Header = () => {
   const { user, signOut } = useAuth();
@@ -119,6 +120,7 @@ const Header = () => {
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-1 sm:gap-3 shrink-0">
+            <EcosystemNav />
             <Button variant="ghost" size="icon" className="hidden sm:flex" aria-label="Search">
               <Search className="w-5 h-5" />
             </Button>
@@ -237,6 +239,15 @@ const Header = () => {
                   >
                     <Grid className="w-5 h-5" />
                     <span className="font-medium">Browse Listings</span>
+                  </Link>
+
+                  <Link
+                    to="/logistics"
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname.startsWith("/logistics") ? "font-bold" : ""}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Truck className="w-5 h-5" />
+                    <span className="font-medium">OX Logistics</span>
                   </Link>
 
                   {user ? (
