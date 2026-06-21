@@ -31,11 +31,14 @@ const BecomeCourier = () => {
       setStatus("no_auth");
       return;
     }
-    const [{ data: ver }, { data: roles }] = await Promise.all([
+    const [{ data: ver }, { data: roles }, { data: prof }] = await Promise.all([
       supabase.from("seller_verifications").select("status, seller_type").eq("user_id", user.id).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", user.id),
+      supabase.from("profiles").select("courier_available, courier_available_updated_at").eq("id", user.id).maybeSingle(),
     ]);
     setIsCourier(!!roles?.some((r) => r.role === "courier"));
+    setAvailable(!!prof?.courier_available);
+    setAvailabilityUpdatedAt(prof?.courier_available_updated_at ?? null);
     if (!ver) return setStatus("not_started");
     setSellerType(ver.seller_type);
     switch (ver.status) {
