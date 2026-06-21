@@ -80,8 +80,29 @@ const LogisticsProviders = () => {
               </SheetContent>
             </Sheet>
           </div>
+          <div className="flex items-center justify-between gap-3 mt-3 rounded-xl border bg-card px-3 py-2.5">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-60" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success" />
+              </span>
+              <Label htmlFor="available-now" className="text-sm font-semibold cursor-pointer">
+                Available now only
+              </Label>
+            </div>
+            <Switch
+              id="available-now"
+              checked={availableNowOnly}
+              onCheckedChange={setAvailableNowOnly}
+            />
+          </div>
           <p className="text-sm text-muted-foreground mt-2">
-            {sorted.length} providers · <span className="text-accent font-medium">prioritised for your area</span>
+            {sorted.length} {sorted.length === 1 ? "provider" : "providers"}
+            {availableNowOnly ? (
+              <> · <span className="text-success font-medium">available right now</span></>
+            ) : (
+              <> · <span className="text-accent font-medium">prioritised for your area</span></>
+            )}
           </p>
         </section>
 
