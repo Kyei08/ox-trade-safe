@@ -1,6 +1,7 @@
-import { Star, MapPin, Clock, Zap } from "lucide-react";
+import { Star, MapPin, Clock, Zap, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import VehicleIcon from "./VehicleIcon";
 import type { Provider } from "../data/mockProviders";
 
@@ -40,7 +41,18 @@ interface Props {
 }
 
 const ProviderCard = ({ provider, highlight }: Props) => {
+  const isAvailableNow = provider.availability === "Available Today";
   const isInstant = provider.priceMode !== "quote";
+  const canBook = isInstant && isAvailableNow;
+
+  const handleBlockedBook = () => {
+    toast.error("Courier not available", {
+      description:
+        provider.availability === "Busy"
+          ? `${provider.name} is currently busy. Please pick a courier with "Available now".`
+          : `${provider.name} is only available tomorrow. Pickups require a courier who is available now.`,
+    });
+  };
 
   return (
     <article
@@ -90,7 +102,7 @@ const ProviderCard = ({ provider, highlight }: Props) => {
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5 mt-4">
-        {provider.availability === "Available Today" && (
+        {isAvailableNow && (
           <Badge className="bg-success/15 text-success hover:bg-success/15 border-0 gap-1 font-semibold">
             <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
             Available now
@@ -113,16 +125,34 @@ const ProviderCard = ({ provider, highlight }: Props) => {
         <p className="text-sm text-muted-foreground mt-3">{provider.description}</p>
       )}
 
+      {!isAvailableNow && (
+        <div className="mt-3 flex items-start gap-2 rounded-lg border border-dashed border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+          <Lock className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+          <span>
+            Booking locked — pickups require a courier with <strong>Available now</strong> status.
+          </span>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-2 mt-4">
         <Button variant="outline" className="font-semibold">
           Request Quote
         </Button>
-        <Button
-          disabled={!isInstant}
-          className="font-semibold bg-primary hover:bg-primary/90"
-        >
-          Instant Book
-        </Button>
+        {canBook ? (
+          <Button className="font-semibold bg-primary hover:bg-primary/90">
+            Instant Book
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            onClick={handleBlockedBook}
+            aria-disabled
+            className="font-semibold bg-muted text-muted-foreground hover:bg-muted"
+          >
+            <Lock className="w-3.5 h-3.5 mr-1.5" />
+            {isInstant ? "Unavailable" : "Quote only"}
+          </Button>
+        )}
       </div>
     </article>
   );

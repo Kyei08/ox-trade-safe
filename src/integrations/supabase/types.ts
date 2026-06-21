@@ -131,6 +131,27 @@ export type Database = {
           },
         ]
       }
+      courier_availability_history: {
+        Row: {
+          available: boolean
+          changed_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          available: boolean
+          changed_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          available?: boolean
+          changed_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string

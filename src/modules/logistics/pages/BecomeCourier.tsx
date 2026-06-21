@@ -25,6 +25,17 @@ const BecomeCourier = () => {
   const [availabilityUpdatedAt, setAvailabilityUpdatedAt] = useState<string | null>(null);
   const [togglingAvailability, setTogglingAvailability] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [history, setHistory] = useState<Array<{ id: string; available: boolean; changed_at: string }>>([]);
+
+  const loadHistory = async (uid: string) => {
+    const { data } = await (supabase as any)
+      .from("courier_availability_history")
+      .select("id, available, changed_at")
+      .eq("user_id", uid)
+      .order("changed_at", { ascending: false })
+      .limit(20);
+    setHistory(data ?? []);
+  };
 
   const load = async () => {
     if (!user) {
@@ -39,6 +50,7 @@ const BecomeCourier = () => {
     setIsCourier(!!roles?.some((r) => r.role === "courier"));
     setAvailable(!!prof?.courier_available);
     setAvailabilityUpdatedAt(prof?.courier_available_updated_at ?? null);
+    loadHistory(user.id);
     if (!ver) return setStatus("not_started");
     setSellerType(ver.seller_type);
     switch (ver.status) {
@@ -107,6 +119,7 @@ const BecomeCourier = () => {
       return;
     }
     setAvailabilityUpdatedAt(data?.courier_available_updated_at ?? new Date().toISOString());
+    loadHistory(user.id);
     toast.success(next ? "You're online — accepting deliveries" : "You're offline");
   };
 
@@ -275,6 +288,48 @@ const BecomeCourier = () => {
                       {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                       Pause courier role
                     </Button>
+                  </div>
+
+                  <div className="rounded-lg border bg-card p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-semibold">Availability history</p>
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Last {history.length}
+                      </span>
+                    </div>
+                    {history.length === 0 ? (
+                      <p className="text-xs text-muted-foreground">
+                        No availability changes yet. Toggle the switch above to start your history.
+                      </p>
+                    ) : (
+                      <ul className="space-y-1.5 max-h-48 overflow-y-auto">
+                        {history.map((h) => (
+                          <li
+                            key={h.id}
+                            className="flex items-center justify-between text-xs border-b last:border-b-0 border-border/60 pb-1.5 last:pb-0"
+                          >
+                            <span className="flex items-center gap-2">
+                              <span
+                                className={`inline-block w-2 h-2 rounded-full ${
+                                  h.available ? "bg-emerald-500" : "bg-muted-foreground/40"
+                                }`}
+                              />
+                              <span className="font-medium">
+                                {h.available ? "Went online" : "Went offline"}
+                              </span>
+                            </span>
+                            <span className="text-muted-foreground">
+                              {new Date(h.changed_at).toLocaleString([], {
+                                month: "short",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
               ) : (
