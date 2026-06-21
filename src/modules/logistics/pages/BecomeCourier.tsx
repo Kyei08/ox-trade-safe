@@ -85,7 +85,29 @@ const BecomeCourier = () => {
       return;
     }
     setIsCourier(false);
+    setAvailable(false);
     toast.success("Courier role removed");
+  };
+
+  const toggleAvailability = async (next: boolean) => {
+    if (!user) return;
+    setTogglingAvailability(true);
+    const prev = available;
+    setAvailable(next);
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({ courier_available: next })
+      .eq("id", user.id)
+      .select("courier_available_updated_at")
+      .maybeSingle();
+    setTogglingAvailability(false);
+    if (error) {
+      setAvailable(prev);
+      toast.error(error.message || "Could not update availability");
+      return;
+    }
+    setAvailabilityUpdatedAt(data?.courier_available_updated_at ?? new Date().toISOString());
+    toast.success(next ? "You're online — accepting deliveries" : "You're offline");
   };
 
   return (
