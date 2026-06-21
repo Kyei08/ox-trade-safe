@@ -289,6 +289,48 @@ const BecomeCourier = () => {
                       Pause courier role
                     </Button>
                   </div>
+
+                  <div className="rounded-lg border bg-card p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-semibold">Availability history</p>
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Last {history.length}
+                      </span>
+                    </div>
+                    {history.length === 0 ? (
+                      <p className="text-xs text-muted-foreground">
+                        No availability changes yet. Toggle the switch above to start your history.
+                      </p>
+                    ) : (
+                      <ul className="space-y-1.5 max-h-48 overflow-y-auto">
+                        {history.map((h) => (
+                          <li
+                            key={h.id}
+                            className="flex items-center justify-between text-xs border-b last:border-b-0 border-border/60 pb-1.5 last:pb-0"
+                          >
+                            <span className="flex items-center gap-2">
+                              <span
+                                className={`inline-block w-2 h-2 rounded-full ${
+                                  h.available ? "bg-emerald-500" : "bg-muted-foreground/40"
+                                }`}
+                              />
+                              <span className="font-medium">
+                                {h.available ? "Went online" : "Went offline"}
+                              </span>
+                            </span>
+                            <span className="text-muted-foreground">
+                              {new Date(h.changed_at).toLocaleString([], {
+                                month: "short",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <Button onClick={activateCourier} disabled={submitting} className="bg-accent hover:bg-accent/90 text-accent-foreground">
