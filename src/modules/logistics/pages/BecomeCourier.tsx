@@ -25,6 +25,17 @@ const BecomeCourier = () => {
   const [availabilityUpdatedAt, setAvailabilityUpdatedAt] = useState<string | null>(null);
   const [togglingAvailability, setTogglingAvailability] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [history, setHistory] = useState<Array<{ id: string; available: boolean; changed_at: string }>>([]);
+
+  const loadHistory = async (uid: string) => {
+    const { data } = await (supabase as any)
+      .from("courier_availability_history")
+      .select("id, available, changed_at")
+      .eq("user_id", uid)
+      .order("changed_at", { ascending: false })
+      .limit(20);
+    setHistory(data ?? []);
+  };
 
   const load = async () => {
     if (!user) {
@@ -39,6 +50,7 @@ const BecomeCourier = () => {
     setIsCourier(!!roles?.some((r) => r.role === "courier"));
     setAvailable(!!prof?.courier_available);
     setAvailabilityUpdatedAt(prof?.courier_available_updated_at ?? null);
+    loadHistory(user.id);
     if (!ver) return setStatus("not_started");
     setSellerType(ver.seller_type);
     switch (ver.status) {
@@ -107,6 +119,7 @@ const BecomeCourier = () => {
       return;
     }
     setAvailabilityUpdatedAt(data?.courier_available_updated_at ?? new Date().toISOString());
+    loadHistory(user.id);
     toast.success(next ? "You're online — accepting deliveries" : "You're offline");
   };
 
