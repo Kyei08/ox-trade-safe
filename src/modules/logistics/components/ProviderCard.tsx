@@ -90,6 +90,12 @@ const ProviderCard = ({ provider, highlight }: Props) => {
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5 mt-4">
+        {provider.availability === "Available Today" && (
+          <Badge className="bg-success/15 text-success hover:bg-success/15 border-0 gap-1 font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+            Available now
+          </Badge>
+        )}
         {provider.servesYourArea && (
           <Badge className="bg-accent/15 text-accent hover:bg-accent/15 border-0 gap-1">
             <Zap className="w-3 h-3" />
