@@ -435,6 +435,8 @@ export type Database = {
           address_verified_at: string | null
           avatar_url: string | null
           bio: string | null
+          courier_available: boolean
+          courier_available_updated_at: string | null
           created_at: string
           dashboard_active_tab: string | null
           email: string
@@ -463,6 +465,8 @@ export type Database = {
           address_verified_at?: string | null
           avatar_url?: string | null
           bio?: string | null
+          courier_available?: boolean
+          courier_available_updated_at?: string | null
           created_at?: string
           dashboard_active_tab?: string | null
           email: string
@@ -491,6 +495,8 @@ export type Database = {
           address_verified_at?: string | null
           avatar_url?: string | null
           bio?: string | null
+          courier_available?: boolean
+          courier_available_updated_at?: string | null
           created_at?: string
           dashboard_active_tab?: string | null
           email?: string

@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CheckCircle2, Clock, ShieldCheck, Truck, XCircle, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import LogisticsHeader from "../components/LogisticsHeader";
 import LogisticsBottomNav from "../components/LogisticsBottomNav";
 
@@ -19,6 +21,9 @@ const BecomeCourier = () => {
   const [status, setStatus] = useState<Status>("loading");
   const [sellerType, setSellerType] = useState<string | null>(null);
   const [isCourier, setIsCourier] = useState(false);
+  const [available, setAvailable] = useState(false);
+  const [availabilityUpdatedAt, setAvailabilityUpdatedAt] = useState<string | null>(null);
+  const [togglingAvailability, setTogglingAvailability] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const load = async () => {
@@ -26,11 +31,14 @@ const BecomeCourier = () => {
       setStatus("no_auth");
       return;
     }
-    const [{ data: ver }, { data: roles }] = await Promise.all([
+    const [{ data: ver }, { data: roles }, { data: prof }] = await Promise.all([
       supabase.from("seller_verifications").select("status, seller_type").eq("user_id", user.id).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", user.id),
+      supabase.from("profiles").select("courier_available, courier_available_updated_at").eq("id", user.id).maybeSingle(),
     ]);
     setIsCourier(!!roles?.some((r) => r.role === "courier"));
+    setAvailable(!!prof?.courier_available);
+    setAvailabilityUpdatedAt(prof?.courier_available_updated_at ?? null);
     if (!ver) return setStatus("not_started");
     setSellerType(ver.seller_type);
     switch (ver.status) {
@@ -77,7 +85,29 @@ const BecomeCourier = () => {
       return;
     }
     setIsCourier(false);
+    setAvailable(false);
     toast.success("Courier role removed");
+  };
+
+  const toggleAvailability = async (next: boolean) => {
+    if (!user) return;
+    setTogglingAvailability(true);
+    const prev = available;
+    setAvailable(next);
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({ courier_available: next })
+      .eq("id", user.id)
+      .select("courier_available_updated_at")
+      .maybeSingle();
+    setTogglingAvailability(false);
+    if (error) {
+      setAvailable(prev);
+      toast.error(error.message || "Could not update availability");
+      return;
+    }
+    setAvailabilityUpdatedAt(data?.courier_available_updated_at ?? new Date().toISOString());
+    toast.success(next ? "You're online — accepting deliveries" : "You're offline");
   };
 
   return (
@@ -207,11 +237,37 @@ const BecomeCourier = () => {
             </CardHeader>
             <CardContent>
               {isCourier ? (
-                <div className="flex flex-col gap-2">
-                  <p className="text-sm text-muted-foreground">
-                    You can receive delivery requests. Manage your courier profile from the account area.
-                  </p>
-                  <div className="flex gap-2">
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between rounded-lg border bg-card p-3">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`inline-block w-2.5 h-2.5 rounded-full ${
+                          available ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground/40"
+                        }`}
+                        aria-hidden
+                      />
+                      <div>
+                        <Label htmlFor="courier-available" className="text-sm font-semibold cursor-pointer">
+                          {available ? "Available for deliveries" : "Offline"}
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          {available
+                            ? "You'll appear in nearby courier searches."
+                            : "Turn on to start receiving requests."}
+                          {availabilityUpdatedAt && (
+                            <> · Updated {new Date(availabilityUpdatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      id="courier-available"
+                      checked={available}
+                      onCheckedChange={toggleAvailability}
+                      disabled={togglingAvailability}
+                    />
+                  </div>
+                  <div className="flex gap-2 flex-wrap">
                     <Button asChild>
                       <Link to="/logistics/orders">View delivery requests</Link>
                     </Button>
