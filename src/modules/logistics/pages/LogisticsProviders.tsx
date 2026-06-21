@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, SlidersHorizontal, Zap } from "lucide-react";
+import { ArrowLeft, SlidersHorizontal, Zap, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Sheet,
   SheetContent,
@@ -23,9 +25,13 @@ const LogisticsProviders = () => {
   const town = pickup.split(",")[0].trim();
   const [sort, setSort] = useState<SortKey>("recommended");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [availableNowOnly, setAvailableNowOnly] = useState(false);
 
   const sorted = useMemo(() => {
-    const list = [...mockProviders];
+    let list = [...mockProviders];
+    if (availableNowOnly) {
+      list = list.filter((p) => p.availability === "Available Today");
+    }
     switch (sort) {
       case "price":
         return list.sort((a, b) => (a.priceFrom ?? Infinity) - (b.priceFrom ?? Infinity));
@@ -36,7 +42,7 @@ const LogisticsProviders = () => {
       default:
         return list.sort((a, b) => Number(b.servesYourArea) - Number(a.servesYourArea));
     }
-  }, [sort]);
+  }, [sort, availableNowOnly]);
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -74,8 +80,29 @@ const LogisticsProviders = () => {
               </SheetContent>
             </Sheet>
           </div>
+          <div className="flex items-center justify-between gap-3 mt-3 rounded-xl border bg-card px-3 py-2.5">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-60" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success" />
+              </span>
+              <Label htmlFor="available-now" className="text-sm font-semibold cursor-pointer">
+                Available now only
+              </Label>
+            </div>
+            <Switch
+              id="available-now"
+              checked={availableNowOnly}
+              onCheckedChange={setAvailableNowOnly}
+            />
+          </div>
           <p className="text-sm text-muted-foreground mt-2">
-            {sorted.length} providers · <span className="text-accent font-medium">prioritised for your area</span>
+            {sorted.length} {sorted.length === 1 ? "provider" : "providers"}
+            {availableNowOnly ? (
+              <> · <span className="text-success font-medium">available right now</span></>
+            ) : (
+              <> · <span className="text-accent font-medium">prioritised for your area</span></>
+            )}
           </p>
         </section>
 
