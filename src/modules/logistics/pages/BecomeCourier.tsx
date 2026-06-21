@@ -21,6 +21,9 @@ const BecomeCourier = () => {
   const [status, setStatus] = useState<Status>("loading");
   const [sellerType, setSellerType] = useState<string | null>(null);
   const [isCourier, setIsCourier] = useState(false);
+  const [available, setAvailable] = useState(false);
+  const [availabilityUpdatedAt, setAvailabilityUpdatedAt] = useState<string | null>(null);
+  const [togglingAvailability, setTogglingAvailability] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const load = async () => {
