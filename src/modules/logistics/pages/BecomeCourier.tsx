@@ -237,11 +237,37 @@ const BecomeCourier = () => {
             </CardHeader>
             <CardContent>
               {isCourier ? (
-                <div className="flex flex-col gap-2">
-                  <p className="text-sm text-muted-foreground">
-                    You can receive delivery requests. Manage your courier profile from the account area.
-                  </p>
-                  <div className="flex gap-2">
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between rounded-lg border bg-card p-3">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`inline-block w-2.5 h-2.5 rounded-full ${
+                          available ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground/40"
+                        }`}
+                        aria-hidden
+                      />
+                      <div>
+                        <Label htmlFor="courier-available" className="text-sm font-semibold cursor-pointer">
+                          {available ? "Available for deliveries" : "Offline"}
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          {available
+                            ? "You'll appear in nearby courier searches."
+                            : "Turn on to start receiving requests."}
+                          {availabilityUpdatedAt && (
+                            <> · Updated {new Date(availabilityUpdatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      id="courier-available"
+                      checked={available}
+                      onCheckedChange={toggleAvailability}
+                      disabled={togglingAvailability}
+                    />
+                  </div>
+                  <div className="flex gap-2 flex-wrap">
                     <Button asChild>
                       <Link to="/logistics/orders">View delivery requests</Link>
                     </Button>
