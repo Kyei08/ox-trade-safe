@@ -25,9 +25,13 @@ const LogisticsProviders = () => {
   const town = pickup.split(",")[0].trim();
   const [sort, setSort] = useState<SortKey>("recommended");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [availableNowOnly, setAvailableNowOnly] = useState(false);
 
   const sorted = useMemo(() => {
-    const list = [...mockProviders];
+    let list = [...mockProviders];
+    if (availableNowOnly) {
+      list = list.filter((p) => p.availability === "Available Today");
+    }
     switch (sort) {
       case "price":
         return list.sort((a, b) => (a.priceFrom ?? Infinity) - (b.priceFrom ?? Infinity));
@@ -38,7 +42,7 @@ const LogisticsProviders = () => {
       default:
         return list.sort((a, b) => Number(b.servesYourArea) - Number(a.servesYourArea));
     }
-  }, [sort]);
+  }, [sort, availableNowOnly]);
 
   return (
     <div className="min-h-screen bg-background pb-24">
