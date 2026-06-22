@@ -27,12 +27,17 @@ export interface Provider {
   etaMinutes?: number;
   etaLabel?: string;
   availability: Availability;
+  /** ISO timestamp of when the courier was last marked Available now. */
+  lastAvailableAt?: string;
   coverage: Coverage;
   vehicle: Vehicle;
   capabilities: Capability[];
   servesYourArea: boolean;
   description?: string;
 }
+
+const hoursAgo = (h: number) => new Date(Date.now() - h * 60 * 60 * 1000).toISOString();
+const daysAgo = (d: number) => new Date(Date.now() - d * 24 * 60 * 60 * 1000).toISOString();
 
 export const mockProviders: Provider[] = [
   {
