@@ -1,8 +1,10 @@
-import { Star, MapPin, Clock, Zap, Lock } from "lucide-react";
+import { useState } from "react";
+import { Star, MapPin, Clock, Zap, Lock, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import VehicleIcon from "./VehicleIcon";
+import RetryAvailabilityDialog from "./RetryAvailabilityDialog";
 import type { Provider } from "../data/mockProviders";
 
 const availabilityColor = (a: Provider["availability"]) => {
