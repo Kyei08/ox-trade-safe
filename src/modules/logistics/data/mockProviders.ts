@@ -29,6 +29,8 @@ export interface Provider {
   availability: Availability;
   /** ISO timestamp of when the courier was last marked Available now. */
   lastAvailableAt?: string;
+  /** ISO timestamp estimating when the courier will next be available. */
+  availableAgainAt?: string;
   coverage: Coverage;
   vehicle: Vehicle;
   capabilities: Capability[];
@@ -38,6 +40,8 @@ export interface Provider {
 
 const hoursAgo = (h: number) => new Date(Date.now() - h * 60 * 60 * 1000).toISOString();
 const daysAgo = (d: number) => new Date(Date.now() - d * 24 * 60 * 60 * 1000).toISOString();
+const inMinutes = (m: number) => new Date(Date.now() + m * 60 * 1000).toISOString();
+const inHours = (h: number) => new Date(Date.now() + h * 60 * 60 * 1000).toISOString();
 
 export const mockProviders: Provider[] = [
   {
@@ -51,6 +55,7 @@ export const mockProviders: Provider[] = [
     etaLabel: "30 min",
     availability: "Busy",
     lastAvailableAt: hoursAgo(3),
+    availableAgainAt: inMinutes(45),
     coverage: "Local",
     vehicle: "Bike",
     capabilities: ["Documents", "Food"],
@@ -112,6 +117,7 @@ export const mockProviders: Provider[] = [
     etaLabel: "on quote",
     availability: "Available Tomorrow",
     lastAvailableAt: daysAgo(1),
+    availableAgainAt: inHours(18),
     coverage: "Provincial",
     vehicle: "Truck",
     capabilities: ["Furniture", "Appliances", "Fragile Items"],

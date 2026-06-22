@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, SlidersHorizontal, Zap, Circle } from "lucide-react";
+import { ArrowLeft, SlidersHorizontal, Zap } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -26,6 +27,44 @@ const LogisticsProviders = () => {
   const [sort, setSort] = useState<SortKey>("recommended");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [availableNowOnly, setAvailableNowOnly] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  const availableNow = useMemo(
+    () => mockProviders.filter((p) => p.availability === "Available Today"),
+    []
+  );
+
+  const handleReselect = useCallback(
+    (providerId: string) => {
+      setSelectedId(providerId);
+      const node = listRef.current?.querySelector<HTMLElement>(
+        `[data-provider-id="${providerId}"]`
+      );
+      if (node) {
+        node.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      const p = mockProviders.find((x) => x.id === providerId);
+      if (p) {
+        toast.success(`Switched to ${p.name}`, {
+          description: "Available now — you can book without reloading the form.",
+        });
+      }
+    },
+    []
+  );
+
+  const handleRecheck = useCallback((providerId: string) => {
+    const p = mockProviders.find((x) => x.id === providerId);
+    if (!p) return;
+    if (p.availability === "Available Today") {
+      toast.success(`${p.name} is online`, { description: "You can book now." });
+    } else {
+      toast(`${p.name} is still ${p.availability.toLowerCase()}`, {
+        description: "We'll keep checking. Try another courier or wait a moment.",
+      });
+    }
+  }, []);
 
   const sorted = useMemo(() => {
     let list = [...mockProviders];
@@ -108,9 +147,17 @@ const LogisticsProviders = () => {
 
         <SortTabs value={sort} onChange={setSort} />
 
-        <div className="space-y-4">
+        <div ref={listRef} className="space-y-4">
           {sorted.map((p, i) => (
-            <ProviderCard key={p.id} provider={p} highlight={i === 0 && p.servesYourArea} />
+            <ProviderCard
+              key={p.id}
+              provider={p}
+              highlight={i === 0 && p.servesYourArea}
+              selected={selectedId === p.id}
+              alternatives={availableNow}
+              onReselect={handleReselect}
+              onRecheck={handleRecheck}
+            />
           ))}
         </div>
       </main>

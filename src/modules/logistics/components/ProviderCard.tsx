@@ -1,8 +1,10 @@
-import { Star, MapPin, Clock, Zap, Lock } from "lucide-react";
+import { useState } from "react";
+import { Star, MapPin, Clock, Zap, Lock, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import VehicleIcon from "./VehicleIcon";
+import RetryAvailabilityDialog from "./RetryAvailabilityDialog";
 import type { Provider } from "../data/mockProviders";
 
 const availabilityColor = (a: Provider["availability"]) => {
@@ -38,6 +40,10 @@ const PriceBlock = ({ provider }: { provider: Provider }) => {
 interface Props {
   provider: Provider;
   highlight?: boolean;
+  selected?: boolean;
+  alternatives?: Provider[];
+  onReselect?: (providerId: string) => void;
+  onRecheck?: (providerId: string) => void;
 }
 
 const formatLastSeen = (iso?: string) => {
@@ -55,27 +61,58 @@ const formatLastSeen = (iso?: string) => {
   return new Date(iso).toLocaleDateString();
 };
 
-const ProviderCard = ({ provider, highlight }: Props) => {
+const formatAvailableAgain = (iso?: string) => {
+  if (!iso) return null;
+  const diffMs = new Date(iso).getTime() - Date.now();
+  if (Number.isNaN(diffMs) || diffMs <= 0) return null;
+  const mins = Math.round(diffMs / 60000);
+  if (mins < 60) return `in ~${mins} min`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `in ~${hours} hr${hours === 1 ? "" : "s"}`;
+  const days = Math.round(hours / 24);
+  return `in ~${days} day${days === 1 ? "" : "s"}`;
+};
+
+const ProviderCard = ({
+  provider,
+  highlight,
+  selected,
+  alternatives = [],
+  onReselect,
+  onRecheck,
+}: Props) => {
   const isAvailableNow = provider.availability === "Available Today";
   const isInstant = provider.priceMode !== "quote";
   const canBook = isInstant && isAvailableNow;
   const lastSeen = formatLastSeen(provider.lastAvailableAt);
+  const availableAgain = formatAvailableAgain(provider.availableAgainAt);
+  const [retryOpen, setRetryOpen] = useState(false);
 
   const handleBlockedBook = () => {
     const lastSeenText = lastSeen ? ` Last available ${lastSeen}.` : "";
+    const nextText = availableAgain ? ` Back online ${availableAgain}.` : "";
     toast.error(`${provider.name} isn't available right now`, {
       description:
         (provider.availability === "Busy"
           ? `This courier is currently busy.`
           : `This courier is only available tomorrow.`) +
-        `${lastSeenText} Pickups require a courier with "Available now" status.`,
+        `${lastSeenText}${nextText}`,
+      action: {
+        label: "Find another",
+        onClick: () => setRetryOpen(true),
+      },
     });
   };
 
   return (
     <article
-      className={`rounded-2xl border bg-card p-4 sm:p-5 shadow-card ${
-        highlight ? "border-accent ring-1 ring-accent/40" : "border-border"
+      data-provider-id={provider.id}
+      className={`rounded-2xl border bg-card p-4 sm:p-5 shadow-card transition-all ${
+        selected
+          ? "border-accent ring-2 ring-accent/60 shadow-lg"
+          : highlight
+          ? "border-accent ring-1 ring-accent/40"
+          : "border-border"
       }`}
     >
       <div className="flex items-start gap-3">
@@ -147,18 +184,56 @@ const ProviderCard = ({ provider, highlight }: Props) => {
         <div
           role="alert"
           aria-live="polite"
-          className="mt-3 flex items-start gap-2 rounded-lg border border-dashed border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive"
+          className="mt-3 rounded-lg border border-dashed border-destructive/30 bg-destructive/5 px-3 py-2.5 text-xs text-destructive"
         >
-          <Lock className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-          <div className="space-y-0.5">
-            <div>
-              <strong>{provider.name} isn't available now.</strong> Pickups require a courier with{" "}
-              <strong>Available now</strong> status.
+          <div className="flex items-start gap-2">
+            <Lock className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+            <div className="space-y-0.5 flex-1">
+              <div>
+                <strong>{provider.name} isn't available now.</strong> Pickups require a
+                courier with <strong>Available now</strong> status.
+              </div>
+              <div className="text-destructive/80 flex flex-wrap gap-x-3">
+                {lastSeen && <span>Last available {lastSeen}.</span>}
+                {availableAgain && (
+                  <span className="font-semibold">Back online {availableAgain}.</span>
+                )}
+              </div>
             </div>
-            {lastSeen && (
-              <div className="text-destructive/80">Last available {lastSeen}.</div>
-            )}
           </div>
+          {(onReselect || onRecheck) && (
+            <div className="mt-2 flex flex-wrap gap-2 pl-5">
+              {onReselect && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => setRetryOpen(true)}
+                >
+                  Find another courier
+                </Button>
+              )}
+              {onRecheck && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => onRecheck(provider.id)}
+                >
+                  Re-check now
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {selected && (
+        <div className="mt-3 flex items-center gap-2 rounded-lg bg-success/10 border border-success/30 px-3 py-2 text-xs text-success font-semibold">
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          Selected courier
         </div>
       )}
 
@@ -182,6 +257,17 @@ const ProviderCard = ({ provider, highlight }: Props) => {
           </Button>
         )}
       </div>
+
+      {onReselect && (
+        <RetryAvailabilityDialog
+          open={retryOpen}
+          onOpenChange={setRetryOpen}
+          blockedProvider={provider}
+          alternatives={alternatives}
+          onReselect={onReselect}
+          onRecheck={onRecheck}
+        />
+      )}
     </article>
   );
 };
