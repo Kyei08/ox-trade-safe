@@ -106,8 +106,13 @@ const ProviderCard = ({
 
   return (
     <article
-      className={`rounded-2xl border bg-card p-4 sm:p-5 shadow-card ${
-        highlight ? "border-accent ring-1 ring-accent/40" : "border-border"
+      data-provider-id={provider.id}
+      className={`rounded-2xl border bg-card p-4 sm:p-5 shadow-card transition-all ${
+        selected
+          ? "border-accent ring-2 ring-accent/60 shadow-lg"
+          : highlight
+          ? "border-accent ring-1 ring-accent/40"
+          : "border-border"
       }`}
     >
       <div className="flex items-start gap-3">
