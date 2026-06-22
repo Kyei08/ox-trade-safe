@@ -40,17 +40,35 @@ interface Props {
   highlight?: boolean;
 }
 
+const formatLastSeen = (iso?: string) => {
+  if (!iso) return null;
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return null;
+  const diffMs = Date.now() - then;
+  const mins = Math.round(diffMs / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} min ago`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `${hours} hr${hours === 1 ? "" : "s"} ago`;
+  const days = Math.round(hours / 24);
+  if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`;
+  return new Date(iso).toLocaleDateString();
+};
+
 const ProviderCard = ({ provider, highlight }: Props) => {
   const isAvailableNow = provider.availability === "Available Today";
   const isInstant = provider.priceMode !== "quote";
   const canBook = isInstant && isAvailableNow;
+  const lastSeen = formatLastSeen(provider.lastAvailableAt);
 
   const handleBlockedBook = () => {
-    toast.error("Courier not available", {
+    const lastSeenText = lastSeen ? ` Last available ${lastSeen}.` : "";
+    toast.error(`${provider.name} isn't available right now`, {
       description:
-        provider.availability === "Busy"
-          ? `${provider.name} is currently busy. Please pick a courier with "Available now".`
-          : `${provider.name} is only available tomorrow. Pickups require a courier who is available now.`,
+        (provider.availability === "Busy"
+          ? `This courier is currently busy.`
+          : `This courier is only available tomorrow.`) +
+        `${lastSeenText} Pickups require a courier with "Available now" status.`,
     });
   };
 
