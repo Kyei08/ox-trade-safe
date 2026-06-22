@@ -147,9 +147,17 @@ const LogisticsProviders = () => {
 
         <SortTabs value={sort} onChange={setSort} />
 
-        <div className="space-y-4">
+        <div ref={listRef} className="space-y-4">
           {sorted.map((p, i) => (
-            <ProviderCard key={p.id} provider={p} highlight={i === 0 && p.servesYourArea} />
+            <ProviderCard
+              key={p.id}
+              provider={p}
+              highlight={i === 0 && p.servesYourArea}
+              selected={selectedId === p.id}
+              alternatives={availableNow}
+              onReselect={handleReselect}
+              onRecheck={handleRecheck}
+            />
           ))}
         </div>
       </main>
