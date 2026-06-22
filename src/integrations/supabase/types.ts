@@ -324,6 +324,54 @@ export type Database = {
           },
         ]
       }
+      logistics_bookings: {
+        Row: {
+          courier_id: string
+          created_at: string
+          customer_id: string
+          dropoff_address: string
+          id: string
+          item_category: string | null
+          notes: string | null
+          pickup_address: string
+          price_cents: number | null
+          size: string | null
+          status: string
+          updated_at: string
+          urgency: string | null
+        }
+        Insert: {
+          courier_id: string
+          created_at?: string
+          customer_id: string
+          dropoff_address: string
+          id?: string
+          item_category?: string | null
+          notes?: string | null
+          pickup_address: string
+          price_cents?: number | null
+          size?: string | null
+          status?: string
+          updated_at?: string
+          urgency?: string | null
+        }
+        Update: {
+          courier_id?: string
+          created_at?: string
+          customer_id?: string
+          dropoff_address?: string
+          id?: string
+          item_category?: string | null
+          notes?: string | null
+          pickup_address?: string
+          price_cents?: number | null
+          size?: string | null
+          status?: string
+          updated_at?: string
+          urgency?: string | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
