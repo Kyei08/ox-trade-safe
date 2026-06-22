@@ -27,12 +27,17 @@ export interface Provider {
   etaMinutes?: number;
   etaLabel?: string;
   availability: Availability;
+  /** ISO timestamp of when the courier was last marked Available now. */
+  lastAvailableAt?: string;
   coverage: Coverage;
   vehicle: Vehicle;
   capabilities: Capability[];
   servesYourArea: boolean;
   description?: string;
 }
+
+const hoursAgo = (h: number) => new Date(Date.now() - h * 60 * 60 * 1000).toISOString();
+const daysAgo = (d: number) => new Date(Date.now() - d * 24 * 60 * 60 * 1000).toISOString();
 
 export const mockProviders: Provider[] = [
   {
@@ -45,6 +50,7 @@ export const mockProviders: Provider[] = [
     priceMode: "from",
     etaLabel: "30 min",
     availability: "Busy",
+    lastAvailableAt: hoursAgo(3),
     coverage: "Local",
     vehicle: "Bike",
     capabilities: ["Documents", "Food"],
@@ -105,6 +111,7 @@ export const mockProviders: Provider[] = [
     priceMode: "quote",
     etaLabel: "on quote",
     availability: "Available Tomorrow",
+    lastAvailableAt: daysAgo(1),
     coverage: "Provincial",
     vehicle: "Truck",
     capabilities: ["Furniture", "Appliances", "Fragile Items"],
