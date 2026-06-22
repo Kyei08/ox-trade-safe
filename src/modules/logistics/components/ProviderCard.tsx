@@ -184,18 +184,56 @@ const ProviderCard = ({
         <div
           role="alert"
           aria-live="polite"
-          className="mt-3 flex items-start gap-2 rounded-lg border border-dashed border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive"
+          className="mt-3 rounded-lg border border-dashed border-destructive/30 bg-destructive/5 px-3 py-2.5 text-xs text-destructive"
         >
-          <Lock className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-          <div className="space-y-0.5">
-            <div>
-              <strong>{provider.name} isn't available now.</strong> Pickups require a courier with{" "}
-              <strong>Available now</strong> status.
+          <div className="flex items-start gap-2">
+            <Lock className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+            <div className="space-y-0.5 flex-1">
+              <div>
+                <strong>{provider.name} isn't available now.</strong> Pickups require a
+                courier with <strong>Available now</strong> status.
+              </div>
+              <div className="text-destructive/80 flex flex-wrap gap-x-3">
+                {lastSeen && <span>Last available {lastSeen}.</span>}
+                {availableAgain && (
+                  <span className="font-semibold">Back online {availableAgain}.</span>
+                )}
+              </div>
             </div>
-            {lastSeen && (
-              <div className="text-destructive/80">Last available {lastSeen}.</div>
-            )}
           </div>
+          {(onReselect || onRecheck) && (
+            <div className="mt-2 flex flex-wrap gap-2 pl-5">
+              {onReselect && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => setRetryOpen(true)}
+                >
+                  Find another courier
+                </Button>
+              )}
+              {onRecheck && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => onRecheck(provider.id)}
+                >
+                  Re-check now
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {selected && (
+        <div className="mt-3 flex items-center gap-2 rounded-lg bg-success/10 border border-success/30 px-3 py-2 text-xs text-success font-semibold">
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          Selected courier
         </div>
       )}
 
