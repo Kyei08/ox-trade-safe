@@ -144,11 +144,21 @@ const ProviderCard = ({ provider, highlight }: Props) => {
       )}
 
       {!isAvailableNow && (
-        <div className="mt-3 flex items-start gap-2 rounded-lg border border-dashed border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+        <div
+          role="alert"
+          aria-live="polite"
+          className="mt-3 flex items-start gap-2 rounded-lg border border-dashed border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive"
+        >
           <Lock className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-          <span>
-            Booking locked — pickups require a courier with <strong>Available now</strong> status.
-          </span>
+          <div className="space-y-0.5">
+            <div>
+              <strong>{provider.name} isn't available now.</strong> Pickups require a courier with{" "}
+              <strong>Available now</strong> status.
+            </div>
+            {lastSeen && (
+              <div className="text-destructive/80">Last available {lastSeen}.</div>
+            )}
+          </div>
         </div>
       )}
 
