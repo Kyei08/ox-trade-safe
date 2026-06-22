@@ -257,6 +257,17 @@ const ProviderCard = ({
           </Button>
         )}
       </div>
+
+      {onReselect && (
+        <RetryAvailabilityDialog
+          open={retryOpen}
+          onOpenChange={setRetryOpen}
+          blockedProvider={provider}
+          alternatives={alternatives}
+          onReselect={onReselect}
+          onRecheck={onRecheck}
+        />
+      )}
     </article>
   );
 };
