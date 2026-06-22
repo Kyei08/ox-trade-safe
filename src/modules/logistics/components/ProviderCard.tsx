@@ -40,6 +40,10 @@ const PriceBlock = ({ provider }: { provider: Provider }) => {
 interface Props {
   provider: Provider;
   highlight?: boolean;
+  selected?: boolean;
+  alternatives?: Provider[];
+  onReselect?: (providerId: string) => void;
+  onRecheck?: (providerId: string) => void;
 }
 
 const formatLastSeen = (iso?: string) => {
@@ -57,20 +61,46 @@ const formatLastSeen = (iso?: string) => {
   return new Date(iso).toLocaleDateString();
 };
 
-const ProviderCard = ({ provider, highlight }: Props) => {
+const formatAvailableAgain = (iso?: string) => {
+  if (!iso) return null;
+  const diffMs = new Date(iso).getTime() - Date.now();
+  if (Number.isNaN(diffMs) || diffMs <= 0) return null;
+  const mins = Math.round(diffMs / 60000);
+  if (mins < 60) return `in ~${mins} min`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `in ~${hours} hr${hours === 1 ? "" : "s"}`;
+  const days = Math.round(hours / 24);
+  return `in ~${days} day${days === 1 ? "" : "s"}`;
+};
+
+const ProviderCard = ({
+  provider,
+  highlight,
+  selected,
+  alternatives = [],
+  onReselect,
+  onRecheck,
+}: Props) => {
   const isAvailableNow = provider.availability === "Available Today";
   const isInstant = provider.priceMode !== "quote";
   const canBook = isInstant && isAvailableNow;
   const lastSeen = formatLastSeen(provider.lastAvailableAt);
+  const availableAgain = formatAvailableAgain(provider.availableAgainAt);
+  const [retryOpen, setRetryOpen] = useState(false);
 
   const handleBlockedBook = () => {
     const lastSeenText = lastSeen ? ` Last available ${lastSeen}.` : "";
+    const nextText = availableAgain ? ` Back online ${availableAgain}.` : "";
     toast.error(`${provider.name} isn't available right now`, {
       description:
         (provider.availability === "Busy"
           ? `This courier is currently busy.`
           : `This courier is only available tomorrow.`) +
-        `${lastSeenText} Pickups require a courier with "Available now" status.`,
+        `${lastSeenText}${nextText}`,
+      action: {
+        label: "Find another",
+        onClick: () => setRetryOpen(true),
+      },
     });
   };
 
