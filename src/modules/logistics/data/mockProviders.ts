@@ -55,6 +55,7 @@ export const mockProviders: Provider[] = [
     etaLabel: "30 min",
     availability: "Busy",
     lastAvailableAt: hoursAgo(3),
+    availableAgainAt: inMinutes(45),
     coverage: "Local",
     vehicle: "Bike",
     capabilities: ["Documents", "Food"],
