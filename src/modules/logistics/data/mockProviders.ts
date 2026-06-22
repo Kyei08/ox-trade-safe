@@ -111,6 +111,7 @@ export const mockProviders: Provider[] = [
     priceMode: "quote",
     etaLabel: "on quote",
     availability: "Available Tomorrow",
+    lastAvailableAt: daysAgo(1),
     coverage: "Provincial",
     vehicle: "Truck",
     capabilities: ["Furniture", "Appliances", "Fragile Items"],
