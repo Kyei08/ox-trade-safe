@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, X, Truck, Briefcase } from "lucide-react";
+import { Shield, X, Truck, Store } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -59,12 +59,12 @@ const OxEcosystemFAB = ({
       },
     },
     {
-      id: "services",
-      label: "OX Services",
-      icon: <Briefcase className="h-5 w-5" />,
+      id: "marketplace",
+      label: "OX Marketplace",
+      icon: <Store className="h-5 w-5" />,
       color: "#2563EB",
       action: () => {
-        window.open(servicesUrl, "_blank", "noopener,noreferrer");
+        navigate("/");
         setOpen(false);
       },
     },
