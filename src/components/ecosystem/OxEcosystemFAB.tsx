@@ -59,12 +59,12 @@ const OxEcosystemFAB = ({
       },
     },
     {
-      id: "services",
-      label: "OX Services",
-      icon: <Briefcase className="h-5 w-5" />,
+      id: "marketplace",
+      label: "OX Marketplace",
+      icon: <Store className="h-5 w-5" />,
       color: "#2563EB",
       action: () => {
-        window.open(servicesUrl, "_blank", "noopener,noreferrer");
+        navigate("/");
         setOpen(false);
       },
     },
