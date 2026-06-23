@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, X, Truck, Store } from "lucide-react";
+import { X, Truck, Store } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -108,7 +108,7 @@ const OxEcosystemFAB = ({
           {open ? (
             <X className="h-6 w-6 animate-scale-in" />
           ) : (
-            <Shield className="h-6 w-6 animate-scale-in" />
+            <span className="text-base font-bold tracking-tight animate-scale-in">OX</span>
           )}
         </span>
       </button>
