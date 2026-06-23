@@ -30,6 +30,7 @@ import LogisticsHome from "./modules/logistics/pages/LogisticsHome";
 import LogisticsProviders from "./modules/logistics/pages/LogisticsProviders";
 import LogisticsOrders from "./modules/logistics/pages/LogisticsOrders";
 import BecomeCourier from "./modules/logistics/pages/BecomeCourier";
+import OxEcosystemFAB from "./components/ecosystem/OxEcosystemFAB";
 
 const queryClient = new QueryClient();
 
