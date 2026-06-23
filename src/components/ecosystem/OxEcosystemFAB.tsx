@@ -108,7 +108,7 @@ const OxEcosystemFAB = ({
           {open ? (
             <X className="h-6 w-6 animate-scale-in" />
           ) : (
-            <Shield className="h-6 w-6 animate-scale-in" />
+            <span className="text-base font-bold tracking-tight animate-scale-in">OX</span>
           )}
         </span>
       </button>
