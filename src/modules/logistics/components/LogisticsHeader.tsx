@@ -23,6 +23,20 @@ const LogisticsHeader = ({ location, onLocationClick }: Props) => {
         </Link>
 
         <div className="flex items-center gap-2">
+          <Link
+            to="/"
+            className="hidden sm:inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold hover:bg-accent hover:text-accent-foreground transition-colors"
+          >
+            <Store className="w-4 h-4" />
+            <span>Marketplace</span>
+          </Link>
+          <Link
+            to="/"
+            aria-label="Back to Marketplace"
+            className="sm:hidden inline-flex items-center justify-center rounded-lg border border-border bg-card p-2 hover:bg-accent hover:text-accent-foreground transition-colors"
+          >
+            <Store className="w-4 h-4" />
+          </Link>
           <button
             type="button"
             onClick={onLocationClick}
