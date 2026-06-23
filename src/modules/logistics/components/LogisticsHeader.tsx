@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, LogIn, ChevronDown } from "lucide-react";
+import { MapPin, LogIn, ChevronDown, Store } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 interface Props {
