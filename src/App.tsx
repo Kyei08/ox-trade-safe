@@ -30,6 +30,7 @@ import LogisticsHome from "./modules/logistics/pages/LogisticsHome";
 import LogisticsProviders from "./modules/logistics/pages/LogisticsProviders";
 import LogisticsOrders from "./modules/logistics/pages/LogisticsOrders";
 import BecomeCourier from "./modules/logistics/pages/BecomeCourier";
+import OxEcosystemFAB from "./components/ecosystem/OxEcosystemFAB";
 
 const queryClient = new QueryClient();
 
@@ -115,6 +116,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <OxEcosystemFAB />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
