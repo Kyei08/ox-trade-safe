@@ -176,19 +176,24 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
+      setLoadError(null);
+      const failed: string[] = [];
 
       // Fetch user's listings
-      const { data: listingsData, error: listingsError } = await supabase
+      const listingsRes = await supabase
         .from("listings")
         .select("*")
         .eq("seller_id", user!.id)
         .order("created_at", { ascending: false });
-
-      if (listingsError) throw listingsError;
-      setListings(listingsData || []);
+      if (listingsRes.error) {
+        console.error("listings load error", listingsRes.error);
+        failed.push("listings");
+      } else {
+        setListings(listingsRes.data || []);
+      }
 
       // Fetch user's bids with listing details
-      const { data: bidsData, error: bidsError } = await supabase
+      const bidsRes = await supabase
         .from("bids")
         .select(`
           id,
@@ -199,12 +204,15 @@ const Dashboard = () => {
         `)
         .eq("bidder_id", user!.id)
         .order("created_at", { ascending: false });
-
-      if (bidsError) throw bidsError;
-      setBids(bidsData || []);
+      if (bidsRes.error) {
+        console.error("bids load error", bidsRes.error);
+        failed.push("bids");
+      } else {
+        setBids(bidsRes.data || []);
+      }
 
       // Fetch user's orders (purchases)
-      const { data: ordersData, error: ordersError } = await supabase
+      const ordersRes = await supabase
         .from("orders")
         .select(`
           id,
@@ -221,11 +229,13 @@ const Dashboard = () => {
         `)
         .eq("buyer_id", user!.id)
         .order("created_at", { ascending: false });
-
-      if (ordersError) throw ordersError;
+      if (ordersRes.error) {
+        console.error("orders load error", ordersRes.error);
+        failed.push("purchases");
+      }
 
       // Fetch seller orders (orders where user is the seller)
-      const { data: sellerOrdersData, error: sellerOrdersError } = await supabase
+      const sellerOrdersRes = await supabase
         .from("orders")
         .select(`
           id,
@@ -244,51 +254,80 @@ const Dashboard = () => {
         `)
         .eq("seller_id", user!.id)
         .order("created_at", { ascending: false });
-
-      if (sellerOrdersError) throw sellerOrdersError;
+      if (sellerOrdersRes.error) {
+        console.error("seller orders load error", sellerOrdersRes.error);
+        failed.push("sales");
+      }
 
       // public_profiles is a view (no FK), so fetch related profiles separately
-      const sellerIds = Array.from(new Set((ordersData || []).map((o: any) => o.seller_id).filter(Boolean)));
-      const buyerIds = Array.from(new Set((sellerOrdersData || []).map((o: any) => o.buyer_id).filter(Boolean)));
+      const ordersData = ordersRes.data || [];
+      const sellerOrdersData = sellerOrdersRes.data || [];
+      const sellerIds = Array.from(new Set(ordersData.map((o: any) => o.seller_id).filter(Boolean)));
+      const buyerIds = Array.from(new Set(sellerOrdersData.map((o: any) => o.buyer_id).filter(Boolean)));
       const allIds = Array.from(new Set([...sellerIds, ...buyerIds]));
 
       let profilesMap: Record<string, { full_name: string | null }> = {};
       if (allIds.length > 0) {
-        const { data: profilesData } = await supabase
+        const { data: profilesData, error: profilesErr } = await supabase
           .from("public_profiles")
           .select("id, full_name")
           .in("id", allIds);
-        profilesMap = Object.fromEntries((profilesData || []).map((p: any) => [p.id, { full_name: p.full_name }]));
+        if (profilesErr) {
+          console.error("public_profiles load error", profilesErr);
+        } else {
+          profilesMap = Object.fromEntries((profilesData || []).map((p: any) => [p.id, { full_name: p.full_name }]));
+        }
       }
 
-      setOrders(((ordersData as any[]) || []).map((o) => ({
+      setOrders((ordersData as any[]).map((o) => ({
         ...o,
         seller_profile: profilesMap[o.seller_id] || { full_name: null },
       })) as any);
 
-      setSellerOrders(((sellerOrdersData as any[]) || []).map((o) => ({
+      setSellerOrders((sellerOrdersData as any[]).map((o) => ({
         ...o,
         buyer_profile: profilesMap[o.buyer_id] || { full_name: null },
       })) as any);
 
-
-      // Fetch user profile
-      const { data: profileData, error: profileError } = await supabase
+      // Fetch user profile (use maybeSingle to avoid hard error on missing row)
+      const profileRes = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user!.id)
-        .single();
+        .maybeSingle();
+      if (profileRes.error) {
+        console.error("profile load error", profileRes.error);
+        failed.push("profile");
+      } else {
+        setProfile(profileRes.data as any);
+      }
 
-      if (profileError) throw profileError;
-      setProfile(profileData);
-
+      setSectionErrors(failed);
+      if (failed.length > 0) {
+        toast.error(`Couldn't load: ${failed.join(", ")}`, {
+          description: "Tap retry to try again.",
+          action: { label: "Retry", onClick: () => fetchDashboardData() },
+        });
+      }
     } catch (error: any) {
-      toast.error("Failed to load dashboard data");
-      console.error(error);
+      console.error("Dashboard load failed", error);
+      const msg = error?.message || "Something went wrong loading your dashboard.";
+      setLoadError(msg);
+      toast.error("Failed to load dashboard", {
+        description: msg,
+        action: { label: "Retry", onClick: () => fetchDashboardData() },
+      });
     } finally {
       setLoading(false);
+      setRetrying(false);
     }
   };
+
+  const handleRetry = () => {
+    setRetrying(true);
+    fetchDashboardData();
+  };
+
 
   const getInitials = (email: string, name?: string | null) => {
     if (name) return name.charAt(0).toUpperCase();
