@@ -296,7 +296,7 @@ const CreateListing = () => {
     return (
       <>
         <Header />
-        <main className="min-h-screen bg-background pt-24 pb-12">
+        <main className="min-h-screen bg-background pt-24 sm:pt-32 pb-12">
           <div className="container px-4 max-w-3xl">
             <div className="flex justify-center">
               <Loader2 className="w-8 h-8 animate-spin" />
@@ -336,7 +336,7 @@ const CreateListing = () => {
     return (
       <>
         <Header />
-        <main className="min-h-screen bg-background pt-24 pb-12">
+        <main className="min-h-screen bg-background pt-24 sm:pt-32 pb-12">
           <div className="container px-4 max-w-2xl">
             <Card>
               <CardHeader>
@@ -357,7 +357,7 @@ const CreateListing = () => {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-background pt-24 pb-12">
+      <main className="min-h-screen bg-background pt-24 sm:pt-32 pb-12">
         <div className="container px-4 max-w-3xl">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Create New Listing</h1>

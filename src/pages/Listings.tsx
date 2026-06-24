@@ -283,7 +283,7 @@ const Listings = () => {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-muted/30 pt-24 pb-12">
+      <main className="min-h-screen bg-muted/30 pt-24 sm:pt-32 pb-12">
         <div className="container px-4">
           {/* Header */}
           <div className="mb-8">

@@ -312,7 +312,7 @@ const SellerVerification = () => {
     return (
       <>
         <Header />
-        <main className="min-h-screen bg-background pt-24 pb-12">
+        <main className="min-h-screen bg-background pt-24 sm:pt-32 pb-12">
           <div className="container px-4 max-w-3xl flex justify-center">
             <Loader2 className="w-8 h-8 animate-spin" />
           </div>
@@ -349,7 +349,7 @@ const SellerVerification = () => {
       return (
         <>
           <Header />
-          <main className="min-h-screen bg-background pt-24 pb-12">
+          <main className="min-h-screen bg-background pt-24 sm:pt-32 pb-12">
             <div className="container px-4 max-w-3xl space-y-6">
               <h1 className="text-3xl font-bold">Seller Verification</h1>
 
@@ -440,7 +440,7 @@ const SellerVerification = () => {
     return (
       <>
         <Header />
-        <main className="min-h-screen bg-background pt-24 pb-12">
+        <main className="min-h-screen bg-background pt-24 sm:pt-32 pb-12">
           <div className="container px-4 max-w-3xl space-y-6">
             <h1 className="text-3xl font-bold">Seller Verification</h1>
             <Card>
@@ -490,7 +490,7 @@ const SellerVerification = () => {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-background pt-24 pb-12">
+      <main className="min-h-screen bg-background pt-24 sm:pt-32 pb-12">
         <div className="container px-4 max-w-3xl space-y-6">
           <div>
             <div className="flex items-center justify-between gap-3 flex-wrap mb-1">
