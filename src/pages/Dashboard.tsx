@@ -205,6 +205,7 @@ const Dashboard = () => {
         .select(`
           id,
           listing_id,
+          seller_id,
           amount,
           status,
           tracking_number,
@@ -212,14 +213,12 @@ const Dashboard = () => {
           delivery_option,
           created_at,
           updated_at,
-          listings(id, title, images, listing_type),
-          seller_profile:public_profiles!seller_id(full_name)
+          listings(id, title, images, listing_type)
         `)
         .eq("buyer_id", user!.id)
         .order("created_at", { ascending: false });
 
       if (ordersError) throw ordersError;
-      setOrders((ordersData as any) || []);
 
       // Fetch seller orders (orders where user is the seller)
       const { data: sellerOrdersData, error: sellerOrdersError } = await supabase
@@ -227,6 +226,7 @@ const Dashboard = () => {
         .select(`
           id,
           listing_id,
+          buyer_id,
           amount,
           status,
           tracking_number,
@@ -236,14 +236,37 @@ const Dashboard = () => {
           notes,
           created_at,
           updated_at,
-          listings(id, title, images),
-          buyer_profile:public_profiles!buyer_id(full_name)
+          listings(id, title, images)
         `)
         .eq("seller_id", user!.id)
         .order("created_at", { ascending: false });
 
       if (sellerOrdersError) throw sellerOrdersError;
-      setSellerOrders((sellerOrdersData as any) || []);
+
+      // public_profiles is a view (no FK), so fetch related profiles separately
+      const sellerIds = Array.from(new Set((ordersData || []).map((o: any) => o.seller_id).filter(Boolean)));
+      const buyerIds = Array.from(new Set((sellerOrdersData || []).map((o: any) => o.buyer_id).filter(Boolean)));
+      const allIds = Array.from(new Set([...sellerIds, ...buyerIds]));
+
+      let profilesMap: Record<string, { full_name: string | null }> = {};
+      if (allIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from("public_profiles")
+          .select("id, full_name")
+          .in("id", allIds);
+        profilesMap = Object.fromEntries((profilesData || []).map((p: any) => [p.id, { full_name: p.full_name }]));
+      }
+
+      setOrders(((ordersData as any[]) || []).map((o) => ({
+        ...o,
+        seller_profile: profilesMap[o.seller_id] || { full_name: null },
+      })) as any);
+
+      setSellerOrders(((sellerOrdersData as any[]) || []).map((o) => ({
+        ...o,
+        buyer_profile: profilesMap[o.buyer_id] || { full_name: null },
+      })) as any);
+
 
       // Fetch user profile
       const { data: profileData, error: profileError } = await supabase
