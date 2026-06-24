@@ -92,6 +92,10 @@ const Dashboard = () => {
   const [sellerOrders, setSellerOrders] = useState<any[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [sectionErrors, setSectionErrors] = useState<string[]>([]);
+  const [retrying, setRetrying] = useState(false);
+
 
   const TAB_ORDER = ["analytics", "listings", "favorites", "purchases", "sales", "bids", "reviews", "images", "profile"];
   const [activeTab, setActiveTab] = useState<string>(() => {
