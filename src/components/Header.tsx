@@ -5,6 +5,8 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import oxLogo from "@/assets/ox-logo.asset.json";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
