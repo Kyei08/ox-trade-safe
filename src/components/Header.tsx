@@ -75,11 +75,14 @@ const Header = () => {
           {/* Logo */}
           <div className="flex items-center gap-4 lg:gap-8 min-w-0">
             <Link to="/" className="flex items-center gap-2 min-w-0" aria-label="OX Marketplace home">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-hero flex items-center justify-center shrink-0">
-                <span className="text-xl sm:text-2xl font-bold text-primary-foreground">OX</span>
-              </div>
-              <span className="hidden sm:inline text-lg sm:text-xl font-bold truncate">OX Marketplace</span>
+              <img
+                src={oxLogo.url}
+                alt="OX"
+                className="h-9 sm:h-10 w-auto shrink-0 object-contain"
+              />
+              <span className="hidden sm:inline text-lg sm:text-xl font-bold truncate">Marketplace</span>
             </Link>
+
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
