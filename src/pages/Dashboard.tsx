@@ -350,11 +350,46 @@ const Dashboard = () => {
 
   if (!user) return null;
 
+  if (loadError) {
+    return (
+      <>
+        <Header />
+        <main className="min-h-screen bg-background pt-24 pb-12">
+          <div className="container px-4 max-w-xl">
+            <Card>
+              <CardHeader>
+                <CardTitle>We couldn't load your dashboard</CardTitle>
+                <CardDescription>{loadError}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex gap-2">
+                <Button onClick={handleRetry} disabled={retrying}>
+                  {retrying ? "Retrying…" : "Try again"}
+                </Button>
+                <Button variant="outline" onClick={() => navigate("/")}>Go home</Button>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </>
+    );
+  }
+
   return (
     <>
       <Header />
       <main className="min-h-screen bg-background pt-24 pb-12 overflow-x-hidden">
         <div className="container px-4 max-w-full">
+          {sectionErrors.length > 0 && (
+            <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm">
+              <span className="text-destructive">
+                Some sections didn't load: {sectionErrors.join(", ")}.
+              </span>
+              <Button size="sm" variant="outline" onClick={handleRetry} disabled={retrying}>
+                {retrying ? "Retrying…" : "Retry"}
+              </Button>
+            </div>
+          )}
+
 
           {/* Dashboard Header */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 mb-8 text-center sm:text-left">
