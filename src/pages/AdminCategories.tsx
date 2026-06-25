@@ -113,6 +113,110 @@ const resolveLucideIcon = (raw: string | null | undefined) => {
   return map[pascal] || null;
 };
 
+// All Lucide icon names (PascalCase), sorted once at module load.
+const ALL_LUCIDE_ICON_NAMES: string[] = Object.keys(
+  LucideIcons as unknown as Record<string, unknown>,
+)
+  .filter((k) => /^[A-Z]/.test(k))
+  .sort();
+
+const IconPicker = ({
+  value,
+  onChange,
+}: {
+  value: string | null;
+  onChange: (name: string | null) => void;
+}) => {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const SelectedIcon = resolveLucideIcon(value);
+  const q = query.trim().toLowerCase();
+  const filtered = (q
+    ? ALL_LUCIDE_ICON_NAMES.filter((n) => n.toLowerCase().includes(q))
+    : ALL_LUCIDE_ICON_NAMES
+  ).slice(0, 200);
+  const map = LucideIcons as unknown as Record<string, React.ComponentType<any>>;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 justify-start gap-2 font-normal"
+          aria-label="Pick a Lucide icon"
+        >
+          {SelectedIcon ? (
+            <SelectedIcon className="w-4 h-4" />
+          ) : (
+            <HelpCircle className="w-4 h-4 opacity-60" />
+          )}
+          <span className="truncate text-xs">
+            {value || <span className="text-muted-foreground">Pick icon</span>}
+          </span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 p-2" align="start">
+        <Input
+          autoFocus
+          placeholder="Search icons…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="h-8 mb-2"
+        />
+        <div className="grid grid-cols-6 gap-1 max-h-64 overflow-y-auto">
+          {filtered.map((name) => {
+            const Cmp = map[name];
+            const isActive = value === name;
+            return (
+              <button
+                key={name}
+                type="button"
+                title={name}
+                aria-label={name}
+                onClick={() => {
+                  onChange(name);
+                  setOpen(false);
+                }}
+                className={`flex items-center justify-center h-9 w-9 rounded-md border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors ${
+                  isActive ? "border-primary text-foreground bg-muted" : "border-transparent"
+                }`}
+              >
+                <Cmp className="w-4 h-4" />
+              </button>
+            );
+          })}
+          {filtered.length === 0 && (
+            <p className="col-span-6 text-xs text-muted-foreground p-2 text-center">
+              No icons match "{query}".
+            </p>
+          )}
+        </div>
+        <div className="flex items-center justify-between mt-2 pt-2 border-t">
+          <span className="text-[10px] text-muted-foreground">
+            Showing {filtered.length} of {ALL_LUCIDE_ICON_NAMES.length}
+          </span>
+          {value && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-6 text-xs"
+              onClick={() => {
+                onChange(null);
+                setOpen(false);
+              }}
+            >
+              Clear
+            </Button>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
 const makeSubAnnouncements = (catName: string, subs: Subcategory[]) => ({
   onDragStart({ active }: { active: any }) {
     const name = active.data.current?.name || "Subcategory";
