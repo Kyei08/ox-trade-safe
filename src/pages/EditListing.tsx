@@ -15,7 +15,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Loader2, Upload, X, RefreshCw } from "lucide-react";
-import { useRef } from "react";
 import { compressImages } from "@/lib/imageCompression";
 
 const DELIVERY_OPTIONS = [
