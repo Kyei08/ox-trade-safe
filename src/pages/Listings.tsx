@@ -55,6 +55,11 @@ interface Subcategory {
   sort_order: number;
 }
 
+const PAGE_SIZE = 24;
+
+type SortField = "created_at" | "auction_ends_at" | "fixed_price";
+type Cursor = { sortField: SortField; sortValue: string | number; id: string } | null;
+
 const Listings = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -62,6 +67,9 @@ const Listings = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [cursor, setCursor] = useState<Cursor>(null);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "all");
   const [selectedSubcategory, setSelectedSubcategory] = useState(searchParams.get("subcategory") || "all");
@@ -71,14 +79,15 @@ const Listings = () => {
     (searchParams.get("conditions") || "").split(",").filter(Boolean)
   );
 
-
-
   useEffect(() => {
     fetchCategories();
   }, []);
 
   useEffect(() => {
-    fetchListings();
+    setCursor(null);
+    setHasMore(true);
+    fetchListings("replace", null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory, selectedSubcategory, listingType, sortBy, selectedOptionIds]);
 
   // Sync search params -> state (e.g. when arriving via homepage category card or back/forward nav)
@@ -134,9 +143,27 @@ const Listings = () => {
   };
 
 
-  const fetchListings = async () => {
+  const getSortConfig = (): { field: SortField; ascending: boolean; excludeNull: boolean } => {
+    switch (sortBy) {
+      case "ending-soon":
+        return { field: "auction_ends_at", ascending: true, excludeNull: true };
+      case "price-low":
+        return { field: "fixed_price", ascending: true, excludeNull: true };
+      case "price-high":
+        return { field: "fixed_price", ascending: false, excludeNull: true };
+      case "newest":
+      default:
+        return { field: "created_at", ascending: false, excludeNull: false };
+    }
+  };
+
+  const fetchListings = async (
+    mode: "replace" | "append" = "replace",
+    cursorArg: Cursor = null
+  ) => {
     try {
-      setLoading(true);
+      if (mode === "replace") setLoading(true);
+      else setLoadingMore(true);
 
       // If condition chips are selected, look up matching listing_ids first.
       // The covering index (option_id, listing_id) on listing_conditions keeps this index-only.
@@ -151,11 +178,14 @@ const Listings = () => {
         if (lcError) throw lcError;
         conditionListingIds = Array.from(new Set((lc || []).map((r: any) => r.listing_id)));
         if (conditionListingIds.length === 0) {
-          setListings([]);
-          setLoading(false);
+          if (mode === "replace") setListings([]);
+          setHasMore(false);
+          setCursor(null);
           return;
         }
       }
+
+      const { field, ascending, excludeNull } = getSortConfig();
 
       let query = supabase
         .from("listings")
@@ -172,69 +202,76 @@ const Listings = () => {
         query = query.in("id", conditionListingIds);
       }
 
-
-      // Apply category filter
       if (selectedCategory !== "all") {
         query = query.eq("category_id", selectedCategory);
       }
-
-      // Apply subcategory filter
       if (selectedSubcategory !== "all") {
         query = query.eq("subcategory_id", selectedSubcategory);
       }
-
-      // Apply listing type filter
       if (listingType === "fixed_price" || listingType === "auction") {
         query = query.eq("listing_type", listingType);
       }
-
-
-      // Apply sorting
-      switch (sortBy) {
-        case "newest":
-          query = query.order("created_at", { ascending: false });
-          break;
-        case "ending-soon":
-          query = query.order("auction_ends_at", { ascending: true, nullsFirst: false });
-          break;
-        case "price-low":
-          query = query.order("fixed_price", { ascending: true, nullsFirst: false });
-          break;
-        case "price-high":
-          query = query.order("fixed_price", { ascending: false, nullsFirst: false });
-          break;
-        default:
-          query = query.order("created_at", { ascending: false });
-          break;
+      if (excludeNull) {
+        query = query.not(field, "is", null);
       }
 
-      // Cap results so the page stays fast even on huge catalogs
-      query = query.limit(200);
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      // Apply search filter client-side for flexibility
-      let filteredData = data || [];
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
-        filteredData = filteredData.filter(
-          (listing) =>
-            listing.title.toLowerCase().includes(query) ||
-            listing.description.toLowerCase().includes(query) ||
-            listing.location.toLowerCase().includes(query)
+      // Keyset cursor: (sort_field, id) tuple, id as deterministic tiebreaker
+      if (cursorArg && cursorArg.sortField === field) {
+        const op = ascending ? "gt" : "lt";
+        const v = cursorArg.sortValue;
+        const idOp = ascending ? "gt" : "lt";
+        // (field op v) OR (field = v AND id idOp cursor.id)
+        query = query.or(
+          `${field}.${op}.${v},and(${field}.eq.${v},id.${idOp}.${cursorArg.id})`
         );
       }
 
-      setListings(filteredData);
+      query = query
+        .order(field, { ascending, nullsFirst: false })
+        .order("id", { ascending })
+        .limit(PAGE_SIZE);
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      let pageData = (data || []) as Listing[];
+
+      // Client-side search filter (page-scoped, same as before)
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        pageData = pageData.filter(
+          (l) =>
+            l.title.toLowerCase().includes(q) ||
+            l.description.toLowerCase().includes(q) ||
+            l.location.toLowerCase().includes(q)
+        );
+      }
+
+      const rawCount = (data || []).length;
+      const more = rawCount === PAGE_SIZE;
+      setHasMore(more);
+      if (more) {
+        const last: any = (data as any[])[rawCount - 1];
+        setCursor({ sortField: field, sortValue: last[field], id: last.id });
+      } else {
+        setCursor(null);
+      }
+
+      setListings((prev) => (mode === "append" ? [...prev, ...pageData] : pageData));
     } catch (error: any) {
       toast.error("Failed to load listings");
       console.error(error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
+
+  const loadMore = () => {
+    if (!hasMore || loadingMore || loading) return;
+    fetchListings("append", cursor);
+  };
+
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -244,7 +281,9 @@ const Listings = () => {
     if (listingType !== "all") params.set("type", listingType);
     if (sortBy !== "newest") params.set("sort", sortBy);
     setSearchParams(params);
-    fetchListings();
+    setCursor(null);
+    setHasMore(true);
+    fetchListings("replace", null);
   };
 
   const handleCategoryChange = (value: string) => {
@@ -530,7 +569,9 @@ const Listings = () => {
                   setSortBy("newest");
                   setSelectedOptionIds([]);
                   setSearchParams({});
-                  fetchListings();
+                  setCursor(null);
+                  setHasMore(true);
+                  fetchListings("replace", null);
                 }}>
                   Clear Filters
                 </Button>
@@ -657,6 +698,19 @@ const Listings = () => {
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {!loading && listings.length > 0 && hasMore && (
+            <div className="flex justify-center pt-8">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={loadMore}
+                disabled={loadingMore}
+              >
+                {loadingMore ? "Loading…" : "Load more"}
+              </Button>
             </div>
           )}
         </div>
