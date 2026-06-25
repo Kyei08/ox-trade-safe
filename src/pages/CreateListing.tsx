@@ -305,7 +305,28 @@ const CreateListing = () => {
             .join(", ")}`
         );
       }
+      if (cancelUploadRef.current) {
+        // Drop any still-pending (compressing/uploading) previews left behind
+        setPendingPreviews((prev) => {
+          const keep: typeof prev = [];
+          for (const p of prev) {
+            if (p.status === "compressing" || p.status === "uploading") {
+              if (p.url) URL.revokeObjectURL(p.url);
+            } else {
+              keep.push(p);
+            }
+          }
+          return keep;
+        });
+        toast.info(
+          cancelledCount > 0
+            ? `Upload cancelled — ${cancelledCount} image(s) skipped`
+            : "Upload cancelled"
+        );
+      }
     } finally {
+      cancelUploadRef.current = false;
+      setCancelling(false);
       setUploading(false);
       setBatchProgress(null);
     }
