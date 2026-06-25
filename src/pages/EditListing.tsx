@@ -20,6 +20,7 @@ import {
   setFailedReplaceFile,
   getFailedReplaceFile,
   deleteFailedReplaceFile,
+  maybeCleanupFailedReplaceStore,
 } from "@/lib/failedReplaceStore";
 
 const DELIVERY_OPTIONS = [
