@@ -80,3 +80,67 @@ export function hasMeaningfulDraft(d: CreateListingDraft | null): boolean {
       d.selectedCondition,
   );
 }
+
+// ---------- Remote (cross-device) sync ----------
+
+export async function fetchRemoteDraft(userId: string): Promise<CreateListingDraft | null> {
+  try {
+    const { data, error } = await supabase
+      .from("listing_drafts")
+      .select("data")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error || !data?.data) return null;
+    const parsed = data.data as CreateListingDraft;
+    if (!parsed || parsed.v !== 1) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+export async function pushRemoteDraft(
+  userId: string,
+  draft: Omit<CreateListingDraft, "v" | "savedAt">,
+): Promise<void> {
+  try {
+    const payload: CreateListingDraft = { v: 1, savedAt: Date.now(), ...draft };
+    await supabase
+      .from("listing_drafts")
+      .upsert({ user_id: userId, data: payload as any }, { onConflict: "user_id" });
+  } catch {
+    // ignore network errors; localStorage still has the draft
+  }
+}
+
+export async function clearRemoteDraft(userId: string): Promise<void> {
+  try {
+    await supabase.from("listing_drafts").delete().eq("user_id", userId);
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * Picks the freshest draft between local and remote, mirroring the winner
+ * into local storage. Returns null when neither side has anything meaningful.
+ */
+export async function resolveDraft(userId: string): Promise<CreateListingDraft | null> {
+  const local = loadDraft(userId);
+  const remote = await fetchRemoteDraft(userId);
+
+  const localMeaningful = hasMeaningfulDraft(local);
+  const remoteMeaningful = hasMeaningfulDraft(remote);
+
+  if (!localMeaningful && !remoteMeaningful) return null;
+  if (remoteMeaningful && (!localMeaningful || (remote!.savedAt ?? 0) > (local?.savedAt ?? 0))) {
+    // Remote wins — mirror into local cache
+    try {
+      localStorage.setItem(keyFor(userId), JSON.stringify(remote));
+    } catch {
+      // ignore
+    }
+    return remote;
+  }
+  return local;
+}
