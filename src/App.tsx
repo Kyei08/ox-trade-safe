@@ -13,24 +13,12 @@ import ListingDetail from "./pages/ListingDetail";
 import KYCSubmission from "./pages/KYCSubmission";
 import AdminKYC from "./pages/AdminKYC";
 import AdminReports from "./pages/AdminReports";
-import AdminCategories from "./pages/AdminCategories";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminSortAnalytics from "./pages/AdminSortAnalytics";
-import AdminSellers from "./pages/AdminSellers";
-import SellerVerification from "./pages/SellerVerification";
-import AdminRoute from "@/components/AdminRoute";
-
 import Messages from "./pages/Messages";
 import Conversation from "./pages/Conversation";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import SellerProfile from "./pages/SellerProfile";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
-import LogisticsHome from "./modules/logistics/pages/LogisticsHome";
-import LogisticsProviders from "./modules/logistics/pages/LogisticsProviders";
-import LogisticsOrders from "./modules/logistics/pages/LogisticsOrders";
-import BecomeCourier from "./modules/logistics/pages/BecomeCourier";
-import OxEcosystemFAB from "./components/ecosystem/OxEcosystemFAB";
 
 const queryClient = new QueryClient();
 
@@ -51,72 +39,15 @@ const App = () => (
           <Route path="/listing/:id" element={<ListingDetail />} />
           <Route path="/seller/:sellerId" element={<SellerProfile />} />
           <Route path="/kyc" element={<KYCSubmission />} />
-          <Route path="/seller-verification" element={<SellerVerification />} />
-          <Route
-            path="/admin/sellers"
-            element={
-              <AdminRoute>
-                <AdminSellers />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <AdminRoute>
-                <AdminDashboard />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/kyc"
-            element={
-              <AdminRoute>
-                <AdminKYC />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/reports"
-            element={
-              <AdminRoute>
-                <AdminReports />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/analytics"
-            element={
-              <AdminRoute>
-                <AdminSortAnalytics />
-              </AdminRoute>
-            }
-          />
-
-          <Route
-            path="/admin/categories"
-            element={
-              <AdminRoute>
-                <AdminCategories />
-              </AdminRoute>
-            }
-          />
-
+          <Route path="/admin/kyc" element={<AdminKYC />} />
+          <Route path="/admin/reports" element={<AdminReports />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/messages/:id" element={<Conversation />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-
-          {/* OX Logistics module */}
-          <Route path="/logistics" element={<LogisticsHome />} />
-          <Route path="/logistics/providers" element={<LogisticsProviders />} />
-          <Route path="/logistics/orders" element={<LogisticsOrders />} />
-          <Route path="/logistics/account" element={<Dashboard />} />
-          <Route path="/logistics/become-courier" element={<BecomeCourier />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-        <OxEcosystemFAB />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

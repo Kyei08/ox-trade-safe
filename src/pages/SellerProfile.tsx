@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Star, ShieldCheck, Calendar, Package, Facebook, Instagram, Twitter, Linkedin, MessageCircle, Video, Youtube, Globe } from "lucide-react";
-import TrustBadges from "@/components/TrustBadges";
 import { format } from "date-fns";
 
 interface PublicProfile {
@@ -32,10 +31,6 @@ interface PublicProfile {
   tiktok_url: string | null;
   youtube_url: string | null;
   website_url: string | null;
-  seller_type?: "individual" | "business" | null;
-  seller_verification_status?: string | null;
-  phone_verified_at?: string | null;
-  address_verified_at?: string | null;
 }
 
 interface Listing {
@@ -152,7 +147,7 @@ const SellerProfile = () => {
                     {profile.kyc_status === "verified" && (
                       <Badge variant="secondary" className="w-fit mx-auto sm:mx-0">
                         <ShieldCheck className="h-3 w-3 mr-1" />
-                        KYC Verified
+                        Verified
                       </Badge>
                     )}
                     {user && user.id !== sellerId && (
@@ -163,8 +158,6 @@ const SellerProfile = () => {
                       />
                     )}
                   </div>
-
-                  <TrustBadges profile={profile} className="justify-center sm:justify-start" />
                   
                   {profile.bio && (
                     <p className="text-muted-foreground">{profile.bio}</p>

@@ -30,7 +30,7 @@ const SearchFilters = () => {
       const { data } = await supabase
         .from("categories")
         .select("id, name, icon")
-        .order("sort_order", { ascending: true });
+        .order("name", { ascending: true });
       
       if (data) setCategories(data);
     };

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -92,74 +92,6 @@ const Dashboard = () => {
   const [sellerOrders, setSellerOrders] = useState<any[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [sectionErrors, setSectionErrors] = useState<string[]>([]);
-  const [retrying, setRetrying] = useState(false);
-
-
-  const TAB_ORDER = ["analytics", "listings", "favorites", "purchases", "sales", "bids", "reviews", "images", "profile"];
-  const [activeTab, setActiveTab] = useState<string>(() => {
-    const saved = localStorage.getItem("dashboard_active_tab");
-    return saved && TAB_ORDER.includes(saved) ? saved : "analytics";
-  });
-  const tabHydrated = useRef(false);
-  const tabsListRef = useRef<HTMLDivElement | null>(null);
-  const touchStart = useRef<{ x: number; y: number } | null>(null);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const t = e.touches[0];
-    touchStart.current = { x: t.clientX, y: t.clientY };
-  };
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStart.current) return;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - touchStart.current.x;
-    const dy = t.clientY - touchStart.current.y;
-    touchStart.current = null;
-    if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx)) return;
-    const idx = TAB_ORDER.indexOf(activeTab);
-    if (dx < 0 && idx < TAB_ORDER.length - 1) setActiveTab(TAB_ORDER[idx + 1]);
-    if (dx > 0 && idx > 0) setActiveTab(TAB_ORDER[idx - 1]);
-  };
-
-  useEffect(() => {
-    const el = tabsListRef.current?.querySelector<HTMLElement>(`[data-state="active"]`);
-    el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-  }, [activeTab]);
-
-  // Load saved tab from server profile once user is available
-  useEffect(() => {
-    if (!user) return;
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("dashboard_active_tab")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (cancelled) return;
-      const serverTab = (data as any)?.dashboard_active_tab as string | null;
-      if (serverTab && TAB_ORDER.includes(serverTab)) {
-        setActiveTab(serverTab);
-      }
-      tabHydrated.current = true;
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [user]);
-
-  // Persist tab changes locally (fast) and to the server (cross-device)
-  useEffect(() => {
-    localStorage.setItem("dashboard_active_tab", activeTab);
-    if (!user || !tabHydrated.current) return;
-    supabase
-      .from("profiles")
-      .update({ dashboard_active_tab: activeTab })
-      .eq("id", user.id)
-      .then(() => {});
-  }, [activeTab, user]);
-
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -176,24 +108,19 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      setLoadError(null);
-      const failed: string[] = [];
 
       // Fetch user's listings
-      const listingsRes = await supabase
+      const { data: listingsData, error: listingsError } = await supabase
         .from("listings")
         .select("*")
         .eq("seller_id", user!.id)
         .order("created_at", { ascending: false });
-      if (listingsRes.error) {
-        console.error("listings load error", listingsRes.error);
-        failed.push("listings");
-      } else {
-        setListings(listingsRes.data || []);
-      }
+
+      if (listingsError) throw listingsError;
+      setListings(listingsData || []);
 
       // Fetch user's bids with listing details
-      const bidsRes = await supabase
+      const { data: bidsData, error: bidsError } = await supabase
         .from("bids")
         .select(`
           id,
@@ -204,20 +131,16 @@ const Dashboard = () => {
         `)
         .eq("bidder_id", user!.id)
         .order("created_at", { ascending: false });
-      if (bidsRes.error) {
-        console.error("bids load error", bidsRes.error);
-        failed.push("bids");
-      } else {
-        setBids(bidsRes.data || []);
-      }
+
+      if (bidsError) throw bidsError;
+      setBids(bidsData || []);
 
       // Fetch user's orders (purchases)
-      const ordersRes = await supabase
+      const { data: ordersData, error: ordersError } = await supabase
         .from("orders")
         .select(`
           id,
           listing_id,
-          seller_id,
           amount,
           status,
           tracking_number,
@@ -225,22 +148,21 @@ const Dashboard = () => {
           delivery_option,
           created_at,
           updated_at,
-          listings(id, title, images, listing_type)
+          listings(id, title, images, listing_type),
+          seller_profile:public_profiles!seller_id(full_name)
         `)
         .eq("buyer_id", user!.id)
         .order("created_at", { ascending: false });
-      if (ordersRes.error) {
-        console.error("orders load error", ordersRes.error);
-        failed.push("purchases");
-      }
+
+      if (ordersError) throw ordersError;
+      setOrders((ordersData as any) || []);
 
       // Fetch seller orders (orders where user is the seller)
-      const sellerOrdersRes = await supabase
+      const { data: sellerOrdersData, error: sellerOrdersError } = await supabase
         .from("orders")
         .select(`
           id,
           listing_id,
-          buyer_id,
           amount,
           status,
           tracking_number,
@@ -250,84 +172,32 @@ const Dashboard = () => {
           notes,
           created_at,
           updated_at,
-          listings(id, title, images)
+          listings(id, title, images),
+          buyer_profile:public_profiles!buyer_id(full_name)
         `)
         .eq("seller_id", user!.id)
         .order("created_at", { ascending: false });
-      if (sellerOrdersRes.error) {
-        console.error("seller orders load error", sellerOrdersRes.error);
-        failed.push("sales");
-      }
 
-      // public_profiles is a view (no FK), so fetch related profiles separately
-      const ordersData = ordersRes.data || [];
-      const sellerOrdersData = sellerOrdersRes.data || [];
-      const sellerIds = Array.from(new Set(ordersData.map((o: any) => o.seller_id).filter(Boolean)));
-      const buyerIds = Array.from(new Set(sellerOrdersData.map((o: any) => o.buyer_id).filter(Boolean)));
-      const allIds = Array.from(new Set([...sellerIds, ...buyerIds]));
+      if (sellerOrdersError) throw sellerOrdersError;
+      setSellerOrders((sellerOrdersData as any) || []);
 
-      let profilesMap: Record<string, { full_name: string | null }> = {};
-      if (allIds.length > 0) {
-        const { data: profilesData, error: profilesErr } = await supabase
-          .from("public_profiles")
-          .select("id, full_name")
-          .in("id", allIds);
-        if (profilesErr) {
-          console.error("public_profiles load error", profilesErr);
-        } else {
-          profilesMap = Object.fromEntries((profilesData || []).map((p: any) => [p.id, { full_name: p.full_name }]));
-        }
-      }
-
-      setOrders((ordersData as any[]).map((o) => ({
-        ...o,
-        seller_profile: profilesMap[o.seller_id] || { full_name: null },
-      })) as any);
-
-      setSellerOrders((sellerOrdersData as any[]).map((o) => ({
-        ...o,
-        buyer_profile: profilesMap[o.buyer_id] || { full_name: null },
-      })) as any);
-
-      // Fetch user profile (use maybeSingle to avoid hard error on missing row)
-      const profileRes = await supabase
+      // Fetch user profile
+      const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user!.id)
-        .maybeSingle();
-      if (profileRes.error) {
-        console.error("profile load error", profileRes.error);
-        failed.push("profile");
-      } else {
-        setProfile(profileRes.data as any);
-      }
+        .single();
 
-      setSectionErrors(failed);
-      if (failed.length > 0) {
-        toast.error(`Couldn't load: ${failed.join(", ")}`, {
-          description: "Tap retry to try again.",
-          action: { label: "Retry", onClick: () => fetchDashboardData() },
-        });
-      }
+      if (profileError) throw profileError;
+      setProfile(profileData);
+
     } catch (error: any) {
-      console.error("Dashboard load failed", error);
-      const msg = error?.message || "Something went wrong loading your dashboard.";
-      setLoadError(msg);
-      toast.error("Failed to load dashboard", {
-        description: msg,
-        action: { label: "Retry", onClick: () => fetchDashboardData() },
-      });
+      toast.error("Failed to load dashboard data");
+      console.error(error);
     } finally {
       setLoading(false);
-      setRetrying(false);
     }
   };
-
-  const handleRetry = () => {
-    setRetrying(true);
-    fetchDashboardData();
-  };
-
 
   const getInitials = (email: string, name?: string | null) => {
     if (name) return name.charAt(0).toUpperCase();
@@ -338,7 +208,7 @@ const Dashboard = () => {
     return (
       <>
         <Header />
-        <main className="min-h-screen bg-background pt-24 sm:pt-32 pb-12">
+        <main className="min-h-screen bg-background pt-24 pb-12">
           <div className="container px-4">
             <Skeleton className="h-12 w-64 mb-8" />
             <Skeleton className="h-96 w-full" />
@@ -350,47 +220,11 @@ const Dashboard = () => {
 
   if (!user) return null;
 
-  if (loadError) {
-    return (
-      <>
-        <Header />
-        <main className="min-h-screen bg-background pt-24 sm:pt-32 pb-12">
-          <div className="container px-4 max-w-xl">
-            <Card>
-              <CardHeader>
-                <CardTitle>We couldn't load your dashboard</CardTitle>
-                <CardDescription>{loadError}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex gap-2">
-                <Button onClick={handleRetry} disabled={retrying}>
-                  {retrying ? "Retrying…" : "Try again"}
-                </Button>
-                <Button variant="outline" onClick={() => navigate("/")}>Go home</Button>
-              </CardContent>
-            </Card>
-          </div>
-        </main>
-      </>
-    );
-  }
-
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-background pt-24 sm:pt-32 pb-12 overflow-x-hidden">
-        <div className="container px-4 max-w-full">
-          {sectionErrors.length > 0 && (
-            <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm">
-              <span className="text-destructive">
-                Some sections didn't load: {sectionErrors.join(", ")}.
-              </span>
-              <Button size="sm" variant="outline" onClick={handleRetry} disabled={retrying}>
-                {retrying ? "Retrying…" : "Retry"}
-              </Button>
-            </div>
-          )}
-
-
+      <main className="min-h-screen bg-background pt-24 pb-12">
+        <div className="container px-4">
           {/* Dashboard Header */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 mb-8 text-center sm:text-left">
             <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
@@ -420,9 +254,8 @@ const Dashboard = () => {
           </div>
 
           {/* Dashboard Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList ref={tabsListRef} className="flex w-full overflow-x-auto no-scrollbar h-auto flex-nowrap justify-start md:justify-center gap-1 p-1">
-
+          <Tabs defaultValue="analytics" className="w-full">
+            <TabsList className="flex w-full overflow-x-auto no-scrollbar h-auto flex-nowrap justify-start md:justify-center gap-1 p-1">
               <TabsTrigger value="analytics" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
                 <BarChart3 className="w-4 h-4" />
                 <span className="hidden sm:inline">Analytics</span>
@@ -461,9 +294,7 @@ const Dashboard = () => {
               </TabsTrigger>
             </TabsList>
 
-            <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} className="touch-pan-y">
             {/* Analytics Tab */}
-
             <TabsContent value="analytics" className="mt-6">
               <h2 className="text-2xl font-semibold mb-4">Seller Analytics</h2>
               <SellerAnalytics userId={user.id} />
@@ -826,9 +657,7 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
             </TabsContent>
-            </div>
           </Tabs>
-
         </div>
       </main>
     </>

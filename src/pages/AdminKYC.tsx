@@ -8,10 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, CheckCircle, XCircle, Eye, FileText, RefreshCw, AlertTriangle } from "lucide-react";
-import AdminLayout from "@/components/AdminLayout";
+import { Loader2, CheckCircle, XCircle, Eye, FileText } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -46,7 +44,6 @@ export default function AdminKYC() {
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [processing, setProcessing] = useState(false);
-  const [documentErrors, setDocumentErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -217,91 +214,6 @@ export default function AdminKYC() {
     setRejectionReason("");
   };
 
-  const extractStoragePath = (urlOrPath: string) => {
-    const marker = "/kyc-documents/";
-    const idx = urlOrPath.indexOf(marker);
-    return idx >= 0 ? urlOrPath.slice(idx + marker.length) : urlOrPath;
-  };
-
-  const openDocument = async (urlOrPath: string, submissionId?: string) => {
-    try {
-      const path = extractStoragePath(urlOrPath);
-      const { data, error } = await supabase.storage
-        .from("kyc-documents")
-        .createSignedUrl(path, 300);
-
-      if (error || !data?.signedUrl) {
-        // Log structured failure context for debugging
-        console.error("[AdminKYC] Signed URL generation failed", {
-          submissionId,
-          bucket: "kyc-documents",
-          path,
-          originalUrl: urlOrPath,
-          error: error?.message || "No signedUrl returned",
-          timestamp: new Date().toISOString(),
-        });
-        throw error || new Error("Could not generate a secure document link.");
-      }
-
-      if (submissionId) {
-        setDocumentErrors((prev) => {
-          const next = { ...prev };
-          delete next[submissionId];
-          return next;
-        });
-      }
-
-      window.open(data.signedUrl, "_blank");
-    } catch (err: any) {
-      const message = err.message || "Document unavailable. Please try again later or contact support.";
-      if (submissionId) {
-        setDocumentErrors((prev) => ({ ...prev, [submissionId]: message }));
-      }
-      toast({
-        title: "Unable to open document",
-        description: message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const clearDocumentError = (submissionId: string) => {
-    setDocumentErrors((prev) => {
-      const next = { ...prev };
-      delete next[submissionId];
-      return next;
-    });
-  };
-
-  const DocumentUnavailableAlert = ({ submissionId, documentUrl }: { submissionId: string; documentUrl?: string }) => (
-    <Alert variant="destructive" className="mt-2">
-      <AlertTriangle className="h-4 w-4" />
-      <AlertTitle>Document unavailable</AlertTitle>
-      <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <span>{documentErrors[submissionId]}</span>
-        <div className="flex gap-2">
-          {documentUrl && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => openDocument(documentUrl, submissionId)}
-            >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Retry
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => clearDocumentError(submissionId)}
-          >
-            Dismiss
-          </Button>
-        </div>
-      </AlertDescription>
-    </Alert>
-  );
-
   const renderSubmissionCard = (submission: KYCSubmission) => (
     <Card key={submission.id}>
       <CardHeader>
@@ -337,26 +249,21 @@ export default function AdminKYC() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => openDocument(submission.document_url, submission.id)}
+            onClick={() => window.open(submission.document_url, "_blank")}
           >
             <FileText className="mr-2 h-4 w-4" />
             View Document
           </Button>
         </div>
-        {documentErrors[submission.id] && (
-          <DocumentUnavailableAlert submissionId={submission.id} documentUrl={submission.document_url} />
-        )}
       </CardContent>
     </Card>
   );
 
   if (authLoading || loading || !isAdmin) {
     return (
-      <AdminLayout>
-        <div className="flex justify-center items-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-      </AdminLayout>
+      <div className="flex justify-center items-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
     );
   }
 
@@ -365,7 +272,9 @@ export default function AdminKYC() {
   const rejectedSubmissions = submissions.filter(s => s.status === "rejected");
 
   return (
-    <AdminLayout title="KYC Review" description="Approve or reject identity verification submissions">
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6">KYC Review Panel</h1>
+
       <Tabs defaultValue="pending" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="pending">
@@ -429,10 +338,6 @@ export default function AdminKYC() {
                 </div>
               )}
 
-              {selectedSubmission && documentErrors[selectedSubmission.id] && (
-                <DocumentUnavailableAlert submissionId={selectedSubmission.id} documentUrl={selectedSubmission.document_url} />
-              )}
-
               {selectedSubmission.status === "pending" && (
                 <div>
                   <Label htmlFor="rejectionReason">Rejection Reason (if rejecting)</Label>
@@ -449,14 +354,6 @@ export default function AdminKYC() {
           )}
 
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => selectedSubmission && openDocument(selectedSubmission.document_url, selectedSubmission.id)}
-              disabled={!selectedSubmission}
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              View Document
-            </Button>
             {selectedSubmission?.status === "pending" && (
               <>
                 <Button
@@ -487,6 +384,6 @@ export default function AdminKYC() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </div>
   );
 }

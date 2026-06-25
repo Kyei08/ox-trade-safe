@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import AdminLayout from "@/components/AdminLayout";
+import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -118,35 +118,45 @@ const AdminReports = () => {
 
   if (authLoading || loading) {
     return (
-      <AdminLayout>
-        <Skeleton className="h-12 w-64 mb-8" />
-        <Skeleton className="h-96 w-full" />
-      </AdminLayout>
+      <>
+        <Header />
+        <main className="min-h-screen bg-background pt-24 pb-12">
+          <div className="container px-4 max-w-4xl">
+            <Skeleton className="h-12 w-64 mb-8" />
+            <Skeleton className="h-96 w-full" />
+          </div>
+        </main>
+      </>
     );
   }
 
   if (!isAdmin) return null;
 
   return (
-    <AdminLayout
-      title="Reports"
-      description={`${reports.filter((r) => r.status === "pending").length} pending reports`}
-    >
-      <div className="flex items-center justify-end mb-6">
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-40">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="reviewed">Reviewed</SelectItem>
-            <SelectItem value="resolved">Resolved</SelectItem>
-            <SelectItem value="dismissed">Dismissed</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
+    <>
+      <Header />
+      <main className="min-h-screen bg-background pt-24 pb-12">
+        <div className="container px-4 max-w-4xl">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold">Reports</h1>
+              <p className="text-muted-foreground">
+                {reports.filter((r) => r.status === "pending").length} pending reports
+              </p>
+            </div>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="reviewed">Reviewed</SelectItem>
+                <SelectItem value="resolved">Resolved</SelectItem>
+                <SelectItem value="dismissed">Dismissed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           {filteredReports.length === 0 ? (
             <Card>
@@ -274,8 +284,10 @@ const AdminReports = () => {
                 );
               })}
             </div>
-      )}
-    </AdminLayout>
+          )}
+        </div>
+      </main>
+    </>
   );
 };
 

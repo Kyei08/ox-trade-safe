@@ -201,7 +201,7 @@ const Conversation = () => {
     return (
       <div className="min-h-screen">
         <Header />
-        <div className="pt-20 sm:pt-32 px-4">
+        <div className="pt-20 px-4">
           <p className="text-center text-muted-foreground">Loading...</p>
         </div>
       </div>

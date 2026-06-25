@@ -11,9 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { Search, Filter, Clock, MapPin, Eye, User, ArrowUp, ArrowDown } from "lucide-react";
+import { Search, Filter, Clock, MapPin, Eye, User } from "lucide-react";
 import { formatZAR } from "@/lib/currency";
-import { trackEvent } from "@/lib/analytics";
 
 interface Listing {
   id: string;
@@ -32,13 +31,11 @@ interface Listing {
   created_at: string;
   category_id: string;
   seller_id: string;
-  images: string[] | null;
   public_profiles: {
     full_name: string | null;
     avatar_url: string | null;
   } | null;
 }
-
 
 interface Category {
   id: string;
@@ -46,27 +43,16 @@ interface Category {
   icon: string | null;
 }
 
-interface Subcategory {
-  id: string;
-  category_id: string;
-  name: string;
-  slug: string;
-  sort_order: number;
-}
-
 const Listings = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [listings, setListings] = useState<Listing[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "all");
-  const [selectedSubcategory, setSelectedSubcategory] = useState(searchParams.get("subcategory") || "all");
   const [listingType, setListingType] = useState(searchParams.get("type") || "all");
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "newest");
-
 
   useEffect(() => {
     fetchCategories();
@@ -74,39 +60,14 @@ const Listings = () => {
 
   useEffect(() => {
     fetchListings();
-  }, [selectedCategory, selectedSubcategory, listingType, sortBy]);
-
-  // Sync search params -> state (e.g. when arriving via homepage category card)
-  useEffect(() => {
-    const cat = searchParams.get("category") || "all";
-    const sub = searchParams.get("subcategory") || "all";
-    setSelectedCategory(cat);
-    setSelectedSubcategory(sub);
-  }, [searchParams]);
-
-  // Load subcategories whenever the selected category changes
-  useEffect(() => {
-    const fetchSubcategories = async () => {
-      if (selectedCategory === "all") {
-        setSubcategories([]);
-        return;
-      }
-      const { data } = await supabase
-        .from("subcategories")
-        .select("id, category_id, name, slug, sort_order")
-        .eq("category_id", selectedCategory)
-        .order("sort_order", { ascending: true });
-      setSubcategories(data || []);
-    };
-    fetchSubcategories();
-  }, [selectedCategory]);
+  }, [selectedCategory, listingType, sortBy]);
 
   const fetchCategories = async () => {
     try {
       const { data, error } = await supabase
         .from("categories")
         .select("id, name, icon")
-        .order("sort_order", { ascending: true });
+        .order("name");
 
       if (error) throw error;
       setCategories(data || []);
@@ -114,7 +75,6 @@ const Listings = () => {
       console.error("Failed to load categories:", error);
     }
   };
-
 
   const fetchListings = async () => {
     try {
@@ -136,24 +96,18 @@ const Listings = () => {
         query = query.eq("category_id", selectedCategory);
       }
 
-      // Apply subcategory filter
-      if (selectedSubcategory !== "all") {
-        query = query.eq("subcategory_id", selectedSubcategory);
-      }
-
       // Apply listing type filter
       if (listingType === "fixed_price" || listingType === "auction") {
         query = query.eq("listing_type", listingType);
       }
-
 
       // Apply sorting
       switch (sortBy) {
         case "newest":
           query = query.order("created_at", { ascending: false });
           break;
-        case "ending-soon":
-          query = query.order("auction_ends_at", { ascending: true, nullsFirst: false });
+        case "oldest":
+          query = query.order("created_at", { ascending: true });
           break;
         case "price-low":
           query = query.order("fixed_price", { ascending: true, nullsFirst: false });
@@ -161,8 +115,8 @@ const Listings = () => {
         case "price-high":
           query = query.order("fixed_price", { ascending: false, nullsFirst: false });
           break;
-        default:
-          query = query.order("created_at", { ascending: false });
+        case "popular":
+          query = query.order("view_count", { ascending: false });
           break;
       }
 
@@ -195,7 +149,6 @@ const Listings = () => {
     const params = new URLSearchParams();
     if (searchQuery) params.set("search", searchQuery);
     if (selectedCategory !== "all") params.set("category", selectedCategory);
-    if (selectedSubcategory !== "all") params.set("subcategory", selectedSubcategory);
     if (listingType !== "all") params.set("type", listingType);
     if (sortBy !== "newest") params.set("sort", sortBy);
     setSearchParams(params);
@@ -204,24 +157,11 @@ const Listings = () => {
 
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
-    setSelectedSubcategory("all"); // reset subcategory when category changes
     const params = new URLSearchParams(searchParams);
     if (value === "all") {
       params.delete("category");
     } else {
       params.set("category", value);
-    }
-    params.delete("subcategory");
-    setSearchParams(params);
-  };
-
-  const handleSubcategoryChange = (value: string) => {
-    setSelectedSubcategory(value);
-    const params = new URLSearchParams(searchParams);
-    if (value === "all") {
-      params.delete("subcategory");
-    } else {
-      params.set("subcategory", value);
     }
     setSearchParams(params);
   };
@@ -237,7 +177,6 @@ const Listings = () => {
     setSearchParams(params);
   };
 
-
   const handleSortChange = (value: string) => {
     setSortBy(value);
     const params = new URLSearchParams(searchParams);
@@ -247,15 +186,6 @@ const Listings = () => {
       params.set("sort", value);
     }
     setSearchParams(params);
-    trackEvent("listings_sort_changed", { sort_by: value });
-  };
-
-  const handlePriceSortClick = () => {
-    if (sortBy === "price-low") {
-      handleSortChange("price-high");
-    } else {
-      handleSortChange("price-low");
-    }
   };
 
   const getPrice = (listing: Listing) => {
@@ -283,45 +213,47 @@ const Listings = () => {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-muted/30 pt-24 sm:pt-32 pb-12">
+      <main className="min-h-screen bg-background pt-24 pb-12">
         <div className="container px-4">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground">Browse Listings</h1>
-            <p className="text-muted-foreground mt-1">
-              Discover amazing deals and unique items across South Africa
+            <h1 className="text-3xl font-bold mb-2">Browse Listings</h1>
+            <p className="text-muted-foreground">
+              Discover amazing deals and unique items
             </p>
           </div>
 
-          {/* Search & Filter Controls */}
-          <div className="space-y-4 mb-8">
-            <div className="flex flex-col md:flex-row gap-3">
-              <div className="relative flex-grow">
+          {/* Search and Filters */}
+          <div className="mb-8 space-y-4">
+            {/* Search Bar */}
+            <div className="flex gap-2">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   placeholder="Search listings..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  className="pl-10 py-6 bg-card shadow-sm border-border"
+                  className="pl-10"
                 />
               </div>
-              <Button onClick={handleSearch} className="px-8 py-6 font-semibold">
+              <Button onClick={handleSearch}>
                 Search
               </Button>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 text-sm">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Filter className="w-4 h-4" />
-                <span className="font-medium">Filters:</span>
+            {/* Filters */}
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Filters:</span>
               </div>
 
               <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-                <SelectTrigger className="w-auto min-w-[160px] rounded-full bg-card shadow-sm border-border">
+                <SelectTrigger className="w-[180px] bg-background">
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
-                <SelectContent className="bg-popover z-50">
+                <SelectContent className="bg-background z-50">
                   <SelectItem value="all">All Categories</SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
@@ -332,92 +264,34 @@ const Listings = () => {
               </Select>
 
               <Select value={listingType} onValueChange={handleTypeChange}>
-                <SelectTrigger className="w-auto min-w-[140px] rounded-full bg-card shadow-sm border-border">
+                <SelectTrigger className="w-[180px] bg-background">
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
-                <SelectContent className="bg-popover z-50">
+                <SelectContent className="bg-background z-50">
                   <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="fixed_price">Fixed Price</SelectItem>
                   <SelectItem value="auction">Auction</SelectItem>
                 </SelectContent>
               </Select>
 
-              <div className="flex items-center gap-2 ml-auto">
-                <span className="text-muted-foreground font-medium text-sm hidden sm:inline">Sort:</span>
-                <button
-                  type="button"
-                  onClick={() => handleSortChange("newest")}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                    sortBy === "newest"
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-card text-foreground border-border hover:bg-muted"
-                  }`}
-                >
-                  Newest
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSortChange("ending-soon")}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors flex items-center gap-1 ${
-                    sortBy === "ending-soon"
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-card text-foreground border-border hover:bg-muted"
-                  }`}
-                >
-                  <Clock className="w-3 h-3" />
-                  Ending Soon
-                </button>
-                <button
-                  type="button"
-                  onClick={handlePriceSortClick}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors flex items-center gap-1 ${
-                    sortBy === "price-low" || sortBy === "price-high"
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-card text-foreground border-border hover:bg-muted"
-                  }`}
-                >
-                  Price
-                  {sortBy === "price-low" && <ArrowUp className="w-3 h-3" />}
-                  {sortBy === "price-high" && <ArrowDown className="w-3 h-3" />}
-                </button>
-              </div>
+              <Select value={sortBy} onValueChange={handleSortChange}>
+                <SelectTrigger className="w-[180px] bg-background">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  <SelectItem value="newest">Newest First</SelectItem>
+                  <SelectItem value="oldest">Oldest First</SelectItem>
+                  <SelectItem value="price-low">Price: Low to High</SelectItem>
+                  <SelectItem value="price-high">Price: High to Low</SelectItem>
+                  <SelectItem value="popular">Most Popular</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-
-            {/* Subcategory chips */}
-            {selectedCategory !== "all" && subcategories.length > 0 && (
-              <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-thin">
-                <button
-                  type="button"
-                  onClick={() => handleSubcategoryChange("all")}
-                  className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                    selectedSubcategory === "all"
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-card text-foreground border-border hover:bg-muted"
-                  }`}
-                >
-                  All
-                </button>
-                {subcategories.map((sub) => (
-                  <button
-                    key={sub.id}
-                    type="button"
-                    onClick={() => handleSubcategoryChange(sub.id)}
-                    className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                      selectedSubcategory === sub.id
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-card text-foreground border-border hover:bg-muted"
-                    }`}
-                  >
-                    {sub.name}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Results Count */}
-          <div className="mb-6">
-            <p className="text-sm text-muted-foreground font-medium">
+          <div className="mb-4">
+            <p className="text-sm text-muted-foreground">
               {loading ? "Loading..." : `${listings.length} listing${listings.length !== 1 ? "s" : ""} found`}
             </p>
           </div>
@@ -426,15 +300,15 @@ const Listings = () => {
           {loading ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
-                  <Skeleton className="aspect-video w-full rounded-none" />
-                  <div className="p-5 space-y-3">
-                    <Skeleton className="h-5 w-3/4" />
+                <Card key={i}>
+                  <CardHeader>
+                    <Skeleton className="h-4 w-3/4 mb-2" />
                     <Skeleton className="h-3 w-full" />
-                    <Skeleton className="h-8 w-1/2" />
-                    <Skeleton className="h-10 w-full mt-2" />
-                  </div>
-                </div>
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-24 w-full" />
+                  </CardContent>
+                </Card>
               ))}
             </div>
           ) : listings.length === 0 ? (
@@ -455,125 +329,96 @@ const Listings = () => {
             </Card>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {listings.map((listing) => {
-                const isAuction = listing.listing_type === "auction";
-                const cover = listing.images?.[0];
-                const conditionLabel = listing.condition?.replace(/_/g, " ") || "";
-                return (
-                  <div
-                    key={listing.id}
-                    onClick={() => navigate(`/listings/${listing.id}`)}
-                    className="group cursor-pointer bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
-                  >
-                    {/* Image */}
-                    <div className="aspect-video bg-muted relative overflow-hidden">
-                      {cover ? (
-                        <img
-                          src={cover}
-                          alt={listing.title}
-                          loading="lazy"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground/40">
-                          <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </div>
-                      )}
-
-                      {/* Badges */}
-                      <div className="absolute top-3 left-3 flex gap-2">
-                        <span className={`px-2 py-1 backdrop-blur rounded text-[10px] font-bold uppercase tracking-wider shadow-sm ${
-                          isAuction
-                            ? "bg-accent/95 text-accent-foreground"
-                            : "bg-card/90 text-primary"
-                        }`}>
-                          {isAuction ? "Auction" : "Fixed Price"}
-                        </span>
-                        {conditionLabel && (
-                          <span className="px-2 py-1 bg-card/90 backdrop-blur rounded text-[10px] font-bold uppercase tracking-wider text-foreground/80 shadow-sm">
-                            {conditionLabel}
-                          </span>
-                        )}
+              {listings.map((listing) => (
+                <Card
+                  key={listing.id}
+                  className="relative cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => navigate(`/listings/${listing.id}`)}
+                >
+                  {/* Favorite button */}
+                  <div className="absolute top-2 right-2 z-10">
+                    <FavoriteButton
+                      listingId={listing.id}
+                      className="bg-background/80 backdrop-blur-sm hover:bg-background"
+                    />
+                  </div>
+                  
+                  <CardHeader>
+                    <div className="flex justify-between items-start mb-2 pr-8">
+                      <Badge variant={listing.listing_type === "auction" ? "default" : "secondary"}>
+                        {listing.listing_type === "auction" ? "Auction" : "Fixed Price"}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {listing.condition}
+                      </Badge>
+                    </div>
+                    <CardTitle className="line-clamp-2 text-lg">{listing.title}</CardTitle>
+                    <CardDescription className="line-clamp-2">
+                      {listing.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">
+                          {listing.listing_type === "auction" ? "Current Bid" : "Price"}
+                        </p>
+                        <p className="text-2xl font-bold text-primary">
+                          {getPrice(listing)}
+                        </p>
                       </div>
-
-                      {/* Favorite */}
-                      <div className="absolute top-3 right-3" onClick={(e) => e.stopPropagation()}>
-                        <FavoriteButton
-                          listingId={listing.id}
-                          className="bg-card/90 backdrop-blur shadow-sm hover:bg-card"
-                        />
-                      </div>
-
-                      {/* Auction timer overlay */}
-                      {isAuction && listing.auction_ends_at && (
-                        <div className="absolute bottom-3 left-3 flex items-center gap-1 px-2 py-1 bg-foreground/80 backdrop-blur rounded text-[11px] font-semibold text-background">
-                          <Clock className="w-3 h-3" />
-                          {getTimeRemaining(listing.auction_ends_at)}
+                      {listing.listing_type === "auction" && listing.auction_ends_at && (
+                        <div className="text-right">
+                          <p className="text-xs text-muted-foreground mb-1">Time Left</p>
+                          <div className="flex items-center gap-1 text-sm font-medium">
+                            <Clock className="w-3 h-3" />
+                            {getTimeRemaining(listing.auction_ends_at)}
+                          </div>
                         </div>
                       )}
                     </div>
 
-                    {/* Body */}
-                    <div className="p-5 flex-1 flex flex-col">
-                      <h3 className="text-lg font-bold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-                        {listing.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
-                        {listing.description}
-                      </p>
-
-                      <div className="mt-4 flex flex-col">
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                          {isAuction ? "Current Bid" : "Price"}
-                        </span>
-                        <span className="text-2xl font-bold text-foreground">
-                          {getPrice(listing)}
-                        </span>
-                        {isAuction && (
-                          <span className="text-xs text-muted-foreground mt-0.5">
-                            {listing.bid_count} bid{listing.bid_count !== 1 ? "s" : ""}
-                          </span>
-                        )}
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {listing.location}
                       </div>
-
-                      <div className="mt-4 flex items-center justify-between border-t border-border/60 pt-4">
-                        <div className="flex items-center text-xs text-muted-foreground">
-                          <MapPin className="h-3.5 w-3.5 mr-1" />
-                          {listing.location}
-                        </div>
-                        <div className="flex items-center text-xs text-muted-foreground">
-                          <Eye className="h-3.5 w-3.5 mr-1" />
-                          {listing.view_count}
-                        </div>
+                      <div className="flex items-center gap-1">
+                        <Eye className="w-3 h-3" />
+                        {listing.view_count}
                       </div>
+                    </div>
 
-                      {/* Seller */}
-                      <Link
-                        to={`/seller/${listing.seller_id}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="mt-3 flex items-center gap-2 group/seller"
-                      >
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage src={listing.public_profiles?.avatar_url || undefined} />
-                          <AvatarFallback className="text-[10px]">
-                            {listing.public_profiles?.full_name?.charAt(0) || <User className="h-3 w-3" />}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-xs font-medium text-muted-foreground group-hover/seller:text-foreground truncate">
-                          {listing.public_profiles?.full_name || "Anonymous"}
-                        </span>
-                        <span className="ml-auto h-2 w-2 rounded-full bg-success" />
-                      </Link>
-
-                      <Button variant="accent" className="w-full mt-5 font-bold">
+                    {/* Seller Info */}
+                    <Link
+                      to={`/seller/${listing.seller_id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center gap-2 mt-2 p-2 -mx-2 rounded-md hover:bg-muted/50 transition-colors"
+                    >
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={listing.public_profiles?.avatar_url || undefined} />
+                        <AvatarFallback className="text-xs">
+                          {listing.public_profiles?.full_name?.charAt(0) || <User className="h-3 w-3" />}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-xs text-muted-foreground hover:text-foreground truncate">
+                        {listing.public_profiles?.full_name || "Anonymous"}
+                      </span>
+                    </Link>
+                  </CardContent>
+                  <CardFooter>
+                    {listing.listing_type === "auction" ? (
+                      <div className="w-full text-sm text-muted-foreground">
+                        {listing.bid_count} bid{listing.bid_count !== 1 ? "s" : ""}
+                      </div>
+                    ) : (
+                      <Button variant="accent" className="w-full">
                         View Details
                       </Button>
-                    </div>
-                  </div>
-                );
-              })}
+                    )}
+                  </CardFooter>
+                </Card>
+              ))}
             </div>
           )}
         </div>
