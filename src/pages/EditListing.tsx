@@ -16,6 +16,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Loader2, Upload, X, RefreshCw } from "lucide-react";
 import { compressImages } from "@/lib/imageCompression";
+import {
+  setFailedReplaceFile,
+  getFailedReplaceFile,
+  deleteFailedReplaceFile,
+} from "@/lib/failedReplaceStore";
 
 const DELIVERY_OPTIONS = [
   { value: "collect", label: "Collection (buyer picks up)" },
@@ -409,11 +414,13 @@ const EditListing = () => {
       }
 
       failedReplaceFiles.delete(failedFileKey(id, oldUrl));
+      void deleteFailedReplaceFile(failedFileKey(id, oldUrl));
       toast.success("Image replaced");
     } catch (err: any) {
       console.error("Image replace failed", err);
       const message = err?.message || "Failed to replace image";
       failedReplaceFiles.set(failedFileKey(id, oldUrl), file);
+      void setFailedReplaceFile(failedFileKey(id, oldUrl), file);
       setReplaceErrors((prev) => ({ ...prev, [index]: message }));
       toast.error(message);
     } finally {
@@ -433,9 +440,15 @@ const EditListing = () => {
 
   const retryReplace = async (index: number) => {
     const url = uploadedImages[index];
-    const file = failedReplaceFiles.get(failedFileKey(id, url));
+    const key = failedFileKey(id, url);
+    let file = failedReplaceFiles.get(key);
     if (!file) {
-      // No cached file — fall back to opening the picker
+      // Try IndexedDB (survives full page reload)
+      file = await getFailedReplaceFile(key);
+      if (file) failedReplaceFiles.set(key, file);
+    }
+    if (!file) {
+      // Still nothing — fall back to opening the picker
       triggerReplace(index);
       return;
     }
@@ -443,7 +456,9 @@ const EditListing = () => {
   };
 
   const dismissReplaceError = (index: number) => {
-    failedReplaceFiles.delete(failedFileKey(id, uploadedImages[index]));
+    const key = failedFileKey(id, uploadedImages[index]);
+    failedReplaceFiles.delete(key);
+    void deleteFailedReplaceFile(key);
     setReplaceErrors((prev) => {
       if (!(index in prev)) return prev;
       const next = { ...prev };
@@ -849,7 +864,11 @@ const EditListing = () => {
                                     <button
                                       type="button"
                                       onClick={() => {
-                                        failedReplaceFiles.delete(failedFileKey(id, uploadedImages[index]));
+                                        {
+                                          const k = failedFileKey(id, uploadedImages[index]);
+                                          failedReplaceFiles.delete(k);
+                                          void deleteFailedReplaceFile(k);
+                                        }
                                         setReplaceErrors((prev) => {
                                           const next = { ...prev };
                                           delete next[index];
