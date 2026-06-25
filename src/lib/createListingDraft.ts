@@ -91,7 +91,7 @@ export async function fetchRemoteDraft(userId: string): Promise<CreateListingDra
       .eq("user_id", userId)
       .maybeSingle();
     if (error || !data?.data) return null;
-    const parsed = data.data as CreateListingDraft;
+    const parsed = data.data as unknown as CreateListingDraft;
     if (!parsed || parsed.v !== 1) return null;
     return parsed;
   } catch {
