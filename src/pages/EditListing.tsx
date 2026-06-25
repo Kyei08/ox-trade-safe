@@ -190,6 +190,11 @@ const EditListing = () => {
   };
   const [listingType, setListingType] = useState<string>("");
   const [listingStatus, setListingStatus] = useState<string>("");
+  const [selectedCondition, setSelectedCondition] = useState<SelectedCondition | null>(null);
+  const [hasConditionGroups, setHasConditionGroups] = useState(false);
+  // Track the original category_id of the listing so we can detect category changes
+  // that should invalidate the existing condition selection.
+  const originalCategoryIdRef = useRef<string | null>(null);
 
   const form = useForm<EditListingFormValues>({
     resolver: zodResolver(editListingSchema),
@@ -199,6 +204,7 @@ const EditListing = () => {
       category_id: "",
       subcategory_id: "",
       condition: "",
+      condition_option_id: undefined,
       location: "",
       delivery_options: [],
       fixed_price: "",
