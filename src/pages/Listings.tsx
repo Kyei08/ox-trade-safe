@@ -458,7 +458,15 @@ const Listings = () => {
                 ))}
               </div>
             )}
+
+            {/* Dynamic Condition Filters */}
+            <DynamicConditionFilters
+              categoryId={selectedCategory}
+              selectedOptionIds={selectedOptionIds}
+              onToggle={toggleConditionOption}
+            />
           </div>
+
 
           {/* Results Count */}
           <div className="mb-6">
