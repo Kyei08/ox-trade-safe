@@ -179,6 +179,13 @@ const EditListing = () => {
     { id: string; url: string; name: string; status: "compressing" | "uploading" | "error"; error?: string }[]
   >([]);
   const [batchProgress, setBatchProgress] = useState<{ done: number; total: number } | null>(null);
+  const cancelUploadRef = useRef(false);
+  const [cancelling, setCancelling] = useState(false);
+
+  const cancelBatchUpload = () => {
+    cancelUploadRef.current = true;
+    setCancelling(true);
+  };
   const [listingType, setListingType] = useState<string>("");
   const [listingStatus, setListingStatus] = useState<string>("");
 
@@ -358,13 +365,20 @@ const EditListing = () => {
       return;
     }
 
+    cancelUploadRef.current = false;
+    setCancelling(false);
     setUploading(true);
     setBatchProgress({ done: 0, total: files.length });
     const successUrls: string[] = [];
     const failures: { name: string; reason: string }[] = [];
+    let cancelledCount = 0;
 
     try {
       for (const original of files) {
+        if (cancelUploadRef.current) {
+          cancelledCount = files.length - (successUrls.length + failures.length);
+          break;
+        }
         const previewId = `${Date.now()}-${Math.random().toString(36).substring(2)}`;
         const isHeic =
           /heic|heif/i.test(original.type) || /\.(heic|heif)$/i.test(original.name);
@@ -444,7 +458,27 @@ const EditListing = () => {
             .join(", ")}`
         );
       }
+      if (cancelUploadRef.current) {
+        setPendingPreviews((prev) => {
+          const keep: typeof prev = [];
+          for (const p of prev) {
+            if (p.status === "compressing" || p.status === "uploading") {
+              if (p.url) URL.revokeObjectURL(p.url);
+            } else {
+              keep.push(p);
+            }
+          }
+          return keep;
+        });
+        toast.info(
+          cancelledCount > 0
+            ? `Upload cancelled — ${cancelledCount} image(s) skipped`
+            : "Upload cancelled"
+        );
+      }
     } finally {
+      cancelUploadRef.current = false;
+      setCancelling(false);
       setUploading(false);
       setBatchProgress(null);
     }
@@ -1102,17 +1136,30 @@ const EditListing = () => {
 
                     {batchProgress && batchProgress.total > 0 && (
                       <div className="space-y-1.5 rounded-md border bg-muted/30 p-3">
-                        <div className="flex items-center justify-between text-xs font-medium">
+                        <div className="flex items-center justify-between gap-2 text-xs font-medium">
                           <span className="flex items-center gap-2">
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            Uploading images
+                            {cancelling ? "Cancelling…" : "Uploading images"}
                           </span>
-                          <span className="tabular-nums text-muted-foreground">
-                            {batchProgress.done} / {batchProgress.total}
-                            <span className="ml-2 text-foreground">
-                              {Math.round((batchProgress.done / batchProgress.total) * 100)}%
+                          <div className="flex items-center gap-3">
+                            <span className="tabular-nums text-muted-foreground">
+                              {batchProgress.done} / {batchProgress.total}
+                              <span className="ml-2 text-foreground">
+                                {Math.round((batchProgress.done / batchProgress.total) * 100)}%
+                              </span>
                             </span>
-                          </span>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="h-7 px-2 text-xs"
+                              onClick={cancelBatchUpload}
+                              disabled={cancelling}
+                            >
+                              <X className="h-3.5 w-3.5 mr-1" />
+                              Cancel
+                            </Button>
+                          </div>
                         </div>
                         <Progress
                           value={(batchProgress.done / batchProgress.total) * 100}
