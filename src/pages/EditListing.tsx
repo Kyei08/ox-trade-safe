@@ -316,7 +316,6 @@ const EditListing = () => {
     replaceInputRef.current?.click();
   };
 
-  const handleReplaceImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
   const performReplace = async (index: number, file: File) => {
     if (!user) return;
     const oldUrl = uploadedImages[index];
