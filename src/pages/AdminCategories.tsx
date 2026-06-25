@@ -30,6 +30,8 @@ import {
   Tag,
   Trash2,
   X,
+  icons as LucideIcons,
+  HelpCircle,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
