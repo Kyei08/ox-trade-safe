@@ -171,7 +171,7 @@ const EditListing = () => {
   const replaceTargetIndexRef = useRef<number | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-  const [replaceErrors, setReplaceErrors] = useState<Record<number, string>>({});
+  const [replaceErrors, setReplaceErrors] = useState<Record<number, ReplaceError>>({});
   // Failed replacement Files are persisted at module scope (failedReplaceFiles)
   // so Retry continues to work after navigating away and back.
   const [pendingPreviews, setPendingPreviews] = useState<
