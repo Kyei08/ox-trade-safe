@@ -17,7 +17,7 @@ interface ConditionGroup {
   name: string;
   icon: string | null;
   sort_order: number;
-  is_multiselect: boolean;
+  is_multi_select: boolean;
   options: ConditionOption[];
 }
 
@@ -41,7 +41,7 @@ const DynamicConditionFilters = ({ categoryId, selectedOptionIds, onToggle }: Pr
       setLoading(true);
       const { data: g } = await supabase
         .from("category_condition_groups")
-        .select("id, category_id, name, icon, sort_order, is_multiselect")
+        .select("id, category_id, name, icon, sort_order, is_multi_select")
         .eq("category_id", categoryId)
         .order("sort_order", { ascending: true });
 
