@@ -19,6 +19,12 @@ import { Loader2, Upload, X } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { compressImages } from "@/lib/imageCompression";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
+import {
+  loadDraft,
+  saveDraft,
+  clearDraft,
+  hasMeaningfulDraft,
+} from "@/lib/createListingDraft";
 
 const DELIVERY_OPTIONS = [
   { value: "collect", label: "Collection (buyer picks up)" },
@@ -171,47 +177,87 @@ const CreateListing = () => {
     }
   }, [selectedCategoryId]);
 
-  // Hydrate category + condition from URL on first mount
+  // Hydrate from saved draft + URL params on first mount.
+  // URL params take precedence over draft values for category + condition.
+  const [draftRestored, setDraftRestored] = useState(false);
   useEffect(() => {
     if (didHydrateFromUrlRef.current) return;
+    if (!user) return;
+    didHydrateFromUrlRef.current = true;
+
     const urlCategory = searchParams.get("category");
     const urlOption = searchParams.get("option");
-    if (!urlCategory && !urlOption) {
-      didHydrateFromUrlRef.current = true;
-      return;
-    }
-    didHydrateFromUrlRef.current = true;
+    const draft = loadDraft(user.id);
+
     (async () => {
-      if (urlCategory) {
-        if (urlOption) skipNextConditionResetRef.current = true;
-        form.setValue("category_id", urlCategory);
+      // 1) Restore non-category/option fields from draft
+      if (draft && hasMeaningfulDraft(draft)) {
+        const v = draft.values;
+        const current = form.getValues();
+        form.reset({
+          ...current,
+          title: v.title ?? current.title,
+          description: v.description ?? current.description,
+          subcategory_id: v.subcategory_id ?? current.subcategory_id,
+          listing_type: v.listing_type ?? current.listing_type,
+          location: v.location ?? current.location,
+          delivery_options: v.delivery_options ?? current.delivery_options,
+          fixed_price: v.fixed_price ?? current.fixed_price,
+          starting_price: v.starting_price ?? current.starting_price,
+          reserve_price: v.reserve_price ?? current.reserve_price,
+          auction_ends_at: v.auction_ends_at ?? current.auction_ends_at,
+          // category/option handled below
+          category_id: current.category_id,
+          condition: current.condition,
+          condition_option_id: current.condition_option_id,
+        });
+        if (draft.uploadedImages?.length) {
+          setUploadedImages(draft.uploadedImages);
+        }
+        setDraftRestored(true);
       }
-      if (urlOption) {
-        const { data } = await supabase
-          .from("category_condition_options")
-          .select("id, name, slug, group_id, category_condition_groups!inner(category_id)")
-          .eq("id", urlOption)
-          .maybeSingle();
-        if (data) {
-          const catId =
-            (data as any).category_condition_groups?.category_id ?? urlCategory ?? null;
-          if (catId && !urlCategory) {
-            skipNextConditionResetRef.current = true;
-            form.setValue("category_id", catId);
+
+      // 2) Category + condition: URL wins, else draft
+      const effectiveCategory = urlCategory ?? draft?.values.category_id ?? null;
+      const effectiveOption = urlOption ?? draft?.values.condition_option_id ?? null;
+
+      if (effectiveCategory) {
+        if (effectiveOption) skipNextConditionResetRef.current = true;
+        form.setValue("category_id", effectiveCategory);
+      }
+      if (effectiveOption) {
+        // Prefer the cached condition from draft if it matches
+        if (draft?.selectedCondition && draft.selectedCondition.optionId === effectiveOption) {
+          setSelectedCondition(draft.selectedCondition);
+          form.setValue("condition_option_id", draft.selectedCondition.optionId);
+          form.setValue("condition", draft.selectedCondition.optionName);
+        } else {
+          const { data } = await supabase
+            .from("category_condition_options")
+            .select("id, name, slug, group_id, category_condition_groups!inner(category_id)")
+            .eq("id", effectiveOption)
+            .maybeSingle();
+          if (data) {
+            const catId =
+              (data as any).category_condition_groups?.category_id ?? effectiveCategory ?? null;
+            if (catId && !effectiveCategory) {
+              skipNextConditionResetRef.current = true;
+              form.setValue("category_id", catId);
+            }
+            setSelectedCondition({
+              optionId: data.id,
+              optionName: data.name,
+              optionSlug: data.slug,
+              groupId: data.group_id,
+            });
+            form.setValue("condition_option_id", data.id);
+            form.setValue("condition", data.name);
           }
-          setSelectedCondition({
-            optionId: data.id,
-            optionName: data.name,
-            optionSlug: data.slug,
-            groupId: data.group_id,
-          });
-          form.setValue("condition_option_id", data.id);
-          form.setValue("condition", data.name);
         }
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user]);
 
   // Keep URL in sync with category + condition selection
   useEffect(() => {
@@ -225,6 +271,60 @@ const CreateListing = () => {
       setSearchParams(next, { replace: true });
     }
   }, [selectedCategoryId, selectedCondition?.optionId]);
+
+  // Persist draft on changes (debounced)
+  const watchedValues = form.watch();
+  useEffect(() => {
+    if (!user || !didHydrateFromUrlRef.current) return;
+    const t = setTimeout(() => {
+      saveDraft(user.id, {
+        values: {
+          title: watchedValues.title,
+          description: watchedValues.description,
+          category_id: watchedValues.category_id,
+          subcategory_id: watchedValues.subcategory_id,
+          listing_type: watchedValues.listing_type,
+          condition: watchedValues.condition,
+          condition_option_id: watchedValues.condition_option_id,
+          location: watchedValues.location,
+          delivery_options: watchedValues.delivery_options,
+          fixed_price: watchedValues.fixed_price,
+          starting_price: watchedValues.starting_price,
+          reserve_price: watchedValues.reserve_price,
+          auction_ends_at: watchedValues.auction_ends_at,
+        },
+        uploadedImages,
+        selectedCondition,
+      });
+    }, 400);
+    return () => clearTimeout(t);
+  }, [user, watchedValues, uploadedImages, selectedCondition]);
+
+  const discardDraft = () => {
+    if (!user) return;
+    clearDraft(user.id);
+    form.reset({
+      title: "",
+      description: "",
+      category_id: "",
+      subcategory_id: "",
+      listing_type: "fixed_price",
+      condition: "",
+      condition_option_id: undefined,
+      location: "",
+      delivery_options: [],
+      fixed_price: "",
+      starting_price: "",
+      reserve_price: "",
+      auction_ends_at: "",
+    });
+    setUploadedImages([]);
+    setSelectedCondition(null);
+    setDraftRestored(false);
+    setSearchParams(new URLSearchParams(), { replace: true });
+    toast.success("Draft discarded");
+  };
+
 
 
 
@@ -491,6 +591,7 @@ const CreateListing = () => {
       }
 
 
+      if (user) clearDraft(user.id);
       toast.success("Listing created successfully!");
       navigate("/dashboard");
     } catch (error: any) {
@@ -574,6 +675,18 @@ const CreateListing = () => {
               Fill in the details below to list your item for sale
             </p>
           </div>
+
+          {draftRestored && (
+            <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border bg-muted/40 px-4 py-3 text-sm animate-in fade-in slide-in-from-top-1">
+              <span className="text-muted-foreground">
+                We restored your unsaved draft. Your progress is auto-saved on this device.
+              </span>
+              <Button type="button" variant="ghost" size="sm" onClick={discardDraft}>
+                Discard draft
+              </Button>
+            </div>
+          )}
+
 
           <Card>
             <CardHeader>
