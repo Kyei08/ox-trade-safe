@@ -20,6 +20,7 @@ import {
   setFailedReplaceFile,
   getFailedReplaceFile,
   deleteFailedReplaceFile,
+  maybeCleanupFailedReplaceStore,
 } from "@/lib/failedReplaceStore";
 
 const DELIVERY_OPTIONS = [
@@ -103,6 +104,11 @@ const EditListing = () => {
   });
 
   const selectedCategoryId = form.watch("category_id");
+
+  useEffect(() => {
+    // Throttled cleanup of stale failed-replace File entries in IndexedDB.
+    void maybeCleanupFailedReplaceStore();
+  }, []);
 
   useEffect(() => {
     const loadSubs = async () => {
