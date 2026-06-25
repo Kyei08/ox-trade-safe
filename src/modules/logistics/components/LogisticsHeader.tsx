@@ -32,7 +32,7 @@ const LogisticsHeader = ({ location, onLocationClick }: Props) => {
             className="hidden sm:inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-11"
           >
             <Store className="w-4 h-4" aria-hidden="true" />
-            <span>Marketplace</span>
+            <span className="whitespace-nowrap">Marketplace</span>
           </Link>
           <Link
             to="/"
