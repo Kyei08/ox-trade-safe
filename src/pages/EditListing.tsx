@@ -156,7 +156,23 @@ const EditListing = () => {
 
       setListingType(data.listing_type);
       setListingStatus(data.status);
-      setUploadedImages(data.images || []);
+      const images: string[] = data.images || [];
+      setUploadedImages(images);
+
+      // Restore persisted replace-failure markers (keyed by image URL)
+      try {
+        const raw = sessionStorage.getItem(`editListing:replaceErrors:${id}`);
+        if (raw) {
+          const byUrl = JSON.parse(raw) as Record<string, string>;
+          const restored: Record<number, string> = {};
+          images.forEach((url, i) => {
+            if (byUrl[url]) restored[i] = byUrl[url];
+          });
+          if (Object.keys(restored).length) setReplaceErrors(restored);
+        }
+      } catch {
+        /* ignore */
+      }
 
       form.reset({
         title: data.title,
@@ -186,6 +202,24 @@ const EditListing = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Persist failed-replace markers keyed by image URL so they survive navigation
+  useEffect(() => {
+    if (!id) return;
+    const key = `editListing:replaceErrors:${id}`;
+    const entries = Object.entries(replaceErrors)
+      .map(([idx, msg]) => [uploadedImages[Number(idx)], msg] as const)
+      .filter(([url]) => !!url);
+    try {
+      if (entries.length === 0) {
+        sessionStorage.removeItem(key);
+      } else {
+        sessionStorage.setItem(key, JSON.stringify(Object.fromEntries(entries)));
+      }
+    } catch {
+      /* ignore quota */
+    }
+  }, [replaceErrors, uploadedImages, id]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target;
