@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Search, Filter, Clock, MapPin, Eye, User, ArrowUp, ArrowDown } from "lucide-react";
 import { formatZAR } from "@/lib/currency";
 import { trackEvent } from "@/lib/analytics";
+import DynamicConditionFilters from "@/components/DynamicConditionFilters";
 
 interface Listing {
   id: string;
@@ -66,6 +67,10 @@ const Listings = () => {
   const [selectedSubcategory, setSelectedSubcategory] = useState(searchParams.get("subcategory") || "all");
   const [listingType, setListingType] = useState(searchParams.get("type") || "all");
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "newest");
+  const [selectedOptionIds, setSelectedOptionIds] = useState<string[]>(
+    (searchParams.get("conditions") || "").split(",").filter(Boolean)
+  );
+
 
 
   useEffect(() => {
@@ -74,7 +79,7 @@ const Listings = () => {
 
   useEffect(() => {
     fetchListings();
-  }, [selectedCategory, selectedSubcategory, listingType, sortBy]);
+  }, [selectedCategory, selectedSubcategory, listingType, sortBy, selectedOptionIds]);
 
   // Sync search params -> state (e.g. when arriving via homepage category card)
   useEffect(() => {
