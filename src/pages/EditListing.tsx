@@ -49,6 +49,14 @@ interface Subcategory {
   sort_order: number;
 }
 
+// Module-scoped store for failed replacement Files. Survives navigation within
+// the same tab (cleared on full reload). Keyed by `${listingId}::${imageUrl}`.
+const failedReplaceFiles: Map<string, File> = new Map();
+const failedFileKey = (listingId: string | undefined, url: string | undefined) =>
+  listingId && url ? `${listingId}::${url}` : "";
+
+
+
 
 const EditListing = () => {
   const { id } = useParams<{ id: string }>();
@@ -67,7 +75,8 @@ const EditListing = () => {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [replaceErrors, setReplaceErrors] = useState<Record<number, string>>({});
-  const failedReplaceFilesRef = useRef<Map<number, File>>(new Map());
+  // Failed replacement Files are persisted at module scope (failedReplaceFiles)
+  // so Retry continues to work after navigating away and back.
   const [pendingPreviews, setPendingPreviews] = useState<
     { id: string; url: string; name: string; status: "compressing" | "uploading" | "error"; error?: string }[]
   >([]);
@@ -399,12 +408,12 @@ const EditListing = () => {
         /* ignore */
       }
 
-      failedReplaceFilesRef.current.delete(index);
+      failedReplaceFiles.delete(failedFileKey(id, oldUrl));
       toast.success("Image replaced");
     } catch (err: any) {
       console.error("Image replace failed", err);
       const message = err?.message || "Failed to replace image";
-      failedReplaceFilesRef.current.set(index, file);
+      failedReplaceFiles.set(failedFileKey(id, oldUrl), file);
       setReplaceErrors((prev) => ({ ...prev, [index]: message }));
       toast.error(message);
     } finally {
@@ -423,9 +432,10 @@ const EditListing = () => {
   };
 
   const retryReplace = async (index: number) => {
-    const file = failedReplaceFilesRef.current.get(index);
+    const url = uploadedImages[index];
+    const file = failedReplaceFiles.get(failedFileKey(id, url));
     if (!file) {
-      // No cached file (e.g. after reload) — fall back to opening the picker
+      // No cached file — fall back to opening the picker
       triggerReplace(index);
       return;
     }
@@ -433,7 +443,7 @@ const EditListing = () => {
   };
 
   const dismissReplaceError = (index: number) => {
-    failedReplaceFilesRef.current.delete(index);
+    failedReplaceFiles.delete(failedFileKey(id, uploadedImages[index]));
     setReplaceErrors((prev) => {
       if (!(index in prev)) return prev;
       const next = { ...prev };
@@ -839,7 +849,7 @@ const EditListing = () => {
                                     <button
                                       type="button"
                                       onClick={() => {
-                                        failedReplaceFilesRef.current.delete(index);
+                                        failedReplaceFiles.delete(failedFileKey(id, uploadedImages[index]));
                                         setReplaceErrors((prev) => {
                                           const next = { ...prev };
                                           delete next[index];
