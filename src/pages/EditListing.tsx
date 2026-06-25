@@ -864,7 +864,11 @@ const EditListing = () => {
                                     <button
                                       type="button"
                                       onClick={() => {
-                                        failedReplaceFiles.delete(failedFileKey(id, uploadedImages[index]));
+                                        {
+                                          const k = failedFileKey(id, uploadedImages[index]);
+                                          failedReplaceFiles.delete(k);
+                                          void deleteFailedReplaceFile(k);
+                                        }
                                         setReplaceErrors((prev) => {
                                           const next = { ...prev };
                                           delete next[index];
