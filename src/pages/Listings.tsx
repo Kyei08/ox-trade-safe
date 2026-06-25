@@ -230,6 +230,7 @@ const Listings = () => {
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
     setSelectedSubcategory("all"); // reset subcategory when category changes
+    setSelectedOptionIds([]); // reset condition chips when category changes
     const params = new URLSearchParams(searchParams);
     if (value === "all") {
       params.delete("category");
@@ -237,8 +238,27 @@ const Listings = () => {
       params.set("category", value);
     }
     params.delete("subcategory");
+    params.delete("conditions");
     setSearchParams(params);
   };
+
+  const toggleConditionOption = (optionId: string) => {
+    setSelectedOptionIds((prev) => {
+      const next = prev.includes(optionId)
+        ? prev.filter((id) => id !== optionId)
+        : [...prev, optionId];
+      const params = new URLSearchParams(searchParams);
+      if (next.length === 0) {
+        params.delete("conditions");
+      } else {
+        params.set("conditions", next.join(","));
+      }
+      setSearchParams(params);
+      trackEvent("listings_condition_toggled", { option_id: optionId, active: !prev.includes(optionId) });
+      return next;
+    });
+  };
+
 
   const handleSubcategoryChange = (value: string) => {
     setSelectedSubcategory(value);
