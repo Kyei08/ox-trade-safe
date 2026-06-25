@@ -676,6 +676,18 @@ const CreateListing = () => {
             </p>
           </div>
 
+          {draftRestored && (
+            <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border bg-muted/40 px-4 py-3 text-sm animate-in fade-in slide-in-from-top-1">
+              <span className="text-muted-foreground">
+                We restored your unsaved draft. Your progress is auto-saved on this device.
+              </span>
+              <Button type="button" variant="ghost" size="sm" onClick={discardDraft}>
+                Discard draft
+              </Button>
+            </div>
+          )}
+
+
           <Card>
             <CardHeader>
               <CardTitle>Listing Details</CardTitle>
