@@ -77,8 +77,9 @@ export const compressImage = (
             return;
           }
 
-          // Create new file with original name
-          const compressedFile = new File([blob], file.name, {
+          // Create new file with original name, ensure .jpg extension
+          const newName = file.name.replace(/\.(heic|heif|png|webp)$/i, ".jpg");
+          const compressedFile = new File([blob], newName, {
             type: "image/jpeg",
             lastModified: Date.now(),
           });
@@ -92,7 +93,11 @@ export const compressImage = (
 
     img.onerror = () => {
       URL.revokeObjectURL(img.src);
-      reject(new Error("Failed to load image"));
+      reject(
+        new Error(
+          "Unable to read this image. If it's a HEIC photo from iPhone, please change your camera setting to 'Most Compatible' (Settings → Camera → Formats) or pick a JPEG."
+        )
+      );
     };
 
     img.src = URL.createObjectURL(file);
@@ -105,3 +110,4 @@ export const compressImages = async (
 ): Promise<File[]> => {
   return Promise.all(files.map((file) => compressImage(file, options)));
 };
+
