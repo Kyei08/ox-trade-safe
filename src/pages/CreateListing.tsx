@@ -190,9 +190,11 @@ const CreateListing = () => {
 
     const urlCategory = searchParams.get("category");
     const urlOption = searchParams.get("option");
-    const draft = loadDraft(user.id);
 
     (async () => {
+      // Pick the freshest draft between local cache and the backend
+      const draft = await resolveDraft(user.id);
+
       // 1) Restore non-category/option fields from draft
       if (draft && hasMeaningfulDraft(draft)) {
         const v = draft.values;
