@@ -15,6 +15,7 @@ import { Search, Filter, Clock, MapPin, Eye, User, ArrowUp, ArrowDown } from "lu
 import { formatZAR } from "@/lib/currency";
 import { trackEvent } from "@/lib/analytics";
 import DynamicConditionFilters from "@/components/DynamicConditionFilters";
+import { cacheGet, cacheSet, filterKey } from "@/lib/filterCache";
 
 interface Listing {
   id: string;
@@ -167,16 +168,25 @@ const Listings = () => {
 
       // If condition chips are selected, look up matching listing_ids first.
       // The covering index (option_id, listing_id) on listing_conditions keeps this index-only.
+      // We also memoize the resolved id set per sorted option-id tuple for a short TTL
+      // so chip toggles, sort changes, and "load more" don't re-run the same heavy join.
       let conditionListingIds: string[] | null = null;
       if (selectedOptionIds.length > 0) {
         const uniqueOptionIds = Array.from(new Set(selectedOptionIds));
-        const { data: lc, error: lcError } = await supabase
-          .from("listing_conditions")
-          .select("listing_id")
-          .in("option_id", uniqueOptionIds)
-          .limit(5000);
-        if (lcError) throw lcError;
-        conditionListingIds = Array.from(new Set((lc || []).map((r: any) => r.listing_id)));
+        const cKey = filterKey({ scope: "listing_conditions", optionIds: uniqueOptionIds });
+        const cached = cacheGet<string[]>(cKey);
+        if (cached) {
+          conditionListingIds = cached;
+        } else {
+          const { data: lc, error: lcError } = await supabase
+            .from("listing_conditions")
+            .select("listing_id")
+            .in("option_id", uniqueOptionIds)
+            .limit(5000);
+          if (lcError) throw lcError;
+          conditionListingIds = Array.from(new Set((lc || []).map((r: any) => r.listing_id)));
+          cacheSet(cKey, conditionListingIds);
+        }
         if (conditionListingIds.length === 0) {
           if (mode === "replace") setListings([]);
           setHasMore(false);
