@@ -1154,7 +1154,7 @@ const CreateListing = () => {
                     )}
                   </div>
 
-                  <div className="flex gap-4">
+                  <div className="flex flex-wrap gap-4">
                     <Button
                       type="button"
                       variant="outline"
@@ -1163,7 +1163,20 @@ const CreateListing = () => {
                     >
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={loading}>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => {
+                        toast.success("Draft saved", {
+                          description: "Your progress is saved on this device. Pick up where you left off anytime.",
+                        });
+                        navigate("/listings");
+                      }}
+                      disabled={loading}
+                    >
+                      Save & Exit
+                    </Button>
+                    <Button type="submit" disabled={loading} className="ml-auto">
                       {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Create Listing
                     </Button>
