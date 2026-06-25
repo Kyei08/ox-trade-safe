@@ -446,6 +446,7 @@ const EditListing = () => {
       }
     } finally {
       setUploading(false);
+      setBatchProgress(null);
     }
   };
 
