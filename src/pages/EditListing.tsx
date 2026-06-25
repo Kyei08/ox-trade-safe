@@ -317,17 +317,19 @@ const EditListing = () => {
   };
 
   const handleReplaceImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target;
-    const file = input.files?.[0];
-    const index = replaceTargetIndexRef.current;
-    input.value = "";
-    replaceTargetIndexRef.current = null;
-    if (!file || index === null || !user) return;
-
+  const performReplace = async (index: number, file: File) => {
+    if (!user) return;
     const oldUrl = uploadedImages[index];
     if (!oldUrl) return;
 
     setReplacingIndex(index);
+    setReplaceErrors((prev) => {
+      if (!(index in prev)) return prev;
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
+
     try {
       const [compressed] = await compressImages([file], {
         maxWidth: 1920,
@@ -364,14 +366,50 @@ const EditListing = () => {
         /* ignore */
       }
 
+      failedReplaceFilesRef.current.delete(index);
       toast.success("Image replaced");
     } catch (err: any) {
       console.error("Image replace failed", err);
-      toast.error(err?.message || "Failed to replace image");
+      const message = err?.message || "Failed to replace image";
+      failedReplaceFilesRef.current.set(index, file);
+      setReplaceErrors((prev) => ({ ...prev, [index]: message }));
+      toast.error(message);
     } finally {
       setReplacingIndex(null);
     }
   };
+
+  const handleReplaceImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const file = input.files?.[0];
+    const index = replaceTargetIndexRef.current;
+    input.value = "";
+    replaceTargetIndexRef.current = null;
+    if (!file || index === null) return;
+    await performReplace(index, file);
+  };
+
+  const retryReplace = async (index: number) => {
+    const file = failedReplaceFilesRef.current.get(index);
+    if (!file) {
+      // No cached file (e.g. after reload) — fall back to opening the picker
+      triggerReplace(index);
+      return;
+    }
+    await performReplace(index, file);
+  };
+
+  const dismissReplaceError = (index: number) => {
+    failedReplaceFilesRef.current.delete(index);
+    setReplaceErrors((prev) => {
+      if (!(index in prev)) return prev;
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
+  };
+
+
 
   const reorderImages = (from: number, to: number) => {
     if (from === to || from < 0 || to < 0) return;
