@@ -359,6 +359,7 @@ const EditListing = () => {
     }
 
     setUploading(true);
+    setBatchProgress({ done: 0, total: files.length });
     const successUrls: string[] = [];
     const failures: { name: string; reason: string }[] = [];
 
