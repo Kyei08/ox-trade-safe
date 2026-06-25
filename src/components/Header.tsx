@@ -132,20 +132,20 @@ const Header = () => {
           {/* Right Side Actions */}
           <div className="flex items-center gap-1 sm:gap-3 shrink-0">
             <EcosystemNav />
-            <Button variant="ghost" size="icon" className="hidden sm:flex" aria-label="Search">
-              <Search className="w-5 h-5" />
+            <Button variant="ghost" size="icon" className="hidden sm:flex min-h-11 min-w-11" aria-label="Search">
+              <Search className="w-5 h-5" aria-hidden="true" />
             </Button>
             
             {user ? (
               <>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="icon"
-                  className="hidden sm:inline-flex"
+                  className="hidden sm:inline-flex min-h-11 min-w-11"
                   onClick={() => navigate("/messages")}
                   aria-label="Messages"
                 >
-                  <MessageSquare className="h-5 w-5" />
+                  <MessageSquare className="h-5 w-5" aria-hidden="true" />
                 </Button>
                 <Button 
                   variant="accent" 
