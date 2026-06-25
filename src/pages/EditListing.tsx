@@ -686,14 +686,58 @@ const EditListing = () => {
                         {uploadedImages.map((url, index) => {
                           const isReplacing = replacingIndex === index;
                           return (
-                            <div key={url} className="relative group aspect-square">
+                            <div
+                              key={url}
+                              className={`relative group aspect-square transition-all ${
+                                dragIndex === index ? "opacity-40 scale-95" : ""
+                              } ${
+                                dragOverIndex === index && dragIndex !== index
+                                  ? "ring-2 ring-primary ring-offset-2 ring-offset-background rounded-lg"
+                                  : ""
+                              }`}
+                              draggable={!isReplacing && !uploading}
+                              onDragStart={(e) => {
+                                setDragIndex(index);
+                                e.dataTransfer.effectAllowed = "move";
+                                try {
+                                  e.dataTransfer.setData("text/plain", String(index));
+                                } catch {
+                                  /* ignore */
+                                }
+                              }}
+                              onDragOver={(e) => {
+                                if (dragIndex === null) return;
+                                e.preventDefault();
+                                e.dataTransfer.dropEffect = "move";
+                                if (dragOverIndex !== index) setDragOverIndex(index);
+                              }}
+                              onDragLeave={() => {
+                                if (dragOverIndex === index) setDragOverIndex(null);
+                              }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                if (dragIndex !== null) reorderImages(dragIndex, index);
+                                setDragIndex(null);
+                                setDragOverIndex(null);
+                              }}
+                              onDragEnd={() => {
+                                setDragIndex(null);
+                                setDragOverIndex(null);
+                              }}
+                            >
                               <img
                                 src={url}
                                 alt={`Product ${index + 1}`}
-                                className={`w-full h-full object-cover rounded-lg border ${
+                                className={`w-full h-full object-cover rounded-lg border cursor-grab active:cursor-grabbing ${
                                   isReplacing ? "opacity-50" : ""
                                 }`}
+                                draggable={false}
                               />
+                              {index === 0 && (
+                                <span className="absolute bottom-2 left-2 text-[10px] uppercase tracking-wide bg-background/90 border rounded px-1.5 py-0.5 shadow-sm">
+                                  Cover
+                                </span>
+                              )}
                               {isReplacing && (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-background/40 rounded-lg">
                                   <Loader2 className="w-5 h-5 animate-spin text-foreground" />
