@@ -277,7 +277,7 @@ const SellerAnalytics = ({ userId }: SellerAnalyticsProps) => {
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         {statsCards.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -297,7 +297,7 @@ const SellerAnalytics = ({ userId }: SellerAnalyticsProps) => {
       {/* Time-Based Charts */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Views & Bids Trend */}
-        <Card>
+        <Card className="min-w-0 overflow-hidden">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
@@ -305,8 +305,9 @@ const SellerAnalytics = ({ userId }: SellerAnalyticsProps) => {
             </CardTitle>
             <CardDescription>Views and bids over the past 30 days</CardDescription>
           </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+          <CardContent className="px-2 sm:px-6">
+            <ChartContainer config={chartConfig} className="h-[260px] sm:h-[300px] w-full">
+
               <AreaChart data={analytics.dailyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">
@@ -364,7 +365,7 @@ const SellerAnalytics = ({ userId }: SellerAnalyticsProps) => {
         </Card>
 
         {/* Sales & Revenue Trend */}
-        <Card>
+        <Card className="min-w-0 overflow-hidden">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-emerald-500" />
@@ -374,8 +375,9 @@ const SellerAnalytics = ({ userId }: SellerAnalyticsProps) => {
               {last30DaysSales} sales • {formatCurrency(last30DaysRevenue)} revenue (30 days)
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+          <CardContent className="px-2 sm:px-6">
+            <ChartContainer config={chartConfig} className="h-[260px] sm:h-[300px] w-full">
+
               <BarChart data={analytics.dailyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis 

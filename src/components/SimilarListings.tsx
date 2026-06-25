@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Gavel, Package } from "lucide-react";
+import { Clock, Gavel, Package, ShieldCheck, Star } from "lucide-react";
 import { formatZAR } from "@/lib/currency";
 
 interface SimilarListing {
@@ -15,6 +15,14 @@ interface SimilarListing {
   starting_price: number | null;
   current_bid: number | null;
   created_at: string;
+  seller_id: string;
+}
+
+interface SellerInfo {
+  id: string;
+  kyc_status: string | null;
+  rating: number | null;
+  total_reviews: number | null;
 }
 
 interface SimilarListingsProps {
@@ -38,6 +46,7 @@ const tokenize = (s: string): string[] =>
 
 export default function SimilarListings({ categoryId, currentListingId, currentTitle }: SimilarListingsProps) {
   const [items, setItems] = useState<SimilarListing[]>([]);
+  const [sellers, setSellers] = useState<Record<string, SellerInfo>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,10 +56,9 @@ export default function SimilarListings({ categoryId, currentListingId, currentT
     }
 
     const fetchSimilar = async () => {
-      // Fetch a wider pool, then rank client-side by relevance + recency
       const { data } = await supabase
         .from("listings")
-        .select("id, title, images, listing_type, fixed_price, starting_price, current_bid, created_at")
+        .select("id, title, images, listing_type, fixed_price, starting_price, current_bid, created_at, seller_id")
         .eq("category_id", categoryId)
         .eq("status", "active")
         .neq("id", currentListingId)
@@ -64,9 +72,7 @@ export default function SimilarListings({ categoryId, currentListingId, currentT
       const scored = pool.map((item) => {
         const titleTokens = tokenize(item.title);
         const matches = titleTokens.filter((t) => keywords.has(t)).length;
-        // Relevance: keyword overlap (heavily weighted)
         const relevance = matches * 10;
-        // Recency: decays over ~30 days, max ~5
         const ageDays = (now - new Date(item.created_at).getTime()) / 86400000;
         const recency = Math.max(0, 5 - ageDays / 6);
         return { item, score: relevance + recency };
@@ -77,7 +83,24 @@ export default function SimilarListings({ categoryId, currentListingId, currentT
         return new Date(b.item.created_at).getTime() - new Date(a.item.created_at).getTime();
       });
 
-      setItems(scored.slice(0, 8).map((s) => s.item));
+      const top = scored.slice(0, 8).map((s) => s.item);
+      setItems(top);
+
+      // Fetch seller trust info from public_profiles
+      const sellerIds = Array.from(new Set(top.map((i) => i.seller_id)));
+      if (sellerIds.length > 0) {
+        const { data: sellerData } = await supabase
+          .from("public_profiles")
+          .select("id, kyc_status, rating, total_reviews")
+          .in("id", sellerIds);
+
+        const map: Record<string, SellerInfo> = {};
+        (sellerData || []).forEach((s: SellerInfo) => {
+          map[s.id] = s;
+        });
+        setSellers(map);
+      }
+
       setLoading(false);
     };
 
@@ -96,11 +119,15 @@ export default function SimilarListings({ categoryId, currentListingId, currentT
             ? item.current_bid || item.starting_price
             : item.fixed_price;
           const image = item.images?.[0];
+          const seller = sellers[item.seller_id];
+          const isVerified = seller?.kyc_status === "verified";
+          const isKycPending = seller?.kyc_status === "pending";
+          const hasRating = seller?.rating != null && seller.rating > 0 && (seller.total_reviews || 0) > 0;
 
           return (
             <Link key={item.id} to={`/listings/${item.id}`}>
               <Card className="overflow-hidden hover:shadow-md transition-shadow h-full">
-                <div className="aspect-square bg-muted overflow-hidden">
+                <div className="aspect-square bg-muted overflow-hidden relative">
                   {image ? (
                     <img
                       src={image}
@@ -112,6 +139,25 @@ export default function SimilarListings({ categoryId, currentListingId, currentT
                       <Package className="w-8 h-8" />
                     </div>
                   )}
+                  {isVerified ? (
+                    <Badge
+                      variant="secondary"
+                      className="absolute top-2 left-2 text-xs gap-1 bg-background/90 backdrop-blur-sm"
+                      title="Verified seller"
+                    >
+                      <ShieldCheck className="w-3 h-3 text-primary" />
+                      Verified
+                    </Badge>
+                  ) : isKycPending ? (
+                    <Badge
+                      variant="outline"
+                      className="absolute top-2 left-2 text-xs gap-1 bg-background/90 backdrop-blur-sm border-amber-500/50 text-amber-700 dark:text-amber-400"
+                      title="Seller KYC verification pending"
+                    >
+                      <Clock className="w-3 h-3" />
+                      KYC pending
+                    </Badge>
+                  ) : null}
                 </div>
                 <CardContent className="p-3 space-y-1.5">
                   <Badge variant={isAuction ? "default" : "secondary"} className="text-xs">
@@ -125,6 +171,13 @@ export default function SimilarListings({ categoryId, currentListingId, currentT
                   <p className="text-primary font-semibold text-sm">
                     {price ? formatZAR(price) : "—"}
                   </p>
+                  {hasRating && (
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                      <span className="font-medium text-foreground">{seller!.rating!.toFixed(1)}</span>
+                      <span>({seller!.total_reviews})</span>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </Link>

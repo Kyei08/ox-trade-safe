@@ -28,6 +28,8 @@ const listingSchema = z.object({
   title: z.string().trim().min(5, "Title must be at least 5 characters").max(200, "Title must be less than 200 characters"),
   description: z.string().trim().min(20, "Description must be at least 20 characters").max(5000, "Description must be less than 5000 characters"),
   category_id: z.string().uuid("Please select a category"),
+  subcategory_id: z.string().optional(),
+
   listing_type: z.enum(["fixed_price", "auction"]),
   condition: z.string().trim().min(1, "Condition is required").max(50),
   location: z.string().trim().min(1, "Location is required").max(200),
@@ -69,13 +71,38 @@ interface Category {
   name: string;
 }
 
+interface Subcategory {
+  id: string;
+  category_id: string;
+  name: string;
+  sort_order: number;
+}
+
+
 const CreateListing = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
+  const [checkingVerification, setCheckingVerification] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("seller_verification_status")
+        .eq("id", user.id)
+        .maybeSingle();
+      setVerificationStatus(data?.seller_verification_status ?? "not_started");
+      setCheckingVerification(false);
+    })();
+  }, [user]);
+
 
   const form = useForm<ListingFormValues>({
     resolver: zodResolver(listingSchema),
@@ -83,7 +110,9 @@ const CreateListing = () => {
       title: "",
       description: "",
       category_id: "",
+      subcategory_id: "",
       listing_type: "fixed_price",
+
       condition: "",
       location: "",
       delivery_options: [],
@@ -95,6 +124,26 @@ const CreateListing = () => {
   });
 
   const listingType = form.watch("listing_type");
+  const selectedCategoryId = form.watch("category_id");
+
+  // Load subcategories whenever the chosen category changes
+  useEffect(() => {
+    const loadSubs = async () => {
+      if (!selectedCategoryId) {
+        setSubcategories([]);
+        return;
+      }
+      const { data } = await supabase
+        .from("subcategories")
+        .select("id, category_id, name, sort_order")
+        .eq("category_id", selectedCategoryId)
+        .order("sort_order", { ascending: true });
+      setSubcategories(data || []);
+    };
+    loadSubs();
+  }, [selectedCategoryId]);
+
+
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -111,7 +160,7 @@ const CreateListing = () => {
       const { data, error } = await supabase
         .from("categories")
         .select("id, name")
-        .order("name");
+        .order("sort_order", { ascending: true });
 
       if (error) throw error;
       setCategories(data || []);
@@ -197,6 +246,8 @@ const CreateListing = () => {
         title: values.title,
         description: values.description,
         category_id: values.category_id,
+        subcategory_id: values.subcategory_id || null,
+
         listing_type: values.listing_type,
         condition: values.condition,
         location: values.location,
@@ -245,7 +296,7 @@ const CreateListing = () => {
     return (
       <>
         <Header />
-        <main className="min-h-screen bg-background pt-24 pb-12">
+        <main className="min-h-screen bg-background pt-24 sm:pt-32 pb-12">
           <div className="container px-4 max-w-3xl">
             <div className="flex justify-center">
               <Loader2 className="w-8 h-8 animate-spin" />
@@ -258,10 +309,55 @@ const CreateListing = () => {
 
   if (!user) return null;
 
+  if (!checkingVerification && verificationStatus !== "approved") {
+    const labels: Record<string, { title: string; description: string; cta: string }> = {
+      not_started: {
+        title: "Verify your seller account",
+        description: "Complete seller verification before creating listings. This keeps the marketplace safe for buyers.",
+        cta: "Start verification",
+      },
+      pending_review: {
+        title: "Verification in review",
+        description: "Your submission is being reviewed. You'll be able to create listings once it's approved.",
+        cta: "View status",
+      },
+      requires_more_info: {
+        title: "More information needed",
+        description: "We've requested updates to your verification. Please provide them to continue.",
+        cta: "Update submission",
+      },
+      rejected: {
+        title: "Verification rejected",
+        description: "Your previous submission was rejected. Review the notes and resubmit to continue.",
+        cta: "Resubmit",
+      },
+    };
+    const meta = labels[verificationStatus || "not_started"] || labels.not_started;
+    return (
+      <>
+        <Header />
+        <main className="min-h-screen bg-background pt-24 sm:pt-32 pb-12">
+          <div className="container px-4 max-w-2xl">
+            <Card>
+              <CardHeader>
+                <CardTitle>{meta.title}</CardTitle>
+                <CardDescription>{meta.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button onClick={() => navigate("/seller-verification")}>{meta.cta}</Button>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </>
+    );
+  }
+
+
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-background pt-24 pb-12">
+      <main className="min-h-screen bg-background pt-24 sm:pt-32 pb-12">
         <div className="container px-4 max-w-3xl">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Create New Listing</h1>
@@ -327,7 +423,13 @@ const CreateListing = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Category *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            form.setValue("subcategory_id", "");
+                          }}
+                          value={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a category" />
@@ -345,6 +447,35 @@ const CreateListing = () => {
                       </FormItem>
                     )}
                   />
+
+                  {/* Subcategory (optional, depends on category) */}
+                  {selectedCategoryId && subcategories.length > 0 && (
+                    <FormField
+                      control={form.control}
+                      name="subcategory_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Subcategory</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value || ""}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a subcategory (optional)" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {subcategories.map((sub) => (
+                                <SelectItem key={sub.id} value={sub.id}>
+                                  {sub.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
 
                   {/* Listing Type */}
                   <FormField
