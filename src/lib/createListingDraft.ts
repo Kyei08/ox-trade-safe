@@ -1,6 +1,9 @@
 // Persists Create Listing form progress (incl. uploaded image URLs) per-user.
 // Image binaries live in Supabase Storage; we persist the resulting public URLs
-// so they survive refreshes/returns.
+// so they survive refreshes/returns. Drafts are mirrored to the `listing_drafts`
+// table so progress syncs across devices.
+
+import { supabase } from "@/integrations/supabase/client";
 
 export interface CreateListingDraft {
   v: 1;
