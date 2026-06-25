@@ -171,9 +171,12 @@ const CreateListing = () => {
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !user) return;
+    const input = e.target;
+    if (!input.files || !user) return;
 
-    const files = Array.from(e.target.files);
+    const files = Array.from(input.files);
+    // Reset input value immediately so the same file can be reselected after errors
+    input.value = "";
     if (files.length === 0) return;
 
     // Limit to 8 images total
@@ -182,43 +185,65 @@ const CreateListing = () => {
       return;
     }
 
+    setUploading(true);
+    const successUrls: string[] = [];
+    const failures: { name: string; reason: string }[] = [];
+
     try {
-      setUploading(true);
-      
-      // Compress all images before upload
-      const compressedFiles = await compressImages(files, {
-        maxWidth: 1920,
-        maxHeight: 1920,
-        quality: 0.8,
-        maxSizeMB: 1,
-      });
-      
-      const uploadPromises = compressedFiles.map(async (file) => {
-        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.jpg`;
+      for (const original of files) {
+        try {
+          // Compress one at a time (iOS Safari struggles with parallel canvas decodes)
+          const [file] = await compressImages([original], {
+            maxWidth: 1920,
+            maxHeight: 1920,
+            quality: 0.8,
+            maxSizeMB: 1,
+          });
 
-        const { error: uploadError, data } = await supabase.storage
-          .from("listing-images")
-          .upload(fileName, file);
+          const fileName = `${user.id}/${Date.now()}-${Math.random()
+            .toString(36)
+            .substring(2)}.jpg`;
 
-        if (uploadError) throw uploadError;
+          const { error: uploadError } = await supabase.storage
+            .from("listing-images")
+            .upload(fileName, file, {
+              contentType: "image/jpeg",
+              upsert: false,
+            });
 
-        const { data: { publicUrl } } = supabase.storage
-          .from("listing-images")
-          .getPublicUrl(fileName);
+          if (uploadError) throw uploadError;
 
-        return publicUrl;
-      });
+          const {
+            data: { publicUrl },
+          } = supabase.storage.from("listing-images").getPublicUrl(fileName);
 
-      const urls = await Promise.all(uploadPromises);
-      setUploadedImages((prev) => [...prev, ...urls]);
-      toast.success(`${files.length} image(s) uploaded successfully`);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to upload images");
-      console.error(error);
+          successUrls.push(publicUrl);
+          // Stream successful uploads into UI immediately
+          setUploadedImages((prev) => [...prev, publicUrl]);
+        } catch (err: any) {
+          console.error("Image upload failed", original.name, err);
+          failures.push({
+            name: original.name,
+            reason: err?.message || "Upload failed",
+          });
+        }
+      }
+
+      if (successUrls.length > 0) {
+        toast.success(`${successUrls.length} image(s) uploaded successfully`);
+      }
+      if (failures.length > 0) {
+        toast.error(
+          `${failures.length} image(s) failed: ${failures
+            .map((f) => f.name)
+            .join(", ")}`
+        );
+      }
     } finally {
       setUploading(false);
     }
   };
+
 
   const removeImage = async (url: string) => {
     try {
