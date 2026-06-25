@@ -23,6 +23,7 @@ import {
   deleteFailedReplaceFile,
   maybeCleanupFailedReplaceStore,
 } from "@/lib/failedReplaceStore";
+import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
 
 const DELIVERY_OPTIONS = [
   { value: "collect", label: "Collection (buyer picks up)" },
@@ -36,7 +37,8 @@ const editListingSchema = z.object({
   category_id: z.string().uuid("Please select a category"),
   subcategory_id: z.string().optional(),
 
-  condition: z.string().trim().min(1, "Condition is required").max(50),
+  condition: z.string().trim().max(80).optional(),
+  condition_option_id: z.string().uuid().optional(),
   location: z.string().trim().min(1, "Location is required").max(200),
   delivery_options: z.array(z.string()).min(1, "Select at least one delivery option"),
   fixed_price: z.string().optional(),
@@ -188,6 +190,11 @@ const EditListing = () => {
   };
   const [listingType, setListingType] = useState<string>("");
   const [listingStatus, setListingStatus] = useState<string>("");
+  const [selectedCondition, setSelectedCondition] = useState<SelectedCondition | null>(null);
+  const [hasConditionGroups, setHasConditionGroups] = useState(false);
+  // Track the original category_id of the listing so we can detect category changes
+  // that should invalidate the existing condition selection.
+  const originalCategoryIdRef = useRef<string | null>(null);
 
   const form = useForm<EditListingFormValues>({
     resolver: zodResolver(editListingSchema),
@@ -197,6 +204,7 @@ const EditListing = () => {
       category_id: "",
       subcategory_id: "",
       condition: "",
+      condition_option_id: undefined,
       location: "",
       delivery_options: [],
       fixed_price: "",
@@ -224,6 +232,22 @@ const EditListing = () => {
       setSubcategories(data || []);
     };
     loadSubs();
+  }, [selectedCategoryId]);
+
+  // If the user changes category away from the original, clear the dynamic
+  // condition selection — option ids are scoped per category.
+  useEffect(() => {
+    if (!selectedCategoryId) return;
+    if (
+      originalCategoryIdRef.current &&
+      selectedCategoryId !== originalCategoryIdRef.current &&
+      selectedCondition
+    ) {
+      setSelectedCondition(null);
+      form.setValue("condition_option_id", undefined);
+      form.setValue("condition", "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategoryId]);
 
 
@@ -305,12 +329,37 @@ const EditListing = () => {
         /* ignore */
       }
 
+      originalCategoryIdRef.current = data.category_id || null;
+
+      // Load existing dynamic condition selection (listing_conditions row), if any.
+      let existingOptionId: string | undefined;
+      try {
+        const { data: lc } = await supabase
+          .from("listing_conditions")
+          .select("option_id, category_condition_options!inner(id, name, slug, group_id)")
+          .eq("listing_id", id)
+          .maybeSingle();
+        if (lc && (lc as any).category_condition_options) {
+          const opt = (lc as any).category_condition_options;
+          existingOptionId = opt.id;
+          setSelectedCondition({
+            optionId: opt.id,
+            optionName: opt.name,
+            optionSlug: opt.slug,
+            groupId: opt.group_id,
+          });
+        }
+      } catch {
+        /* no dynamic condition yet — fine for legacy listings */
+      }
+
       form.reset({
         title: data.title,
         description: data.description,
         category_id: data.category_id || "",
         subcategory_id: (data as any).subcategory_id || "",
         condition: data.condition || "",
+        condition_option_id: existingOptionId,
         location: data.location || "",
         delivery_options: data.delivery_options || [],
         fixed_price: data.fixed_price?.toString() || "",
@@ -649,6 +698,12 @@ const EditListing = () => {
   const onSubmit = async (values: EditListingFormValues) => {
     if (!user || !id) return;
 
+    // Enforce dynamic condition selection when the category has condition groups.
+    if (hasConditionGroups && !selectedCondition) {
+      toast.error("Please select a condition for this category.");
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -658,7 +713,7 @@ const EditListing = () => {
         category_id: values.category_id,
         subcategory_id: values.subcategory_id || null,
 
-        condition: values.condition,
+        condition: selectedCondition?.optionName || values.condition || null,
         location: values.location,
         delivery_options: values.delivery_options,
         images: uploadedImages,
@@ -676,10 +731,32 @@ const EditListing = () => {
 
       if (error) throw error;
 
+      // Sync dynamic condition selection: clear existing row(s), then insert the
+      // current one. Single-select is enforced by the listing_conditions trigger.
+      const { error: delErr } = await supabase
+        .from("listing_conditions")
+        .delete()
+        .eq("listing_id", id);
+      if (delErr) throw delErr;
+
+      if (selectedCondition) {
+        const { error: insErr } = await supabase
+          .from("listing_conditions")
+          .insert([{ listing_id: id, option_id: selectedCondition.optionId }]);
+        if (insErr) throw insErr;
+      }
+
       toast.success("Listing updated successfully!");
       navigate(`/listings/${id}`);
     } catch (error: any) {
-      toast.error(error.message || "Failed to update listing");
+      const msg = String(error?.message || "");
+      if (msg.includes("does not belong to the selected category")) {
+        toast.error("Selected condition doesn't belong to this category. Please pick again.");
+      } else if (msg.toLowerCase().includes("single-select") || msg.includes("only one condition")) {
+        toast.error("Only one condition can be selected per listing.");
+      } else {
+        toast.error(error.message || "Failed to update listing");
+      }
     } finally {
       setLoading(false);
     }
@@ -847,32 +924,28 @@ const EditListing = () => {
                     />
                   )}
 
-                  {/* Condition */}
-                  <FormField
-                    control={form.control}
-                    name="condition"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Condition *</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select condition" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="new">New</SelectItem>
-                            <SelectItem value="like-new">Like New</SelectItem>
-                            <SelectItem value="excellent">Excellent</SelectItem>
-                            <SelectItem value="good">Good</SelectItem>
-                            <SelectItem value="fair">Fair</SelectItem>
-                            <SelectItem value="poor">Poor</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
+                  {/* Condition (dynamic per category) */}
+                  <FormItem>
+                    <FormLabel>Condition *</FormLabel>
+                    <ConditionSelector
+                      categoryId={selectedCategoryId || null}
+                      value={selectedCondition?.optionId ?? null}
+                      onChange={(sel) => {
+                        setSelectedCondition(sel);
+                        form.setValue("condition_option_id", sel?.optionId ?? undefined, {
+                          shouldValidate: true,
+                        });
+                        form.setValue("condition", sel?.optionName ?? "");
+                      }}
+                      onGroupsLoaded={setHasConditionGroups}
+                    />
+                    {hasConditionGroups && !selectedCondition && (
+                      <p className="text-sm font-medium text-destructive mt-1">
+                        Please select a condition.
+                      </p>
                     )}
-                  />
+                  </FormItem>
+
 
                   {/* Location */}
                   <FormField
