@@ -168,9 +168,11 @@ const EditListing = () => {
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !user) return;
+    const input = e.target;
+    if (!input.files || !user) return;
 
-    const files = Array.from(e.target.files);
+    const files = Array.from(input.files);
+    input.value = "";
     if (files.length === 0) return;
 
     if (uploadedImages.length + files.length > 8) {
@@ -178,41 +180,63 @@ const EditListing = () => {
       return;
     }
 
+    setUploading(true);
+    const successUrls: string[] = [];
+    const failures: { name: string; reason: string }[] = [];
+
     try {
-      setUploading(true);
+      for (const original of files) {
+        try {
+          const [file] = await compressImages([original], {
+            maxWidth: 1920,
+            maxHeight: 1920,
+            quality: 0.8,
+            maxSizeMB: 1,
+          });
 
-      const compressedFiles = await compressImages(files, {
-        maxWidth: 1920,
-        maxHeight: 1920,
-        quality: 0.8,
-        maxSizeMB: 1,
-      });
+          const fileName = `${user.id}/${Date.now()}-${Math.random()
+            .toString(36)
+            .substring(2)}.jpg`;
 
-      const uploadPromises = compressedFiles.map(async (file) => {
-        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.jpg`;
+          const { error: uploadError } = await supabase.storage
+            .from("listing-images")
+            .upload(fileName, file, {
+              contentType: "image/jpeg",
+              upsert: false,
+            });
 
-        const { error: uploadError } = await supabase.storage
-          .from("listing-images")
-          .upload(fileName, file);
+          if (uploadError) throw uploadError;
 
-        if (uploadError) throw uploadError;
+          const {
+            data: { publicUrl },
+          } = supabase.storage.from("listing-images").getPublicUrl(fileName);
 
-        const { data: { publicUrl } } = supabase.storage
-          .from("listing-images")
-          .getPublicUrl(fileName);
+          successUrls.push(publicUrl);
+          setUploadedImages((prev) => [...prev, publicUrl]);
+        } catch (err: any) {
+          console.error("Image upload failed", original.name, err);
+          failures.push({
+            name: original.name,
+            reason: err?.message || "Upload failed",
+          });
+        }
+      }
 
-        return publicUrl;
-      });
-
-      const urls = await Promise.all(uploadPromises);
-      setUploadedImages((prev) => [...prev, ...urls]);
-      toast.success(`${files.length} image(s) uploaded successfully`);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to upload images");
+      if (successUrls.length > 0) {
+        toast.success(`${successUrls.length} image(s) uploaded successfully`);
+      }
+      if (failures.length > 0) {
+        toast.error(
+          `${failures.length} image(s) failed: ${failures
+            .map((f) => f.name)
+            .join(", ")}`
+        );
+      }
     } finally {
       setUploading(false);
     }
   };
+
 
   const removeImage = async (url: string) => {
     try {
