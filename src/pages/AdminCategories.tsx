@@ -233,7 +233,107 @@ const AdminCategories = () => {
       grouped[s.category_id].push(s);
     }
     setSubsByCat(grouped);
+
+    const groups = (groupsRes.data as ConditionGroup[]) || [];
+    const options = (optionsRes.data as ConditionOption[]) || [];
+    const groupedG: Record<string, ConditionGroup[]> = {};
+    for (const c of cats) groupedG[c.id] = [];
+    for (const g of groups) {
+      groupedG[g.category_id] = groupedG[g.category_id] || [];
+      groupedG[g.category_id].push(g);
+    }
+    setGroupsByCat(groupedG);
+
+    const groupedO: Record<string, ConditionOption[]> = {};
+    for (const g of groups) groupedO[g.id] = [];
+    for (const o of options) {
+      groupedO[o.group_id] = groupedO[o.group_id] || [];
+      groupedO[o.group_id].push(o);
+    }
+    setOptionsByGroup(groupedO);
+
     setLoading(false);
+  };
+
+  // -------- Condition group operations --------
+  const addConditionGroup = async (categoryId: string) => {
+    const list = groupsByCat[categoryId] || [];
+    const nextOrder = (list[list.length - 1]?.sort_order ?? 0) + 1;
+    const { data, error } = await supabase
+      .from("category_condition_groups" as any)
+      .insert({
+        category_id: categoryId,
+        name: "New group",
+        icon: null,
+        is_multi_select: false,
+        sort_order: nextOrder,
+      })
+      .select()
+      .single();
+    if (error) return toast.error(error.message);
+    const newGroup = data as unknown as ConditionGroup;
+    setGroupsByCat((p) => ({ ...p, [categoryId]: [...(p[categoryId] || []), newGroup] }));
+    setOptionsByGroup((p) => ({ ...p, [newGroup.id]: [] }));
+  };
+
+  const updateConditionGroup = async (
+    group: ConditionGroup,
+    patch: Partial<ConditionGroup>,
+  ) => {
+    setGroupsByCat((p) => ({
+      ...p,
+      [group.category_id]: (p[group.category_id] || []).map((g) =>
+        g.id === group.id ? { ...g, ...patch } : g,
+      ),
+    }));
+    const { error } = await supabase
+      .from("category_condition_groups" as any)
+      .update(patch)
+      .eq("id", group.id);
+    if (error) toast.error(error.message);
+  };
+
+  const deleteConditionGroup = async (group: ConditionGroup) => {
+    const { error } = await supabase
+      .from("category_condition_groups" as any)
+      .delete()
+      .eq("id", group.id);
+    if (error) return toast.error(error.message);
+    setGroupsByCat((p) => ({
+      ...p,
+      [group.category_id]: (p[group.category_id] || []).filter((g) => g.id !== group.id),
+    }));
+    toast.success("Group deleted");
+  };
+
+  const addConditionOption = async (groupId: string) => {
+    const name = (newOptionByGroup[groupId] || "").trim();
+    if (!name) return;
+    const list = optionsByGroup[groupId] || [];
+    const nextOrder = (list[list.length - 1]?.sort_order ?? 0) + 1;
+    const { data, error } = await supabase
+      .from("category_condition_options" as any)
+      .insert({ group_id: groupId, name, sort_order: nextOrder })
+      .select()
+      .single();
+    if (error) return toast.error(error.message);
+    setOptionsByGroup((p) => ({
+      ...p,
+      [groupId]: [...(p[groupId] || []), data as unknown as ConditionOption],
+    }));
+    setNewOptionByGroup((p) => ({ ...p, [groupId]: "" }));
+  };
+
+  const deleteConditionOption = async (option: ConditionOption) => {
+    const { error } = await supabase
+      .from("category_condition_options" as any)
+      .delete()
+      .eq("id", option.id);
+    if (error) return toast.error(error.message);
+    setOptionsByGroup((p) => ({
+      ...p,
+      [option.group_id]: (p[option.group_id] || []).filter((o) => o.id !== option.id),
+    }));
   };
 
   // -------- Category operations --------
