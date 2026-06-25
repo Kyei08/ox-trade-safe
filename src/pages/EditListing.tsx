@@ -432,9 +432,10 @@ const EditListing = () => {
   };
 
   const retryReplace = async (index: number) => {
-    const file = failedReplaceFilesRef.current.get(index);
+    const url = uploadedImages[index];
+    const file = failedReplaceFiles.get(failedFileKey(id, url));
     if (!file) {
-      // No cached file (e.g. after reload) — fall back to opening the picker
+      // No cached file — fall back to opening the picker
       triggerReplace(index);
       return;
     }
@@ -442,7 +443,7 @@ const EditListing = () => {
   };
 
   const dismissReplaceError = (index: number) => {
-    failedReplaceFilesRef.current.delete(index);
+    failedReplaceFiles.delete(failedFileKey(id, uploadedImages[index]));
     setReplaceErrors((prev) => {
       if (!(index in prev)) return prev;
       const next = { ...prev };
