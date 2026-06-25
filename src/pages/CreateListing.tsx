@@ -613,7 +613,10 @@ const CreateListing = () => {
 
 
 
-      if (user) clearDraft(user.id);
+      if (user) {
+        clearDraft(user.id);
+        void clearRemoteDraft(user.id);
+      }
       toast.success("Listing created successfully!");
       navigate("/dashboard");
     } catch (error: any) {
