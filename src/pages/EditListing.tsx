@@ -724,6 +724,7 @@ const EditListing = () => {
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {uploadedImages.map((url, index) => {
                           const isReplacing = replacingIndex === index;
+                          const replaceError = replaceErrors[index];
                           return (
                             <div
                               key={url}
