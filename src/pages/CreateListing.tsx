@@ -279,9 +279,12 @@ const CreateListing = () => {
 
   // Persist draft on changes (debounced)
   const watchedValues = form.watch();
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [savedTick, setSavedTick] = useState(0);
   useEffect(() => {
     if (!user || !didHydrateFromUrlRef.current) return;
-    const t = setTimeout(() => {
+    const t = setTimeout(async () => {
       const payload = {
         values: {
           title: watchedValues.title,
@@ -303,11 +306,26 @@ const CreateListing = () => {
       };
       // Fast local cache
       saveDraft(user.id, payload);
-      // Cross-device sync (fire & forget)
-      void pushRemoteDraft(user.id, payload);
+      // Cross-device sync
+      setSaveStatus("saving");
+      try {
+        await pushRemoteDraft(user.id, payload);
+        setLastSavedAt(new Date());
+        setSaveStatus("saved");
+      } catch {
+        setSaveStatus("error");
+      }
     }, 600);
     return () => clearTimeout(t);
   }, [user, watchedValues, uploadedImages, selectedCondition]);
+
+  // Re-render the "x seconds ago" label periodically
+  useEffect(() => {
+    if (!lastSavedAt) return;
+    const i = setInterval(() => setSavedTick((n) => n + 1), 30_000);
+    return () => clearInterval(i);
+  }, [lastSavedAt]);
+
 
   const discardDraft = () => {
     if (!user) return;
