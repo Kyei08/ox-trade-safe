@@ -852,6 +852,24 @@ const CreateListing = () => {
                       </div>
                     )}
 
+                    {batchProgress && batchProgress.total > 0 && (
+                      <div className="space-y-1.5 rounded-md border bg-muted/30 p-3">
+                        <div className="flex items-center justify-between text-xs font-medium">
+                          <span className="flex items-center gap-2">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            Uploading images
+                          </span>
+                          <span className="tabular-nums text-muted-foreground">
+                            {batchProgress.done} / {batchProgress.total}
+                          </span>
+                        </div>
+                        <Progress
+                          value={(batchProgress.done / batchProgress.total) * 100}
+                          className="h-2"
+                        />
+                      </div>
+                    )}
+
                     {uploadedImages.length < 8 && (
                       <div>
                         <label
