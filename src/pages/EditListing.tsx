@@ -408,12 +408,12 @@ const EditListing = () => {
         /* ignore */
       }
 
-      failedReplaceFilesRef.current.delete(index);
+      failedReplaceFiles.delete(failedFileKey(id, oldUrl));
       toast.success("Image replaced");
     } catch (err: any) {
       console.error("Image replace failed", err);
       const message = err?.message || "Failed to replace image";
-      failedReplaceFilesRef.current.set(index, file);
+      failedReplaceFiles.set(failedFileKey(id, oldUrl), file);
       setReplaceErrors((prev) => ({ ...prev, [index]: message }));
       toast.error(message);
     } finally {
