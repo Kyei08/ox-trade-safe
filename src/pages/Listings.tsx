@@ -569,7 +569,9 @@ const Listings = () => {
                   setSortBy("newest");
                   setSelectedOptionIds([]);
                   setSearchParams({});
-                  fetchListings();
+                  setCursor(null);
+                  setHasMore(true);
+                  fetchListings("replace", null);
                 }}>
                   Clear Filters
                 </Button>
