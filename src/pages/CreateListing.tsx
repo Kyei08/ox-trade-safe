@@ -861,6 +861,9 @@ const CreateListing = () => {
                           </span>
                           <span className="tabular-nums text-muted-foreground">
                             {batchProgress.done} / {batchProgress.total}
+                            <span className="ml-2 text-foreground">
+                              {Math.round((batchProgress.done / batchProgress.total) * 100)}%
+                            </span>
                           </span>
                         </div>
                         <Progress
