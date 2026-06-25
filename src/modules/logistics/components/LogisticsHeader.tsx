@@ -23,13 +23,14 @@ const LogisticsHeader = ({ location, onLocationClick }: Props) => {
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-primary flex items-center justify-center shrink-0">
             <span className="text-sm font-bold text-primary-foreground">OX</span>
           </div>
-          <span className="text-base sm:text-lg font-bold truncate">Logistics</span>
+          <span className="hidden sm:inline text-base sm:text-lg font-bold truncate">Logistics</span>
         </Link>
 
         <nav aria-label="Logistics header" className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 sm:gap-2 rounded-lg border border-border bg-card px-2.5 sm:px-3 h-11 sm:py-2 text-xs sm:text-sm font-semibold hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label="Go to Marketplace"
+            className="inline-flex items-center gap-1.5 sm:gap-2 rounded-lg border border-border bg-card px-2.5 sm:px-3 h-11 sm:py-2 text-xs sm:text-sm font-semibold hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
           >
             <Store className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span className="whitespace-nowrap">Marketplace</span>
@@ -38,10 +39,10 @@ const LogisticsHeader = ({ location, onLocationClick }: Props) => {
             type="button"
             onClick={onLocationClick}
             aria-label={`Change location, current ${location}`}
-            className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 sm:px-3 h-11 sm:py-2 text-xs sm:text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex items-center gap-1 sm:gap-1.5 rounded-lg border border-border bg-card px-2 sm:px-3 h-11 sm:py-2 text-xs sm:text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring shrink min-w-0"
           >
             <MapPin className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />
-            <span className="max-w-[80px] sm:max-w-[120px] truncate">{location}</span>
+            <span className="hidden xs:inline max-w-[60px] sm:max-w-[120px] truncate">{location}</span>
             <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />
           </button>
           {!user && (
