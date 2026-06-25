@@ -668,23 +668,50 @@ const EditListing = () => {
 
                     {(uploadedImages.length > 0 || pendingPreviews.length > 0) && (
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {uploadedImages.map((url, index) => (
-                          <div key={url} className="relative group aspect-square">
-                            <img
-                              src={url}
-                              alt={`Product ${index + 1}`}
-                              className="w-full h-full object-cover rounded-lg border"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removeImage(url)}
-                              className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                              aria-label="Remove image"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ))}
+                        {uploadedImages.map((url, index) => {
+                          const isReplacing = replacingIndex === index;
+                          return (
+                            <div key={url} className="relative group aspect-square">
+                              <img
+                                src={url}
+                                alt={`Product ${index + 1}`}
+                                className={`w-full h-full object-cover rounded-lg border ${
+                                  isReplacing ? "opacity-50" : ""
+                                }`}
+                              />
+                              {isReplacing && (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-background/40 rounded-lg">
+                                  <Loader2 className="w-5 h-5 animate-spin text-foreground" />
+                                  <span className="text-[10px] uppercase tracking-wide text-foreground/80">
+                                    Replacing
+                                  </span>
+                                </div>
+                              )}
+                              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                                <button
+                                  type="button"
+                                  onClick={() => triggerReplace(index)}
+                                  disabled={isReplacing || uploading}
+                                  className="p-1 bg-background/90 text-foreground rounded-full border shadow-sm disabled:opacity-50"
+                                  aria-label="Replace image"
+                                  title="Replace image"
+                                >
+                                  <RefreshCw className="w-4 h-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => removeImage(url)}
+                                  disabled={isReplacing}
+                                  className="p-1 bg-destructive text-destructive-foreground rounded-full disabled:opacity-50"
+                                  aria-label="Remove image"
+                                  title="Remove image"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
                         {pendingPreviews.map((p) => (
                           <div
                             key={p.id}
