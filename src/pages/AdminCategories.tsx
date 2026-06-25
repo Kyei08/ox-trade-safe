@@ -336,6 +336,29 @@ const AdminCategories = () => {
     }));
   };
 
+  const persistOptionOrder = async (groupId: string, ordered: ConditionOption[]) => {
+    const prev = optionsByGroup[groupId] || [];
+    const updated = ordered.map((o, i) => ({ ...o, sort_order: i + 1 }));
+    setOptionsByGroup((p) => ({ ...p, [groupId]: updated }));
+    const { error } = await supabase
+      .from("category_condition_options" as any)
+      .upsert(updated);
+    if (error) {
+      toast.error("Failed to save option order");
+      setOptionsByGroup((p) => ({ ...p, [groupId]: prev }));
+    }
+  };
+
+  const onOptionDragEnd = (groupId: string) => (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const list = optionsByGroup[groupId] || [];
+    const oldIndex = list.findIndex((o) => o.id === active.id);
+    const newIndex = list.findIndex((o) => o.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    persistOptionOrder(groupId, arrayMove(list, oldIndex, newIndex));
+  };
+
   // -------- Category operations --------
   const startEditCat = (c: Category) => {
     setEditingCatId(c.id);
@@ -1012,66 +1035,89 @@ const AdminCategories = () => {
                                               </Label>
                                             </div>
 
-                                            {/* Options chips */}
-                                            <div className="flex flex-wrap gap-1.5 items-center">
-                                              {opts.map((o) => (
-                                                <Badge
-                                                  key={o.id}
-                                                  variant="secondary"
-                                                  className="gap-1 pr-1"
-                                                >
-                                                  {o.name}
-                                                  <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                      <button
-                                                        type="button"
-                                                        className="rounded-full hover:bg-background/60 p-0.5"
-                                                        aria-label={`Remove ${o.name}`}
-                                                      >
-                                                        <X className="w-3 h-3" />
-                                                      </button>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                      <AlertDialogHeader>
-                                                        <AlertDialogTitle>
-                                                          Remove option "{o.name}"?
-                                                        </AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                          This option will no longer be available
-                                                          for sellers to choose in the "{group.name}"
-                                                          group. This cannot be undone.
-                                                        </AlertDialogDescription>
-                                                      </AlertDialogHeader>
-                                                      <AlertDialogFooter>
-                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                        <AlertDialogAction
-                                                          onClick={() => deleteConditionOption(o)}
+                                            {/* Options chips (drag to reorder) */}
+                                            <DndContext
+                                              sensors={sensors}
+                                              collisionDetection={closestCenter}
+                                              onDragEnd={onOptionDragEnd(group.id)}
+                                            >
+                                              <SortableContext
+                                                items={opts.map((o) => o.id)}
+                                                strategy={verticalListSortingStrategy}
+                                              >
+                                                <div className="flex flex-wrap gap-1.5 items-center">
+                                                  {opts.map((o) => (
+                                                    <SortableOptionChip key={o.id} id={o.id}>
+                                                      {({ attributes, listeners }) => (
+                                                        <Badge
+                                                          variant="secondary"
+                                                          className="gap-1 pl-1 pr-1"
                                                         >
-                                                          Remove
-                                                        </AlertDialogAction>
-                                                      </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                  </AlertDialog>
-                                                </Badge>
-                                              ))}
-                                              <Input
-                                                className="h-7 w-40 text-xs"
-                                                placeholder="Add option, press Enter"
-                                                value={draftOpt}
-                                                onChange={(e) =>
-                                                  setNewOptionByGroup((p) => ({
-                                                    ...p,
-                                                    [group.id]: e.target.value,
-                                                  }))
-                                                }
-                                                onKeyDown={(e) => {
-                                                  if (e.key === "Enter") {
-                                                    e.preventDefault();
-                                                    addConditionOption(group.id);
-                                                  }
-                                                }}
-                                              />
-                                            </div>
+                                                          <button
+                                                            type="button"
+                                                            {...attributes}
+                                                            {...listeners}
+                                                            aria-label={`Reorder ${o.name}. Press Space or Enter to pick up, Arrow keys to move.`}
+                                                            className="flex items-center justify-center text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing touch-none rounded-sm p-0.5"
+                                                          >
+                                                            <GripVertical className="w-3 h-3" />
+                                                          </button>
+                                                          {o.name}
+                                                          <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                              <button
+                                                                type="button"
+                                                                className="rounded-full hover:bg-background/60 p-0.5"
+                                                                aria-label={`Remove ${o.name}`}
+                                                              >
+                                                                <X className="w-3 h-3" />
+                                                              </button>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                              <AlertDialogHeader>
+                                                                <AlertDialogTitle>
+                                                                  Remove option "{o.name}"?
+                                                                </AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                  This option will no longer be available
+                                                                  for sellers to choose in the "{group.name}"
+                                                                  group. This cannot be undone.
+                                                                </AlertDialogDescription>
+                                                              </AlertDialogHeader>
+                                                              <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                <AlertDialogAction
+                                                                  onClick={() => deleteConditionOption(o)}
+                                                                >
+                                                                  Remove
+                                                                </AlertDialogAction>
+                                                              </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                          </AlertDialog>
+                                                        </Badge>
+                                                      )}
+                                                    </SortableOptionChip>
+                                                  ))}
+                                                  <Input
+                                                    className="h-7 w-40 text-xs"
+                                                    placeholder="Add option, press Enter"
+                                                    value={draftOpt}
+                                                    onChange={(e) =>
+                                                      setNewOptionByGroup((p) => ({
+                                                        ...p,
+                                                        [group.id]: e.target.value,
+                                                      }))
+                                                    }
+                                                    onKeyDown={(e) => {
+                                                      if (e.key === "Enter") {
+                                                        e.preventDefault();
+                                                        addConditionOption(group.id);
+                                                      }
+                                                    }}
+                                                  />
+                                                </div>
+                                              </SortableContext>
+                                            </DndContext>
                                           </div>
                                         );
                                       })}
@@ -1142,6 +1188,29 @@ const SortableSubRow = ({
   };
   return (
     <div ref={setNodeRef} style={style}>
+      {children({ attributes, listeners })}
+    </div>
+  );
+};
+
+const SortableOptionChip = ({
+  id,
+  children,
+}: {
+  id: string;
+  children: (args: { attributes: any; listeners: any }) => React.ReactNode;
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+  });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+    zIndex: isDragging ? 10 : "auto",
+  };
+  return (
+    <div ref={setNodeRef} style={style} className="inline-flex">
       {children({ attributes, listeners })}
     </div>
   );
