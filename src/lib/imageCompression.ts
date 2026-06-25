@@ -108,6 +108,13 @@ export const compressImages = async (
   files: File[],
   options?: CompressionOptions
 ): Promise<File[]> => {
-  return Promise.all(files.map((file) => compressImage(file, options)));
+  // Sequential on purpose: iOS Safari can OOM when decoding multiple
+  // large HEIC/JPEG images into <canvas> in parallel.
+  const out: File[] = [];
+  for (const file of files) {
+    out.push(await compressImage(file, options));
+  }
+  return out;
 };
+
 
