@@ -170,6 +170,16 @@ const EditListing = () => {
     }
   };
 
+  // Clean up any outstanding blob preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      pendingPreviews.forEach((p) => {
+        if (p.url) URL.revokeObjectURL(p.url);
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target;
     if (!input.files || !user) return;
@@ -189,6 +199,15 @@ const EditListing = () => {
 
     try {
       for (const original of files) {
+        const previewId = `${Date.now()}-${Math.random().toString(36).substring(2)}`;
+        const isHeic =
+          /heic|heif/i.test(original.type) || /\.(heic|heif)$/i.test(original.name);
+        const initialUrl = isHeic ? "" : URL.createObjectURL(original);
+        setPendingPreviews((prev) => [
+          ...prev,
+          { id: previewId, url: initialUrl, name: original.name, status: "compressing" },
+        ]);
+
         try {
           const [file] = await compressImages([original], {
             maxWidth: 1920,
@@ -196,6 +215,16 @@ const EditListing = () => {
             quality: 0.8,
             maxSizeMB: 1,
           });
+
+          // Swap preview to the compressed JPEG — renders reliably on iOS Safari
+          const compressedPreviewUrl = URL.createObjectURL(file);
+          setPendingPreviews((prev) =>
+            prev.map((p) => {
+              if (p.id !== previewId) return p;
+              if (p.url && p.url !== compressedPreviewUrl) URL.revokeObjectURL(p.url);
+              return { ...p, url: compressedPreviewUrl, status: "uploading" };
+            })
+          );
 
           const fileName = `${user.id}/${Date.now()}-${Math.random()
             .toString(36)
@@ -216,12 +245,24 @@ const EditListing = () => {
 
           successUrls.push(publicUrl);
           setUploadedImages((prev) => [...prev, publicUrl]);
+          setPendingPreviews((prev) => {
+            const match = prev.find((p) => p.id === previewId);
+            if (match?.url) URL.revokeObjectURL(match.url);
+            return prev.filter((p) => p.id !== previewId);
+          });
         } catch (err: any) {
           console.error("Image upload failed", original.name, err);
           failures.push({
             name: original.name,
             reason: err?.message || "Upload failed",
           });
+          setPendingPreviews((prev) =>
+            prev.map((p) =>
+              p.id === previewId
+                ? { ...p, status: "error", error: err?.message || "Upload failed" }
+                : p
+            )
+          );
         }
       }
 
@@ -238,6 +279,14 @@ const EditListing = () => {
     } finally {
       setUploading(false);
     }
+  };
+
+  const dismissPendingPreview = (id: string) => {
+    setPendingPreviews((prev) => {
+      const match = prev.find((p) => p.id === id);
+      if (match?.url) URL.revokeObjectURL(match.url);
+      return prev.filter((p) => p.id !== id);
+    });
   };
 
 
