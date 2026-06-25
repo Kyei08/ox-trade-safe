@@ -429,6 +429,8 @@ const EditListing = () => {
                 : p
             )
           );
+        } finally {
+          setBatchProgress((prev) => (prev ? { ...prev, done: prev.done + 1 } : prev));
         }
       }
 
