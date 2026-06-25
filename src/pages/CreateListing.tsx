@@ -23,6 +23,9 @@ import {
   loadDraft,
   saveDraft,
   clearDraft,
+  resolveDraft,
+  pushRemoteDraft,
+  clearRemoteDraft,
   hasMeaningfulDraft,
 } from "@/lib/createListingDraft";
 
@@ -187,9 +190,11 @@ const CreateListing = () => {
 
     const urlCategory = searchParams.get("category");
     const urlOption = searchParams.get("option");
-    const draft = loadDraft(user.id);
 
     (async () => {
+      // Pick the freshest draft between local cache and the backend
+      const draft = await resolveDraft(user.id);
+
       // 1) Restore non-category/option fields from draft
       if (draft && hasMeaningfulDraft(draft)) {
         const v = draft.values;
@@ -277,7 +282,7 @@ const CreateListing = () => {
   useEffect(() => {
     if (!user || !didHydrateFromUrlRef.current) return;
     const t = setTimeout(() => {
-      saveDraft(user.id, {
+      const payload = {
         values: {
           title: watchedValues.title,
           description: watchedValues.description,
@@ -295,14 +300,19 @@ const CreateListing = () => {
         },
         uploadedImages,
         selectedCondition,
-      });
-    }, 400);
+      };
+      // Fast local cache
+      saveDraft(user.id, payload);
+      // Cross-device sync (fire & forget)
+      void pushRemoteDraft(user.id, payload);
+    }, 600);
     return () => clearTimeout(t);
   }, [user, watchedValues, uploadedImages, selectedCondition]);
 
   const discardDraft = () => {
     if (!user) return;
     clearDraft(user.id);
+    void clearRemoteDraft(user.id);
     form.reset({
       title: "",
       description: "",
@@ -603,7 +613,10 @@ const CreateListing = () => {
 
 
 
-      if (user) clearDraft(user.id);
+      if (user) {
+        clearDraft(user.id);
+        void clearRemoteDraft(user.id);
+      }
       toast.success("Listing created successfully!");
       navigate("/dashboard");
     } catch (error: any) {
