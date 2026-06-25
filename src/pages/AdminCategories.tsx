@@ -201,7 +201,7 @@ const AdminCategories = () => {
 
   const loadAll = async () => {
     setLoading(true);
-    const [catsRes, subsRes] = await Promise.all([
+    const [catsRes, subsRes, groupsRes, optionsRes] = await Promise.all([
       supabase
         .from("categories")
         .select("id, name, slug, icon, sort_order")
@@ -209,6 +209,14 @@ const AdminCategories = () => {
       supabase
         .from("subcategories")
         .select("id, category_id, name, slug, sort_order")
+        .order("sort_order", { ascending: true }),
+      supabase
+        .from("category_condition_groups" as any)
+        .select("id, category_id, name, icon, is_multi_select, sort_order")
+        .order("sort_order", { ascending: true }),
+      supabase
+        .from("category_condition_options" as any)
+        .select("id, group_id, name, sort_order")
         .order("sort_order", { ascending: true }),
     ]);
 
