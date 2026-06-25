@@ -786,7 +786,34 @@ const EditListing = () => {
                                   </span>
                                 </div>
                               )}
+                              {!isReplacing && replaceError && (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/85 rounded-lg p-2 text-center">
+                                  <span className="text-[10px] uppercase tracking-wide font-medium text-destructive">
+                                    Replace failed
+                                  </span>
+                                  <span className="text-[10px] text-muted-foreground line-clamp-2">
+                                    {replaceError}
+                                  </span>
+                                  <div className="flex gap-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => retryReplace(index)}
+                                      className="px-2 py-0.5 rounded-md bg-primary text-primary-foreground text-[10px] font-medium"
+                                    >
+                                      Retry
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => dismissReplaceError(index)}
+                                      className="px-2 py-0.5 rounded-md border text-[10px] font-medium"
+                                    >
+                                      Dismiss
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
                               <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+
                                 <button
                                   type="button"
                                   onClick={() => triggerReplace(index)}
