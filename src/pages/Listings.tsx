@@ -499,6 +499,7 @@ const Listings = () => {
                   setSelectedCategory("all");
                   setListingType("all");
                   setSortBy("newest");
+                  setSelectedOptionIds([]);
                   setSearchParams({});
                   fetchListings();
                 }}>
