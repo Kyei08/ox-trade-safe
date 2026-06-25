@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Loader2, Upload, X } from "lucide-react";
+import { Loader2, Upload, X, Check, CloudOff, RefreshCw } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { compressImages } from "@/lib/imageCompression";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
@@ -34,6 +34,60 @@ const DELIVERY_OPTIONS = [
   { value: "courier", label: "Courier delivery" },
   { value: "post", label: "Postal service" },
 ];
+
+function formatRelativeTime(date: Date): string {
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 5) return "just now";
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} min${minutes === 1 ? "" : "s"} ago`;
+  const hours = Math.floor(minutes / 60);
+  return `${hours}h ago`;
+}
+
+function DraftSaveIndicator({
+  status,
+  lastSavedAt,
+  tick,
+}: {
+  status: "idle" | "saving" | "saved" | "error";
+  lastSavedAt: Date | null;
+  tick: number;
+}) {
+  // `tick` is only here to force re-render for the relative-time label.
+  void tick;
+  if (status === "idle" && !lastSavedAt) return null;
+
+  if (status === "saving") {
+    return (
+      <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        <span>Saving draft…</span>
+      </div>
+    );
+  }
+  if (status === "error") {
+    return (
+      <div className="inline-flex items-center gap-2 text-xs text-destructive">
+        <CloudOff className="h-3.5 w-3.5" />
+        <span>
+          Couldn't sync draft.
+          {lastSavedAt ? ` Last saved ${formatRelativeTime(lastSavedAt)}.` : " Saved on this device only."}
+        </span>
+      </div>
+    );
+  }
+  // saved
+  return (
+    <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+      <Check className="h-3.5 w-3.5 text-green-600" />
+      <span>
+        Draft saved{lastSavedAt ? ` · ${formatRelativeTime(lastSavedAt)}` : ""}
+      </span>
+    </div>
+  );
+}
+
 
 const listingSchema = z.object({
   title: z.string().trim().min(5, "Title must be at least 5 characters").max(200, "Title must be less than 200 characters"),
@@ -279,9 +333,12 @@ const CreateListing = () => {
 
   // Persist draft on changes (debounced)
   const watchedValues = form.watch();
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [savedTick, setSavedTick] = useState(0);
   useEffect(() => {
     if (!user || !didHydrateFromUrlRef.current) return;
-    const t = setTimeout(() => {
+    const t = setTimeout(async () => {
       const payload = {
         values: {
           title: watchedValues.title,
@@ -303,11 +360,26 @@ const CreateListing = () => {
       };
       // Fast local cache
       saveDraft(user.id, payload);
-      // Cross-device sync (fire & forget)
-      void pushRemoteDraft(user.id, payload);
+      // Cross-device sync
+      setSaveStatus("saving");
+      try {
+        await pushRemoteDraft(user.id, payload);
+        setLastSavedAt(new Date());
+        setSaveStatus("saved");
+      } catch {
+        setSaveStatus("error");
+      }
     }, 600);
     return () => clearTimeout(t);
   }, [user, watchedValues, uploadedImages, selectedCondition]);
+
+  // Re-render the "x seconds ago" label periodically
+  useEffect(() => {
+    if (!lastSavedAt) return;
+    const i = setInterval(() => setSavedTick((n) => n + 1), 30_000);
+    return () => clearInterval(i);
+  }, [lastSavedAt]);
+
 
   const discardDraft = () => {
     if (!user) return;
@@ -712,9 +784,14 @@ const CreateListing = () => {
             </div>
           )}
 
+          <div className="mb-4" aria-live="polite">
+            <DraftSaveIndicator status={saveStatus} lastSavedAt={lastSavedAt} tick={savedTick} />
+          </div>
 
           <Card>
             <CardHeader>
+
+
               <CardTitle>Listing Details</CardTitle>
               <CardDescription>
                 Provide accurate information to attract potential buyers
