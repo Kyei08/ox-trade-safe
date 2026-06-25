@@ -207,13 +207,20 @@ const CreateListing = () => {
       return;
     }
 
+    cancelUploadRef.current = false;
+    setCancelling(false);
     setUploading(true);
     setBatchProgress({ done: 0, total: files.length });
     const successUrls: string[] = [];
     const failures: { name: string; reason: string }[] = [];
+    let cancelledCount = 0;
 
     try {
       for (const original of files) {
+        if (cancelUploadRef.current) {
+          cancelledCount = files.length - (successUrls.length + failures.length);
+          break;
+        }
         const previewId = `${Date.now()}-${Math.random().toString(36).substring(2)}`;
         // Show an immediate placeholder. For HEIC/HEIF the browser cannot render
         // a blob URL of the original — we'll swap to the compressed JPEG preview below.
