@@ -32,7 +32,8 @@ const listingSchema = z.object({
   subcategory_id: z.string().optional(),
 
   listing_type: z.enum(["fixed_price", "auction"]),
-  condition: z.string().trim().min(1, "Condition is required").max(50),
+  condition: z.string().trim().max(80).optional(),
+  condition_option_id: z.string().uuid().optional(),
   location: z.string().trim().min(1, "Location is required").max(200),
   delivery_options: z.array(z.string()).min(1, "Select at least one delivery option"),
   fixed_price: z.string().optional(),
