@@ -71,16 +71,16 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border pt-[env(safe-area-inset-top)]">
       <div className="container px-3 sm:px-4">
-        <div className="flex items-center justify-between h-16 sm:h-28 gap-2">
+        <div className="flex items-center justify-between h-14 sm:h-28 gap-2">
           {/* Logo */}
-          <div className="flex items-center gap-4 lg:gap-8 min-w-0">
+          <div className="flex items-center gap-4 lg:gap-8 min-w-0 flex-1">
             <Link to="/" className="flex items-center gap-2 min-w-0" aria-label="OX Marketplace home">
               <img
                 src={oxLogo.url}
                 alt="OX"
-                className="h-12 sm:h-24 w-auto shrink-0 object-contain"
+                className="h-10 sm:h-24 w-auto shrink-0 object-contain"
               />
               <span className="hidden lg:inline text-xl font-bold truncate">Marketplace</span>
             </Link>
