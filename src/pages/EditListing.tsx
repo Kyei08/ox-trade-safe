@@ -365,13 +365,20 @@ const EditListing = () => {
       return;
     }
 
+    cancelUploadRef.current = false;
+    setCancelling(false);
     setUploading(true);
     setBatchProgress({ done: 0, total: files.length });
     const successUrls: string[] = [];
     const failures: { name: string; reason: string }[] = [];
+    let cancelledCount = 0;
 
     try {
       for (const original of files) {
+        if (cancelUploadRef.current) {
+          cancelledCount = files.length - (successUrls.length + failures.length);
+          break;
+        }
         const previewId = `${Date.now()}-${Math.random().toString(36).substring(2)}`;
         const isHeic =
           /heic|heif/i.test(original.type) || /\.(heic|heif)$/i.test(original.name);
@@ -451,7 +458,27 @@ const EditListing = () => {
             .join(", ")}`
         );
       }
+      if (cancelUploadRef.current) {
+        setPendingPreviews((prev) => {
+          const keep: typeof prev = [];
+          for (const p of prev) {
+            if (p.status === "compressing" || p.status === "uploading") {
+              if (p.url) URL.revokeObjectURL(p.url);
+            } else {
+              keep.push(p);
+            }
+          }
+          return keep;
+        });
+        toast.info(
+          cancelledCount > 0
+            ? `Upload cancelled — ${cancelledCount} image(s) skipped`
+            : "Upload cancelled"
+        );
+      }
     } finally {
+      cancelUploadRef.current = false;
+      setCancelling(false);
       setUploading(false);
       setBatchProgress(null);
     }
