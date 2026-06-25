@@ -27,9 +27,13 @@ import {
   Pencil,
   Plus,
   Save,
+  Tag,
   Trash2,
   X,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   DndContext,
   DragEndEvent,
@@ -61,6 +65,22 @@ interface Subcategory {
   category_id: string;
   name: string;
   slug: string;
+  sort_order: number;
+}
+
+interface ConditionGroup {
+  id: string;
+  category_id: string;
+  name: string;
+  icon: string | null;
+  is_multi_select: boolean;
+  sort_order: number;
+}
+
+interface ConditionOption {
+  id: string;
+  group_id: string;
+  name: string;
   sort_order: number;
 }
 
@@ -143,6 +163,11 @@ const AdminCategories = () => {
   const [subDraft, setSubDraft] = useState<{ name: string; slug: string }>({ name: "", slug: "" });
   const [newSubByCat, setNewSubByCat] = useState<Record<string, { name: string; slug: string }>>({});
 
+  // Condition groups & options state
+  const [groupsByCat, setGroupsByCat] = useState<Record<string, ConditionGroup[]>>({});
+  const [optionsByGroup, setOptionsByGroup] = useState<Record<string, ConditionOption[]>>({});
+  const [newOptionByGroup, setNewOptionByGroup] = useState<Record<string, string>>({});
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -176,7 +201,7 @@ const AdminCategories = () => {
 
   const loadAll = async () => {
     setLoading(true);
-    const [catsRes, subsRes] = await Promise.all([
+    const [catsRes, subsRes, groupsRes, optionsRes] = await Promise.all([
       supabase
         .from("categories")
         .select("id, name, slug, icon, sort_order")
@@ -184,6 +209,14 @@ const AdminCategories = () => {
       supabase
         .from("subcategories")
         .select("id, category_id, name, slug, sort_order")
+        .order("sort_order", { ascending: true }),
+      supabase
+        .from("category_condition_groups" as any)
+        .select("id, category_id, name, icon, is_multi_select, sort_order")
+        .order("sort_order", { ascending: true }),
+      supabase
+        .from("category_condition_options" as any)
+        .select("id, group_id, name, sort_order")
         .order("sort_order", { ascending: true }),
     ]);
 
@@ -200,7 +233,107 @@ const AdminCategories = () => {
       grouped[s.category_id].push(s);
     }
     setSubsByCat(grouped);
+
+    const groups = ((groupsRes.data as unknown) as ConditionGroup[]) || [];
+    const options = ((optionsRes.data as unknown) as ConditionOption[]) || [];
+    const groupedG: Record<string, ConditionGroup[]> = {};
+    for (const c of cats) groupedG[c.id] = [];
+    for (const g of groups) {
+      groupedG[g.category_id] = groupedG[g.category_id] || [];
+      groupedG[g.category_id].push(g);
+    }
+    setGroupsByCat(groupedG);
+
+    const groupedO: Record<string, ConditionOption[]> = {};
+    for (const g of groups) groupedO[g.id] = [];
+    for (const o of options) {
+      groupedO[o.group_id] = groupedO[o.group_id] || [];
+      groupedO[o.group_id].push(o);
+    }
+    setOptionsByGroup(groupedO);
+
     setLoading(false);
+  };
+
+  // -------- Condition group operations --------
+  const addConditionGroup = async (categoryId: string) => {
+    const list = groupsByCat[categoryId] || [];
+    const nextOrder = (list[list.length - 1]?.sort_order ?? 0) + 1;
+    const { data, error } = await supabase
+      .from("category_condition_groups" as any)
+      .insert({
+        category_id: categoryId,
+        name: "New group",
+        icon: null,
+        is_multi_select: false,
+        sort_order: nextOrder,
+      })
+      .select()
+      .single();
+    if (error) return toast.error(error.message);
+    const newGroup = data as unknown as ConditionGroup;
+    setGroupsByCat((p) => ({ ...p, [categoryId]: [...(p[categoryId] || []), newGroup] }));
+    setOptionsByGroup((p) => ({ ...p, [newGroup.id]: [] }));
+  };
+
+  const updateConditionGroup = async (
+    group: ConditionGroup,
+    patch: Partial<ConditionGroup>,
+  ) => {
+    setGroupsByCat((p) => ({
+      ...p,
+      [group.category_id]: (p[group.category_id] || []).map((g) =>
+        g.id === group.id ? { ...g, ...patch } : g,
+      ),
+    }));
+    const { error } = await supabase
+      .from("category_condition_groups" as any)
+      .update(patch)
+      .eq("id", group.id);
+    if (error) toast.error(error.message);
+  };
+
+  const deleteConditionGroup = async (group: ConditionGroup) => {
+    const { error } = await supabase
+      .from("category_condition_groups" as any)
+      .delete()
+      .eq("id", group.id);
+    if (error) return toast.error(error.message);
+    setGroupsByCat((p) => ({
+      ...p,
+      [group.category_id]: (p[group.category_id] || []).filter((g) => g.id !== group.id),
+    }));
+    toast.success("Group deleted");
+  };
+
+  const addConditionOption = async (groupId: string) => {
+    const name = (newOptionByGroup[groupId] || "").trim();
+    if (!name) return;
+    const list = optionsByGroup[groupId] || [];
+    const nextOrder = (list[list.length - 1]?.sort_order ?? 0) + 1;
+    const { data, error } = await supabase
+      .from("category_condition_options" as any)
+      .insert({ group_id: groupId, name, sort_order: nextOrder })
+      .select()
+      .single();
+    if (error) return toast.error(error.message);
+    setOptionsByGroup((p) => ({
+      ...p,
+      [groupId]: [...(p[groupId] || []), data as unknown as ConditionOption],
+    }));
+    setNewOptionByGroup((p) => ({ ...p, [groupId]: "" }));
+  };
+
+  const deleteConditionOption = async (option: ConditionOption) => {
+    const { error } = await supabase
+      .from("category_condition_options" as any)
+      .delete()
+      .eq("id", option.id);
+    if (error) return toast.error(error.message);
+    setOptionsByGroup((p) => ({
+      ...p,
+      [option.group_id]: (p[option.group_id] || []).filter((o) => o.id !== option.id),
+    }));
   };
 
   // -------- Category operations --------
@@ -727,6 +860,199 @@ const AdminCategories = () => {
                                     <Button size="sm" onClick={() => addSub(cat.id)}>
                                       <Plus className="w-3 h-3 mr-1" /> Add
                                     </Button>
+                                  </div>
+
+                                  {/* Condition Groups Builder */}
+                                  <div className="mt-4 pt-4 border-t border-border space-y-3 animate-in fade-in-50 duration-200">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-2">
+                                        <Tag className="w-4 h-4 text-muted-foreground" />
+                                        <h4 className="text-sm font-semibold">
+                                          Condition Groups & Options
+                                        </h4>
+                                      </div>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => addConditionGroup(cat.id)}
+                                      >
+                                        <Plus className="w-3 h-3 mr-1" /> Add Group
+                                      </Button>
+                                    </div>
+
+                                    {(groupsByCat[cat.id] || []).length === 0 && (
+                                      <p className="text-xs text-muted-foreground">
+                                        No condition groups yet. Add one to define filterable
+                                        condition pills for this category.
+                                      </p>
+                                    )}
+
+                                    <div className="space-y-2">
+                                      {(groupsByCat[cat.id] || []).map((group) => {
+                                        const opts = optionsByGroup[group.id] || [];
+                                        const draftOpt = newOptionByGroup[group.id] || "";
+                                        return (
+                                          <div
+                                            key={group.id}
+                                            className="rounded-md border border-border bg-muted/30 p-3 space-y-3"
+                                          >
+                                            <div className="grid gap-2 sm:grid-cols-[1fr_140px_120px_auto] items-center">
+                                              <Input
+                                                className="h-8"
+                                                placeholder="Group name (e.g. Brand New)"
+                                                value={group.name}
+                                                onChange={(e) =>
+                                                  setGroupsByCat((p) => ({
+                                                    ...p,
+                                                    [cat.id]: (p[cat.id] || []).map((g) =>
+                                                      g.id === group.id
+                                                        ? { ...g, name: e.target.value }
+                                                        : g,
+                                                    ),
+                                                  }))
+                                                }
+                                                onBlur={(e) =>
+                                                  updateConditionGroup(group, {
+                                                    name: e.target.value.trim() || "Untitled",
+                                                  })
+                                                }
+                                              />
+                                              <Input
+                                                className="h-8"
+                                                placeholder="Icon (Sparkles)"
+                                                value={group.icon || ""}
+                                                onChange={(e) =>
+                                                  setGroupsByCat((p) => ({
+                                                    ...p,
+                                                    [cat.id]: (p[cat.id] || []).map((g) =>
+                                                      g.id === group.id
+                                                        ? { ...g, icon: e.target.value }
+                                                        : g,
+                                                    ),
+                                                  }))
+                                                }
+                                                onBlur={(e) =>
+                                                  updateConditionGroup(group, {
+                                                    icon: e.target.value.trim() || null,
+                                                  })
+                                                }
+                                              />
+                                              <Input
+                                                type="number"
+                                                className="h-8"
+                                                placeholder="Sort"
+                                                value={group.sort_order}
+                                                onChange={(e) =>
+                                                  setGroupsByCat((p) => ({
+                                                    ...p,
+                                                    [cat.id]: (p[cat.id] || []).map((g) =>
+                                                      g.id === group.id
+                                                        ? {
+                                                            ...g,
+                                                            sort_order:
+                                                              Number(e.target.value) || 0,
+                                                          }
+                                                        : g,
+                                                    ),
+                                                  }))
+                                                }
+                                                onBlur={(e) =>
+                                                  updateConditionGroup(group, {
+                                                    sort_order: Number(e.target.value) || 0,
+                                                  })
+                                                }
+                                              />
+                                              <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                  <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    className="text-destructive h-8 w-8 p-0"
+                                                  >
+                                                    <Trash2 className="w-3 h-3" />
+                                                  </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                  <AlertDialogHeader>
+                                                    <AlertDialogTitle>
+                                                      Delete group "{group.name}"?
+                                                    </AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                      All options inside this group will also be
+                                                      removed.
+                                                    </AlertDialogDescription>
+                                                  </AlertDialogHeader>
+                                                  <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction
+                                                      onClick={() => deleteConditionGroup(group)}
+                                                    >
+                                                      Delete
+                                                    </AlertDialogAction>
+                                                  </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                              </AlertDialog>
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                              <Switch
+                                                id={`multi-${group.id}`}
+                                                checked={group.is_multi_select}
+                                                onCheckedChange={(v) =>
+                                                  updateConditionGroup(group, {
+                                                    is_multi_select: v,
+                                                  })
+                                                }
+                                              />
+                                              <Label
+                                                htmlFor={`multi-${group.id}`}
+                                                className="text-xs"
+                                              >
+                                                Multi-select
+                                              </Label>
+                                            </div>
+
+                                            {/* Options chips */}
+                                            <div className="flex flex-wrap gap-1.5 items-center">
+                                              {opts.map((o) => (
+                                                <Badge
+                                                  key={o.id}
+                                                  variant="secondary"
+                                                  className="gap-1 pr-1"
+                                                >
+                                                  {o.name}
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => deleteConditionOption(o)}
+                                                    className="rounded-full hover:bg-background/60 p-0.5"
+                                                    aria-label={`Remove ${o.name}`}
+                                                  >
+                                                    <X className="w-3 h-3" />
+                                                  </button>
+                                                </Badge>
+                                              ))}
+                                              <Input
+                                                className="h-7 w-40 text-xs"
+                                                placeholder="Add option, press Enter"
+                                                value={draftOpt}
+                                                onChange={(e) =>
+                                                  setNewOptionByGroup((p) => ({
+                                                    ...p,
+                                                    [group.id]: e.target.value,
+                                                  }))
+                                                }
+                                                onKeyDown={(e) => {
+                                                  if (e.key === "Enter") {
+                                                    e.preventDefault();
+                                                    addConditionOption(group.id);
+                                                  }
+                                                }}
+                                              />
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
                                   </div>
                                 </div>
                               )}
