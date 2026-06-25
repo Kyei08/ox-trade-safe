@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Loader2, Upload, X } from "lucide-react";
+import { Loader2, Upload, X, RefreshCw } from "lucide-react";
 import { compressImages } from "@/lib/imageCompression";
 
 const DELIVERY_OPTIONS = [
@@ -61,6 +61,9 @@ const EditListing = () => {
   const [fetching, setFetching] = useState(true);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [replacingIndex, setReplacingIndex] = useState<number | null>(null);
+  const replaceInputRef = useRef<HTMLInputElement | null>(null);
+  const replaceTargetIndexRef = useRef<number | null>(null);
   const [pendingPreviews, setPendingPreviews] = useState<
     { id: string; url: string; name: string; status: "compressing" | "uploading" | "error"; error?: string }[]
   >([]);
@@ -303,6 +306,69 @@ const EditListing = () => {
       toast.error("Failed to remove image");
     }
   };
+
+  const triggerReplace = (index: number) => {
+    replaceTargetIndexRef.current = index;
+    replaceInputRef.current?.click();
+  };
+
+  const handleReplaceImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const file = input.files?.[0];
+    const index = replaceTargetIndexRef.current;
+    input.value = "";
+    replaceTargetIndexRef.current = null;
+    if (!file || index === null || !user) return;
+
+    const oldUrl = uploadedImages[index];
+    if (!oldUrl) return;
+
+    setReplacingIndex(index);
+    try {
+      const [compressed] = await compressImages([file], {
+        maxWidth: 1920,
+        maxHeight: 1920,
+        quality: 0.8,
+        maxSizeMB: 1,
+      });
+
+      const fileName = `${user.id}/${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(2)}.jpg`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("listing-images")
+        .upload(fileName, compressed, { contentType: "image/jpeg", upsert: false });
+
+      if (uploadError) throw uploadError;
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("listing-images").getPublicUrl(fileName);
+
+      setUploadedImages((prev) => prev.map((u, i) => (i === index ? publicUrl : u)));
+
+      // Best-effort delete of the old file
+      try {
+        const parts = oldUrl.split("/listing-images/");
+        if (parts.length > 1) {
+          await supabase.storage
+            .from("listing-images")
+            .remove([parts[1].split("?")[0]]);
+        }
+      } catch {
+        /* ignore */
+      }
+
+      toast.success("Image replaced");
+    } catch (err: any) {
+      console.error("Image replace failed", err);
+      toast.error(err?.message || "Failed to replace image");
+    } finally {
+      setReplacingIndex(null);
+    }
+  };
+
 
   const onSubmit = async (values: EditListingFormValues) => {
     if (!user || !id) return;
@@ -602,23 +668,50 @@ const EditListing = () => {
 
                     {(uploadedImages.length > 0 || pendingPreviews.length > 0) && (
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {uploadedImages.map((url, index) => (
-                          <div key={url} className="relative group aspect-square">
-                            <img
-                              src={url}
-                              alt={`Product ${index + 1}`}
-                              className="w-full h-full object-cover rounded-lg border"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removeImage(url)}
-                              className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                              aria-label="Remove image"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ))}
+                        {uploadedImages.map((url, index) => {
+                          const isReplacing = replacingIndex === index;
+                          return (
+                            <div key={url} className="relative group aspect-square">
+                              <img
+                                src={url}
+                                alt={`Product ${index + 1}`}
+                                className={`w-full h-full object-cover rounded-lg border ${
+                                  isReplacing ? "opacity-50" : ""
+                                }`}
+                              />
+                              {isReplacing && (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-background/40 rounded-lg">
+                                  <Loader2 className="w-5 h-5 animate-spin text-foreground" />
+                                  <span className="text-[10px] uppercase tracking-wide text-foreground/80">
+                                    Replacing
+                                  </span>
+                                </div>
+                              )}
+                              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                                <button
+                                  type="button"
+                                  onClick={() => triggerReplace(index)}
+                                  disabled={isReplacing || uploading}
+                                  className="p-1 bg-background/90 text-foreground rounded-full border shadow-sm disabled:opacity-50"
+                                  aria-label="Replace image"
+                                  title="Replace image"
+                                >
+                                  <RefreshCw className="w-4 h-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => removeImage(url)}
+                                  disabled={isReplacing}
+                                  className="p-1 bg-destructive text-destructive-foreground rounded-full disabled:opacity-50"
+                                  aria-label="Remove image"
+                                  title="Remove image"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
                         {pendingPreviews.map((p) => (
                           <div
                             key={p.id}
@@ -691,6 +784,14 @@ const EditListing = () => {
                         </label>
                       </div>
                     )}
+
+                    <input
+                      ref={replaceInputRef}
+                      type="file"
+                      className="hidden"
+                      accept="image/*,image/heic,image/heif"
+                      onChange={handleReplaceImage}
+                    />
                   </div>
 
                   <div className="flex gap-4">
