@@ -234,8 +234,8 @@ const AdminCategories = () => {
     }
     setSubsByCat(grouped);
 
-    const groups = (groupsRes.data as ConditionGroup[]) || [];
-    const options = (optionsRes.data as ConditionOption[]) || [];
+    const groups = ((groupsRes.data as unknown) as ConditionGroup[]) || [];
+    const options = ((optionsRes.data as unknown) as ConditionOption[]) || [];
     const groupedG: Record<string, ConditionGroup[]> = {};
     for (const c of cats) groupedG[c.id] = [];
     for (const g of groups) {
