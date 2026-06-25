@@ -591,6 +591,7 @@ const CreateListing = () => {
       }
 
 
+      if (user) clearDraft(user.id);
       toast.success("Listing created successfully!");
       navigate("/dashboard");
     } catch (error: any) {
