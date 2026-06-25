@@ -16,6 +16,11 @@ import { formatZAR } from "@/lib/currency";
 import { trackEvent } from "@/lib/analytics";
 import DynamicConditionFilters from "@/components/DynamicConditionFilters";
 import { cacheGet, cacheSet, filterKey } from "@/lib/filterCache";
+import {
+  parseConditionIds,
+  serializeConditionIds,
+  sameConditionSet,
+} from "@/lib/conditionsUrl";
 
 interface Listing {
   id: string;
@@ -76,8 +81,8 @@ const Listings = () => {
   const [selectedSubcategory, setSelectedSubcategory] = useState(searchParams.get("subcategory") || "all");
   const [listingType, setListingType] = useState(searchParams.get("type") || "all");
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "newest");
-  const [selectedOptionIds, setSelectedOptionIds] = useState<string[]>(
-    (searchParams.get("conditions") || "").split(",").filter(Boolean)
+  const [selectedOptionIds, setSelectedOptionIds] = useState<string[]>(() =>
+    parseConditionIds(searchParams.get("conditions"))
   );
 
   useEffect(() => {
@@ -98,18 +103,12 @@ const Listings = () => {
     setSelectedCategory(cat);
     setSelectedSubcategory(sub);
 
-    const urlConditions = (searchParams.get("conditions") || "")
-      .split(",")
-      .filter(Boolean);
-    setSelectedOptionIds((prev) => {
-      if (
-        prev.length === urlConditions.length &&
-        prev.every((id, i) => id === urlConditions[i])
-      ) {
-        return prev;
-      }
-      return urlConditions;
-    });
+    // Canonical parse: dedupes, validates UUIDs, sorts. Garbage tokens are dropped,
+    // so we never ship malformed ids into the IN(...) filter.
+    const urlConditions = parseConditionIds(searchParams.get("conditions"));
+    setSelectedOptionIds((prev) =>
+      sameConditionSet(prev, urlConditions) ? prev : urlConditions
+    );
   }, [searchParams]);
 
   // Load subcategories whenever the selected category changes
@@ -326,10 +325,11 @@ const Listings = () => {
         next = wasActive ? prev.filter((id) => id !== optionId) : [...prev, optionId];
       }
       const params = new URLSearchParams(searchParams);
-      if (next.length === 0) {
+      const canonical = serializeConditionIds(next);
+      if (canonical === null) {
         params.delete("conditions");
       } else {
-        params.set("conditions", next.join(","));
+        params.set("conditions", canonical);
       }
       setSearchParams(params);
       trackEvent("listings_condition_toggled", { option_id: optionId, active: !wasActive });
