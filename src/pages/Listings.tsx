@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Search, Filter, Clock, MapPin, Eye, User, ArrowUp, ArrowDown } from "lucide-react";
 import { formatZAR } from "@/lib/currency";
 import { trackEvent } from "@/lib/analytics";
+import DynamicConditionFilters from "@/components/DynamicConditionFilters";
 
 interface Listing {
   id: string;
@@ -66,6 +67,10 @@ const Listings = () => {
   const [selectedSubcategory, setSelectedSubcategory] = useState(searchParams.get("subcategory") || "all");
   const [listingType, setListingType] = useState(searchParams.get("type") || "all");
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "newest");
+  const [selectedOptionIds, setSelectedOptionIds] = useState<string[]>(
+    (searchParams.get("conditions") || "").split(",").filter(Boolean)
+  );
+
 
 
   useEffect(() => {
@@ -74,7 +79,7 @@ const Listings = () => {
 
   useEffect(() => {
     fetchListings();
-  }, [selectedCategory, selectedSubcategory, listingType, sortBy]);
+  }, [selectedCategory, selectedSubcategory, listingType, sortBy, selectedOptionIds]);
 
   // Sync search params -> state (e.g. when arriving via homepage category card)
   useEffect(() => {
@@ -120,6 +125,21 @@ const Listings = () => {
     try {
       setLoading(true);
 
+      // If condition chips are selected, get the listing_ids matching ANY of them
+      let conditionListingIds: string[] | null = null;
+      if (selectedOptionIds.length > 0) {
+        const { data: lc } = await supabase
+          .from("listing_conditions")
+          .select("listing_id")
+          .in("option_id", selectedOptionIds);
+        conditionListingIds = Array.from(new Set((lc || []).map((r: any) => r.listing_id)));
+        if (conditionListingIds.length === 0) {
+          setListings([]);
+          setLoading(false);
+          return;
+        }
+      }
+
       let query = supabase
         .from("listings")
         .select(`
@@ -130,6 +150,11 @@ const Listings = () => {
           )
         `)
         .eq("status", "active");
+
+      if (conditionListingIds) {
+        query = query.in("id", conditionListingIds);
+      }
+
 
       // Apply category filter
       if (selectedCategory !== "all") {
@@ -205,6 +230,7 @@ const Listings = () => {
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
     setSelectedSubcategory("all"); // reset subcategory when category changes
+    setSelectedOptionIds([]); // reset condition chips when category changes
     const params = new URLSearchParams(searchParams);
     if (value === "all") {
       params.delete("category");
@@ -212,8 +238,27 @@ const Listings = () => {
       params.set("category", value);
     }
     params.delete("subcategory");
+    params.delete("conditions");
     setSearchParams(params);
   };
+
+  const toggleConditionOption = (optionId: string) => {
+    setSelectedOptionIds((prev) => {
+      const next = prev.includes(optionId)
+        ? prev.filter((id) => id !== optionId)
+        : [...prev, optionId];
+      const params = new URLSearchParams(searchParams);
+      if (next.length === 0) {
+        params.delete("conditions");
+      } else {
+        params.set("conditions", next.join(","));
+      }
+      setSearchParams(params);
+      trackEvent("listings_condition_toggled", { option_id: optionId, active: !prev.includes(optionId) });
+      return next;
+    });
+  };
+
 
   const handleSubcategoryChange = (value: string) => {
     setSelectedSubcategory(value);
@@ -413,7 +458,15 @@ const Listings = () => {
                 ))}
               </div>
             )}
+
+            {/* Dynamic Condition Filters */}
+            <DynamicConditionFilters
+              categoryId={selectedCategory}
+              selectedOptionIds={selectedOptionIds}
+              onToggle={toggleConditionOption}
+            />
           </div>
+
 
           {/* Results Count */}
           <div className="mb-6">
@@ -446,6 +499,7 @@ const Listings = () => {
                   setSelectedCategory("all");
                   setListingType("all");
                   setSortBy("newest");
+                  setSelectedOptionIds([]);
                   setSearchParams({});
                   fetchListings();
                 }}>
