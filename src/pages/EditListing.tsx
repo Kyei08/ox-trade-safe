@@ -203,6 +203,24 @@ const EditListing = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Persist failed-replace markers keyed by image URL so they survive navigation
+  useEffect(() => {
+    if (!id) return;
+    const key = `editListing:replaceErrors:${id}`;
+    const entries = Object.entries(replaceErrors)
+      .map(([idx, msg]) => [uploadedImages[Number(idx)], msg] as const)
+      .filter(([url]) => !!url);
+    try {
+      if (entries.length === 0) {
+        sessionStorage.removeItem(key);
+      } else {
+        sessionStorage.setItem(key, JSON.stringify(Object.fromEntries(entries)));
+      }
+    } catch {
+      /* ignore quota */
+    }
+  }, [replaceErrors, uploadedImages, id]);
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target;
     if (!input.files || !user) return;
