@@ -55,6 +55,11 @@ interface Subcategory {
   sort_order: number;
 }
 
+const PAGE_SIZE = 24;
+
+type SortField = "created_at" | "auction_ends_at" | "fixed_price";
+type Cursor = { sortField: SortField; sortValue: string | number; id: string } | null;
+
 const Listings = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -62,6 +67,9 @@ const Listings = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [cursor, setCursor] = useState<Cursor>(null);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "all");
   const [selectedSubcategory, setSelectedSubcategory] = useState(searchParams.get("subcategory") || "all");
@@ -71,14 +79,15 @@ const Listings = () => {
     (searchParams.get("conditions") || "").split(",").filter(Boolean)
   );
 
-
-
   useEffect(() => {
     fetchCategories();
   }, []);
 
   useEffect(() => {
-    fetchListings();
+    setCursor(null);
+    setHasMore(true);
+    fetchListings("replace", null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory, selectedSubcategory, listingType, sortBy, selectedOptionIds]);
 
   // Sync search params -> state (e.g. when arriving via homepage category card or back/forward nav)
