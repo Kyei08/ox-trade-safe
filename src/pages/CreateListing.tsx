@@ -1167,8 +1167,7 @@ const CreateListing = () => {
                       type="button"
                       variant="secondary"
                       onClick={() => {
-                        toast({
-                          title: "Draft saved",
+                        toast.success("Draft saved", {
                           description: "Your progress is saved on this device. Pick up where you left off anytime.",
                         });
                         navigate("/listings");
