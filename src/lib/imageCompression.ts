@@ -25,11 +25,20 @@ export const compressImage = (
       return;
     }
 
-    // Skip if already small enough
-    if (opts.maxSizeMB && file.size <= opts.maxSizeMB * 1024 * 1024) {
+    // Detect HEIC/HEIF (iOS default camera format) — always re-encode to JPEG
+    const isHeic =
+      /heic|heif/i.test(file.type) || /\.(heic|heif)$/i.test(file.name);
+
+    // Skip if already small enough AND not HEIC (HEIC must be converted)
+    if (
+      !isHeic &&
+      opts.maxSizeMB &&
+      file.size <= opts.maxSizeMB * 1024 * 1024
+    ) {
       resolve(file);
       return;
     }
+
 
     const img = new Image();
     const canvas = document.createElement("canvas");
