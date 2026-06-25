@@ -27,9 +27,13 @@ import {
   Pencil,
   Plus,
   Save,
+  Tag,
   Trash2,
   X,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   DndContext,
   DragEndEvent,
