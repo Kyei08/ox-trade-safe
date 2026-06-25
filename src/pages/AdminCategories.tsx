@@ -1021,14 +1021,37 @@ const AdminCategories = () => {
                                                   className="gap-1 pr-1"
                                                 >
                                                   {o.name}
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => deleteConditionOption(o)}
-                                                    className="rounded-full hover:bg-background/60 p-0.5"
-                                                    aria-label={`Remove ${o.name}`}
-                                                  >
-                                                    <X className="w-3 h-3" />
-                                                  </button>
+                                                  <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                      <button
+                                                        type="button"
+                                                        className="rounded-full hover:bg-background/60 p-0.5"
+                                                        aria-label={`Remove ${o.name}`}
+                                                      >
+                                                        <X className="w-3 h-3" />
+                                                      </button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                      <AlertDialogHeader>
+                                                        <AlertDialogTitle>
+                                                          Remove option "{o.name}"?
+                                                        </AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                          This option will no longer be available
+                                                          for sellers to choose in the "{group.name}"
+                                                          group. This cannot be undone.
+                                                        </AlertDialogDescription>
+                                                      </AlertDialogHeader>
+                                                      <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction
+                                                          onClick={() => deleteConditionOption(o)}
+                                                        >
+                                                          Remove
+                                                        </AlertDialogAction>
+                                                      </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                  </AlertDialog>
                                                 </Badge>
                                               ))}
                                               <Input
