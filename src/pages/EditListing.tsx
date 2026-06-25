@@ -156,7 +156,23 @@ const EditListing = () => {
 
       setListingType(data.listing_type);
       setListingStatus(data.status);
-      setUploadedImages(data.images || []);
+      const images: string[] = data.images || [];
+      setUploadedImages(images);
+
+      // Restore persisted replace-failure markers (keyed by image URL)
+      try {
+        const raw = sessionStorage.getItem(`editListing:replaceErrors:${id}`);
+        if (raw) {
+          const byUrl = JSON.parse(raw) as Record<string, string>;
+          const restored: Record<number, string> = {};
+          images.forEach((url, i) => {
+            if (byUrl[url]) restored[i] = byUrl[url];
+          });
+          if (Object.keys(restored).length) setReplaceErrors(restored);
+        }
+      } catch {
+        /* ignore */
+      }
 
       form.reset({
         title: data.title,
