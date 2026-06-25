@@ -56,6 +56,28 @@ const Header = () => {
     }
   }, [location.pathname]);
 
+  // Hide-on-scroll (mobile only)
+  const [hidden, setHidden] = useState(false);
+  const lastY = useRef(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      const delta = y - lastY.current;
+      if (mobileMenuOpen) {
+        setHidden(false);
+      } else if (y < 80) {
+        setHidden(false);
+      } else if (delta > 6) {
+        setHidden(true);
+      } else if (delta < -6) {
+        setHidden(false);
+      }
+      lastY.current = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [mobileMenuOpen]);
+
   const handleSignOut = async () => {
     const { error } = await signOut();
     if (error) {
@@ -71,7 +93,11 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border pt-[env(safe-area-inset-top)]">
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border pt-[env(safe-area-inset-top)] transition-transform duration-300 will-change-transform ${
+        hidden ? "-translate-y-full md:translate-y-0" : "translate-y-0"
+      }`}
+    >
       <div className="container px-3 sm:px-4">
         <div className="flex items-center justify-between h-14 sm:h-28 gap-2">
           {/* Logo */}
