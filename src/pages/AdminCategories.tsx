@@ -336,6 +336,29 @@ const AdminCategories = () => {
     }));
   };
 
+  const persistOptionOrder = async (groupId: string, ordered: ConditionOption[]) => {
+    const prev = optionsByGroup[groupId] || [];
+    const updated = ordered.map((o, i) => ({ ...o, sort_order: i + 1 }));
+    setOptionsByGroup((p) => ({ ...p, [groupId]: updated }));
+    const { error } = await supabase
+      .from("category_condition_options" as any)
+      .upsert(updated);
+    if (error) {
+      toast.error("Failed to save option order");
+      setOptionsByGroup((p) => ({ ...p, [groupId]: prev }));
+    }
+  };
+
+  const onOptionDragEnd = (groupId: string) => (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const list = optionsByGroup[groupId] || [];
+    const oldIndex = list.findIndex((o) => o.id === active.id);
+    const newIndex = list.findIndex((o) => o.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    persistOptionOrder(groupId, arrayMove(list, oldIndex, newIndex));
+  };
+
   // -------- Category operations --------
   const startEditCat = (c: Category) => {
     setEditingCatId(c.id);
