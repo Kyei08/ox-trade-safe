@@ -940,7 +940,7 @@ const AdminCategories = () => {
                                             key={group.id}
                                             className="rounded-md border border-border bg-muted/30 p-3 space-y-3"
                                           >
-                                            <div className="grid gap-2 sm:grid-cols-[1fr_140px_120px_auto] items-center">
+                                            <div className="grid gap-2 sm:grid-cols-[1fr_200px_120px_auto] items-start">
                                               <Input
                                                 className="h-8"
                                                 placeholder="Group name (e.g. Brand New)"
@@ -961,26 +961,85 @@ const AdminCategories = () => {
                                                   })
                                                 }
                                               />
-                                              <Input
-                                                className="h-8"
-                                                placeholder="Icon (Sparkles)"
-                                                value={group.icon || ""}
-                                                onChange={(e) =>
-                                                  setGroupsByCat((p) => ({
-                                                    ...p,
-                                                    [cat.id]: (p[cat.id] || []).map((g) =>
-                                                      g.id === group.id
-                                                        ? { ...g, icon: e.target.value }
-                                                        : g,
-                                                    ),
-                                                  }))
-                                                }
-                                                onBlur={(e) =>
-                                                  updateConditionGroup(group, {
-                                                    icon: e.target.value.trim() || null,
-                                                  })
-                                                }
-                                              />
+                                              {(() => {
+                                                const raw = group.icon || "";
+                                                const trimmed = raw.trim();
+                                                const IconCmp = resolveLucideIcon(trimmed);
+                                                const isInvalid = trimmed.length > 0 && !IconCmp;
+                                                return (
+                                                  <div className="space-y-1">
+                                                    <div className="flex items-center gap-1.5">
+                                                      <div
+                                                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md border ${
+                                                          isInvalid
+                                                            ? "border-destructive/50 text-destructive"
+                                                            : "border-border text-muted-foreground"
+                                                        } bg-background`}
+                                                        aria-label={
+                                                          IconCmp
+                                                            ? `Icon preview: ${trimmed}`
+                                                            : "No icon preview"
+                                                        }
+                                                      >
+                                                        {IconCmp ? (
+                                                          <IconCmp className="w-4 h-4" />
+                                                        ) : (
+                                                          <HelpCircle className="w-4 h-4 opacity-60" />
+                                                        )}
+                                                      </div>
+                                                      <Input
+                                                        className={`h-8 ${
+                                                          isInvalid
+                                                            ? "border-destructive focus-visible:ring-destructive"
+                                                            : ""
+                                                        }`}
+                                                        placeholder="Icon (e.g. Sparkles)"
+                                                        value={raw}
+                                                        aria-invalid={isInvalid}
+                                                        onChange={(e) =>
+                                                          setGroupsByCat((p) => ({
+                                                            ...p,
+                                                            [cat.id]: (p[cat.id] || []).map((g) =>
+                                                              g.id === group.id
+                                                                ? { ...g, icon: e.target.value }
+                                                                : g,
+                                                            ),
+                                                          }))
+                                                        }
+                                                        onBlur={(e) => {
+                                                          const v = e.target.value.trim();
+                                                          if (v.length > 0 && !resolveLucideIcon(v)) {
+                                                            toast.error(
+                                                              `"${v}" isn't a Lucide icon. Try names like Sparkles, RefreshCw, Handshake.`,
+                                                            );
+                                                            return;
+                                                          }
+                                                          updateConditionGroup(group, {
+                                                            icon: v || null,
+                                                          });
+                                                        }}
+                                                      />
+                                                    </div>
+                                                    {isInvalid ? (
+                                                      <p className="text-[10px] leading-tight text-destructive">
+                                                        Not a Lucide icon name.
+                                                      </p>
+                                                    ) : (
+                                                      <p className="text-[10px] leading-tight text-muted-foreground">
+                                                        See{" "}
+                                                        <a
+                                                          href="https://lucide.dev/icons"
+                                                          target="_blank"
+                                                          rel="noreferrer"
+                                                          className="underline hover:text-foreground"
+                                                        >
+                                                          lucide.dev/icons
+                                                        </a>
+                                                      </p>
+                                                    )}
+                                                  </div>
+                                                );
+                                              })()}
                                               <Input
                                                 type="number"
                                                 className="h-8"
