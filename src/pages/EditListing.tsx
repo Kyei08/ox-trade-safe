@@ -896,32 +896,28 @@ const EditListing = () => {
                     />
                   )}
 
-                  {/* Condition */}
-                  <FormField
-                    control={form.control}
-                    name="condition"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Condition *</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select condition" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="new">New</SelectItem>
-                            <SelectItem value="like-new">Like New</SelectItem>
-                            <SelectItem value="excellent">Excellent</SelectItem>
-                            <SelectItem value="good">Good</SelectItem>
-                            <SelectItem value="fair">Fair</SelectItem>
-                            <SelectItem value="poor">Poor</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
+                  {/* Condition (dynamic per category) */}
+                  <FormItem>
+                    <FormLabel>Condition *</FormLabel>
+                    <ConditionSelector
+                      categoryId={selectedCategoryId || null}
+                      value={selectedCondition?.optionId ?? null}
+                      onChange={(sel) => {
+                        setSelectedCondition(sel);
+                        form.setValue("condition_option_id", sel?.optionId ?? undefined, {
+                          shouldValidate: true,
+                        });
+                        form.setValue("condition", sel?.optionName ?? "");
+                      }}
+                      onGroupsLoaded={setHasConditionGroups}
+                    />
+                    {hasConditionGroups && !selectedCondition && (
+                      <p className="text-sm font-medium text-destructive mt-1">
+                        Please select a condition.
+                      </p>
                     )}
-                  />
+                  </FormItem>
+
 
                   {/* Location */}
                   <FormField
