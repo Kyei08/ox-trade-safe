@@ -313,12 +313,37 @@ const EditListing = () => {
         /* ignore */
       }
 
+      originalCategoryIdRef.current = data.category_id || null;
+
+      // Load existing dynamic condition selection (listing_conditions row), if any.
+      let existingOptionId: string | undefined;
+      try {
+        const { data: lc } = await supabase
+          .from("listing_conditions")
+          .select("option_id, category_condition_options!inner(id, name, slug, group_id)")
+          .eq("listing_id", id)
+          .maybeSingle();
+        if (lc && (lc as any).category_condition_options) {
+          const opt = (lc as any).category_condition_options;
+          existingOptionId = opt.id;
+          setSelectedCondition({
+            optionId: opt.id,
+            optionName: opt.name,
+            optionSlug: opt.slug,
+            groupId: opt.group_id,
+          });
+        }
+      } catch {
+        /* no dynamic condition yet — fine for legacy listings */
+      }
+
       form.reset({
         title: data.title,
         description: data.description,
         category_id: data.category_id || "",
         subcategory_id: (data as any).subcategory_id || "",
         condition: data.condition || "",
+        condition_option_id: existingOptionId,
         location: data.location || "",
         delivery_options: data.delivery_options || [],
         fixed_price: data.fixed_price?.toString() || "",
