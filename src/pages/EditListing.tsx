@@ -969,21 +969,31 @@ const EditListing = () => {
                                 </div>
                               )}
                               {!isReplacing && replaceError && (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/85 rounded-lg p-2 text-center">
-                                  <span className="text-[10px] uppercase tracking-wide font-medium text-destructive">
-                                    Replace failed
+                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-background/90 rounded-lg p-2 text-center">
+                                  <span className="text-[10px] uppercase tracking-wide font-semibold text-destructive">
+                                    {replaceError.title}
                                   </span>
-                                  <span className="text-[10px] text-muted-foreground line-clamp-2">
-                                    {replaceError}
+                                  <span className="text-[10px] text-foreground/80 line-clamp-3 leading-snug">
+                                    {replaceError.hint}
                                   </span>
-                                  <div className="flex flex-wrap gap-1 justify-center">
-                                    <button
-                                      type="button"
-                                      onClick={() => retryReplace(index)}
-                                      className="px-2 py-0.5 rounded-md bg-primary text-primary-foreground text-[10px] font-medium"
+                                  {replaceError.detail && (
+                                    <span
+                                      className="text-[9px] text-muted-foreground line-clamp-1"
+                                      title={replaceError.detail}
                                     >
-                                      Retry
-                                    </button>
+                                      {replaceError.detail}
+                                    </span>
+                                  )}
+                                  <div className="flex flex-wrap gap-1 justify-center pt-0.5">
+                                    {replaceError.kind !== "validation" && (
+                                      <button
+                                        type="button"
+                                        onClick={() => retryReplace(index)}
+                                        className="px-2 py-0.5 rounded-md bg-primary text-primary-foreground text-[10px] font-medium"
+                                      >
+                                        Retry
+                                      </button>
+                                    )}
                                     <button
                                       type="button"
                                       onClick={() => {
