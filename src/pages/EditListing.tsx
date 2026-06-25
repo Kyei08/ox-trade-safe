@@ -1136,17 +1136,30 @@ const EditListing = () => {
 
                     {batchProgress && batchProgress.total > 0 && (
                       <div className="space-y-1.5 rounded-md border bg-muted/30 p-3">
-                        <div className="flex items-center justify-between text-xs font-medium">
+                        <div className="flex items-center justify-between gap-2 text-xs font-medium">
                           <span className="flex items-center gap-2">
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            Uploading images
+                            {cancelling ? "Cancelling…" : "Uploading images"}
                           </span>
-                          <span className="tabular-nums text-muted-foreground">
-                            {batchProgress.done} / {batchProgress.total}
-                            <span className="ml-2 text-foreground">
-                              {Math.round((batchProgress.done / batchProgress.total) * 100)}%
+                          <div className="flex items-center gap-3">
+                            <span className="tabular-nums text-muted-foreground">
+                              {batchProgress.done} / {batchProgress.total}
+                              <span className="ml-2 text-foreground">
+                                {Math.round((batchProgress.done / batchProgress.total) * 100)}%
+                              </span>
                             </span>
-                          </span>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="h-7 px-2 text-xs"
+                              onClick={cancelBatchUpload}
+                              disabled={cancelling}
+                            >
+                              <X className="h-3.5 w-3.5 mr-1" />
+                              Cancel
+                            </Button>
+                          </div>
                         </div>
                         <Progress
                           value={(batchProgress.done / batchProgress.total) * 100}
