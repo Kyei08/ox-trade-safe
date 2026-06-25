@@ -125,6 +125,21 @@ const Listings = () => {
     try {
       setLoading(true);
 
+      // If condition chips are selected, get the listing_ids matching ANY of them
+      let conditionListingIds: string[] | null = null;
+      if (selectedOptionIds.length > 0) {
+        const { data: lc } = await supabase
+          .from("listing_conditions")
+          .select("listing_id")
+          .in("option_id", selectedOptionIds);
+        conditionListingIds = Array.from(new Set((lc || []).map((r: any) => r.listing_id)));
+        if (conditionListingIds.length === 0) {
+          setListings([]);
+          setLoading(false);
+          return;
+        }
+      }
+
       let query = supabase
         .from("listings")
         .select(`
@@ -135,6 +150,11 @@ const Listings = () => {
           )
         `)
         .eq("status", "active");
+
+      if (conditionListingIds) {
+        query = query.in("id", conditionListingIds);
+      }
+
 
       // Apply category filter
       if (selectedCategory !== "all") {
