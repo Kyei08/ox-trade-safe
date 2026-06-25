@@ -312,6 +312,7 @@ const CreateListing = () => {
   const discardDraft = () => {
     if (!user) return;
     clearDraft(user.id);
+    void clearRemoteDraft(user.id);
     form.reset({
       title: "",
       description: "",
