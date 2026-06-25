@@ -293,6 +293,7 @@ const CreateListing = () => {
       }
     } finally {
       setUploading(false);
+      setBatchProgress(null);
     }
   };
 
