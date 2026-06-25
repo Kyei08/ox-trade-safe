@@ -369,6 +369,12 @@ const CreateListing = () => {
   const onSubmit = async (values: ListingFormValues) => {
     if (!user) return;
 
+    // Enforce dynamic condition selection when this category has groups
+    if (hasConditionGroups && !selectedCondition) {
+      toast.error("Please select a condition for this item");
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -379,7 +385,7 @@ const CreateListing = () => {
         subcategory_id: values.subcategory_id || null,
 
         listing_type: values.listing_type,
-        condition: values.condition,
+        condition: selectedCondition?.optionName || values.condition || null,
         location: values.location,
         seller_id: user.id,
         status: "active",
@@ -411,6 +417,17 @@ const CreateListing = () => {
         .single();
 
       if (error) throw error;
+
+      // Persist dynamic condition selection into the junction table
+      if (data && selectedCondition) {
+        const { error: condErr } = await supabase
+          .from("listing_conditions")
+          .insert([{ listing_id: data.id, option_id: selectedCondition.optionId }]);
+        if (condErr) {
+          console.error("Failed to save condition:", condErr);
+        }
+      }
+
 
       toast.success("Listing created successfully!");
       navigate("/dashboard");
