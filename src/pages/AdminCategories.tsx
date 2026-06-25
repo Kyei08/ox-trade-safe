@@ -1094,18 +1094,33 @@ const AdminCategories = () => {
                                                       </div>
                                                       <IconPicker
                                                         value={trimmed || null}
-                                                        onChange={(name) => {
+                                                        onChange={async (name) => {
+                                                          // Normalize to canonical PascalCase Lucide name
+                                                          const canonical = name
+                                                            ? toPascalIconName(name)
+                                                            : null;
                                                           setGroupsByCat((p) => ({
                                                             ...p,
                                                             [cat.id]: (p[cat.id] || []).map((g) =>
                                                               g.id === group.id
-                                                                ? { ...g, icon: name || "" }
+                                                                ? { ...g, icon: canonical || "" }
                                                                 : g,
                                                             ),
                                                           }));
-                                                          updateConditionGroup(group, {
-                                                            icon: name,
-                                                          });
+                                                          try {
+                                                            await updateConditionGroup(group, {
+                                                              icon: canonical,
+                                                            });
+                                                            toast.success(
+                                                              canonical
+                                                                ? `Icon "${canonical}" saved`
+                                                                : "Icon cleared",
+                                                            );
+                                                          } catch (err: any) {
+                                                            toast.error(
+                                                              err?.message || "Failed to save icon",
+                                                            );
+                                                          }
                                                         }}
                                                       />
                                                       <Input
