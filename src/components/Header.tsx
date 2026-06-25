@@ -102,13 +102,13 @@ const Header = () => {
         <div className="flex items-center justify-between h-14 sm:h-28 gap-2">
           {/* Logo */}
           <div className="flex items-center gap-4 lg:gap-8 min-w-0 flex-1">
-            <Link to="/" className="flex items-center gap-2 min-w-0" aria-label="OX Marketplace home">
+            <Link to="/" className="flex items-center gap-2 shrink-0 max-w-none" aria-label="OX Marketplace home">
               <img
                 src={oxLogo.url}
                 alt="OX"
                 className="h-10 sm:h-24 w-auto shrink-0 object-contain"
               />
-              <span className="hidden lg:inline text-xl font-bold truncate">Marketplace</span>
+              <span className="hidden lg:inline text-xl font-bold whitespace-nowrap shrink-0">Marketplace</span>
             </Link>
 
 
