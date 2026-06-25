@@ -772,7 +772,7 @@ const CreateListing = () => {
                       </FormDescription>
                     </div>
 
-                    {uploadedImages.length > 0 && (
+                    {(uploadedImages.length > 0 || pendingPreviews.length > 0) && (
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {uploadedImages.map((url, index) => (
                           <div key={url} className="relative group aspect-square">
@@ -785,6 +785,49 @@ const CreateListing = () => {
                               type="button"
                               onClick={() => removeImage(url)}
                               className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                              aria-label="Remove image"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                        {pendingPreviews.map((p) => (
+                          <div
+                            key={p.id}
+                            className="relative aspect-square rounded-lg border bg-muted overflow-hidden"
+                          >
+                            {p.url ? (
+                              <img
+                                src={p.url}
+                                alt={p.name}
+                                className={`w-full h-full object-cover ${
+                                  p.status === "error" ? "opacity-40" : "opacity-70"
+                                }`}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground px-2 text-center">
+                                Preparing preview…
+                              </div>
+                            )}
+                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-background/40">
+                              {p.status === "error" ? (
+                                <span className="text-xs font-medium text-destructive px-2 text-center">
+                                  {p.error || "Failed"}
+                                </span>
+                              ) : (
+                                <>
+                                  <Loader2 className="w-5 h-5 animate-spin text-foreground" />
+                                  <span className="text-[10px] uppercase tracking-wide text-foreground/80">
+                                    {p.status === "compressing" ? "Compressing" : "Uploading"}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => dismissPendingPreview(p.id)}
+                              className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full"
+                              aria-label="Dismiss"
                             >
                               <X className="w-4 h-4" />
                             </button>
