@@ -325,10 +325,11 @@ const Listings = () => {
         next = wasActive ? prev.filter((id) => id !== optionId) : [...prev, optionId];
       }
       const params = new URLSearchParams(searchParams);
-      if (next.length === 0) {
+      const canonical = serializeConditionIds(next);
+      if (canonical === null) {
         params.delete("conditions");
       } else {
-        params.set("conditions", next.join(","));
+        params.set("conditions", canonical);
       }
       setSearchParams(params);
       trackEvent("listings_condition_toggled", { option_id: optionId, active: !wasActive });
