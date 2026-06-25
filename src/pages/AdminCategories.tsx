@@ -163,6 +163,11 @@ const AdminCategories = () => {
   const [subDraft, setSubDraft] = useState<{ name: string; slug: string }>({ name: "", slug: "" });
   const [newSubByCat, setNewSubByCat] = useState<Record<string, { name: string; slug: string }>>({});
 
+  // Condition groups & options state
+  const [groupsByCat, setGroupsByCat] = useState<Record<string, ConditionGroup[]>>({});
+  const [optionsByGroup, setOptionsByGroup] = useState<Record<string, ConditionOption[]>>({});
+  const [newOptionByGroup, setNewOptionByGroup] = useState<Record<string, string>>({});
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
