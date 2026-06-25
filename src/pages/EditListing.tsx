@@ -61,8 +61,98 @@ const failedReplaceFiles: Map<string, File> = new Map();
 const failedFileKey = (listingId: string | undefined, url: string | undefined) =>
   listingId && url ? `${listingId}::${url}` : "";
 
+// Structured replacement-error so each failed tile can explain what went wrong
+// and what the user can do next.
+type ReplaceErrorKind =
+  | "validation"
+  | "compression"
+  | "upload"
+  | "network"
+  | "permission"
+  | "unknown";
+type ReplaceError = {
+  kind: ReplaceErrorKind;
+  title: string;
+  hint: string;
+  detail?: string;
+};
 
+const ALLOWED_REPLACE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/heic", "image/heif"];
+const MAX_REPLACE_BYTES = 25 * 1024 * 1024; // 25 MB pre-compression cap
 
+function validateReplacementFile(file: File): ReplaceError | null {
+  const typeOk = ALLOWED_REPLACE_TYPES.includes(file.type) || /\.(jpe?g|png|webp|heic|heif)$/i.test(file.name);
+  if (!typeOk) {
+    return {
+      kind: "validation",
+      title: "Unsupported file type",
+      hint: "Pick a JPG, PNG, WEBP, or HEIC image.",
+      detail: file.type || file.name,
+    };
+  }
+  if (file.size > MAX_REPLACE_BYTES) {
+    return {
+      kind: "validation",
+      title: "Image is too large",
+      hint: "Choose a photo under 25 MB, or shrink it before uploading.",
+      detail: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+    };
+  }
+  if (file.size === 0) {
+    return {
+      kind: "validation",
+      title: "Empty file",
+      hint: "The selected file has no content. Pick a different image.",
+    };
+  }
+  return null;
+}
+
+function classifyReplaceError(err: any, stage: "compression" | "upload"): ReplaceError {
+  const raw = (err?.message || String(err || "")).toString();
+  const lower = raw.toLowerCase();
+  const detail = raw.slice(0, 200);
+
+  if (stage === "compression") {
+    return {
+      kind: "compression",
+      title: "Couldn't process this image",
+      hint: "The file may be corrupted. Try a different photo or re-export it as JPG.",
+      detail,
+    };
+  }
+
+  if (!navigator.onLine || lower.includes("network") || lower.includes("failed to fetch")) {
+    return {
+      kind: "network",
+      title: "Network error",
+      hint: "Check your connection, then tap Retry.",
+      detail,
+    };
+  }
+  if (lower.includes("unauthor") || lower.includes("forbidden") || lower.includes("not allowed") || lower.includes("policy")) {
+    return {
+      kind: "permission",
+      title: "Not allowed",
+      hint: "Sign in again, then retry. If this persists, contact support.",
+      detail,
+    };
+  }
+  if (lower.includes("payload") || lower.includes("too large") || lower.includes("exceed")) {
+    return {
+      kind: "upload",
+      title: "Upload rejected (too large)",
+      hint: "Pick a smaller image and use Replace again.",
+      detail,
+    };
+  }
+  return {
+    kind: "upload",
+    title: "Upload failed",
+    hint: "Tap Retry, or pick a different image with Replace again.",
+    detail,
+  };
+}
 
 const EditListing = () => {
   const { id } = useParams<{ id: string }>();
@@ -70,6 +160,7 @@ const EditListing = () => {
   const navigate = useNavigate();
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -80,7 +171,7 @@ const EditListing = () => {
   const replaceTargetIndexRef = useRef<number | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-  const [replaceErrors, setReplaceErrors] = useState<Record<number, string>>({});
+  const [replaceErrors, setReplaceErrors] = useState<Record<number, ReplaceError>>({});
   // Failed replacement Files are persisted at module scope (failedReplaceFiles)
   // so Retry continues to work after navigating away and back.
   const [pendingPreviews, setPendingPreviews] = useState<
@@ -179,14 +270,25 @@ const EditListing = () => {
       const images: string[] = data.images || [];
       setUploadedImages(images);
 
-      // Restore persisted replace-failure markers (keyed by image URL)
+      // Restore persisted replace-failure markers (keyed by image URL).
+      // Back-compat: older entries were plain strings.
       try {
         const raw = sessionStorage.getItem(`editListing:replaceErrors:${id}`);
         if (raw) {
-          const byUrl = JSON.parse(raw) as Record<string, string>;
-          const restored: Record<number, string> = {};
+          const byUrl = JSON.parse(raw) as Record<string, ReplaceError | string>;
+          const restored: Record<number, ReplaceError> = {};
           images.forEach((url, i) => {
-            if (byUrl[url]) restored[i] = byUrl[url];
+            const v = byUrl[url];
+            if (!v) return;
+            restored[i] =
+              typeof v === "string"
+                ? {
+                    kind: "unknown",
+                    title: "Replace failed",
+                    hint: "Tap Retry, or pick a different image with Replace again.",
+                    detail: v,
+                  }
+                : v;
           });
           if (Object.keys(restored).length) setReplaceErrors(restored);
         }
@@ -383,6 +485,19 @@ const EditListing = () => {
       return next;
     });
 
+    // Up-front validation — distinguish from real upload errors.
+    const validationError = validateReplacementFile(file);
+    if (validationError) {
+      // Don't cache the file for Retry — same file will fail again.
+      failedReplaceFiles.delete(failedFileKey(id, oldUrl));
+      void deleteFailedReplaceFile(failedFileKey(id, oldUrl));
+      setReplaceErrors((prev) => ({ ...prev, [index]: validationError }));
+      toast.error(`${validationError.title}: ${validationError.hint}`);
+      setReplacingIndex(null);
+      return;
+    }
+
+    let stage: "compression" | "upload" = "compression";
     try {
       const [compressed] = await compressImages([file], {
         maxWidth: 1920,
@@ -391,6 +506,7 @@ const EditListing = () => {
         maxSizeMB: 1,
       });
 
+      stage = "upload";
       const fileName = `${user.id}/${Date.now()}-${Math.random()
         .toString(36)
         .substring(2)}.jpg`;
@@ -424,11 +540,12 @@ const EditListing = () => {
       toast.success("Image replaced");
     } catch (err: any) {
       console.error("Image replace failed", err);
-      const message = err?.message || "Failed to replace image";
+      const classified = classifyReplaceError(err, stage);
+      // Cache the file so Retry can reuse it (only useful for transient errors).
       failedReplaceFiles.set(failedFileKey(id, oldUrl), file);
       void setFailedReplaceFile(failedFileKey(id, oldUrl), file);
-      setReplaceErrors((prev) => ({ ...prev, [index]: message }));
-      toast.error(message);
+      setReplaceErrors((prev) => ({ ...prev, [index]: classified }));
+      toast.error(`${classified.title}: ${classified.hint}`);
     } finally {
       setReplacingIndex(null);
     }
@@ -852,21 +969,31 @@ const EditListing = () => {
                                 </div>
                               )}
                               {!isReplacing && replaceError && (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/85 rounded-lg p-2 text-center">
-                                  <span className="text-[10px] uppercase tracking-wide font-medium text-destructive">
-                                    Replace failed
+                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-background/90 rounded-lg p-2 text-center">
+                                  <span className="text-[10px] uppercase tracking-wide font-semibold text-destructive">
+                                    {replaceError.title}
                                   </span>
-                                  <span className="text-[10px] text-muted-foreground line-clamp-2">
-                                    {replaceError}
+                                  <span className="text-[10px] text-foreground/80 line-clamp-3 leading-snug">
+                                    {replaceError.hint}
                                   </span>
-                                  <div className="flex flex-wrap gap-1 justify-center">
-                                    <button
-                                      type="button"
-                                      onClick={() => retryReplace(index)}
-                                      className="px-2 py-0.5 rounded-md bg-primary text-primary-foreground text-[10px] font-medium"
+                                  {replaceError.detail && (
+                                    <span
+                                      className="text-[9px] text-muted-foreground line-clamp-1"
+                                      title={replaceError.detail}
                                     >
-                                      Retry
-                                    </button>
+                                      {replaceError.detail}
+                                    </span>
+                                  )}
+                                  <div className="flex flex-wrap gap-1 justify-center pt-0.5">
+                                    {replaceError.kind !== "validation" && (
+                                      <button
+                                        type="button"
+                                        onClick={() => retryReplace(index)}
+                                        className="px-2 py-0.5 rounded-md bg-primary text-primary-foreground text-[10px] font-medium"
+                                      >
+                                        Retry
+                                      </button>
+                                    )}
                                     <button
                                       type="button"
                                       onClick={() => {
