@@ -794,13 +794,28 @@ const EditListing = () => {
                                   <span className="text-[10px] text-muted-foreground line-clamp-2">
                                     {replaceError}
                                   </span>
-                                  <div className="flex gap-1">
+                                  <div className="flex flex-wrap gap-1 justify-center">
                                     <button
                                       type="button"
                                       onClick={() => retryReplace(index)}
                                       className="px-2 py-0.5 rounded-md bg-primary text-primary-foreground text-[10px] font-medium"
                                     >
                                       Retry
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        failedReplaceFilesRef.current.delete(index);
+                                        setReplaceErrors((prev) => {
+                                          const next = { ...prev };
+                                          delete next[index];
+                                          return next;
+                                        });
+                                        triggerReplace(index);
+                                      }}
+                                      className="px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground text-[10px] font-medium"
+                                    >
+                                      Replace again
                                     </button>
                                     <button
                                       type="button"
