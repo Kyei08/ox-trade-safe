@@ -158,6 +158,16 @@ const CreateListing = () => {
     fetchCategories();
   }, []);
 
+  // Clean up any outstanding blob preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      pendingPreviews.forEach((p) => {
+        if (p.url) URL.revokeObjectURL(p.url);
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const fetchCategories = async () => {
     try {
       const { data, error } = await supabase
