@@ -61,6 +61,9 @@ const EditListing = () => {
   const [fetching, setFetching] = useState(true);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [pendingPreviews, setPendingPreviews] = useState<
+    { id: string; url: string; name: string; status: "compressing" | "uploading" | "error"; error?: string }[]
+  >([]);
   const [listingType, setListingType] = useState<string>("");
   const [listingStatus, setListingStatus] = useState<string>("");
 
@@ -167,6 +170,16 @@ const EditListing = () => {
     }
   };
 
+  // Clean up any outstanding blob preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      pendingPreviews.forEach((p) => {
+        if (p.url) URL.revokeObjectURL(p.url);
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target;
     if (!input.files || !user) return;
@@ -186,6 +199,15 @@ const EditListing = () => {
 
     try {
       for (const original of files) {
+        const previewId = `${Date.now()}-${Math.random().toString(36).substring(2)}`;
+        const isHeic =
+          /heic|heif/i.test(original.type) || /\.(heic|heif)$/i.test(original.name);
+        const initialUrl = isHeic ? "" : URL.createObjectURL(original);
+        setPendingPreviews((prev) => [
+          ...prev,
+          { id: previewId, url: initialUrl, name: original.name, status: "compressing" },
+        ]);
+
         try {
           const [file] = await compressImages([original], {
             maxWidth: 1920,
@@ -193,6 +215,16 @@ const EditListing = () => {
             quality: 0.8,
             maxSizeMB: 1,
           });
+
+          // Swap preview to the compressed JPEG — renders reliably on iOS Safari
+          const compressedPreviewUrl = URL.createObjectURL(file);
+          setPendingPreviews((prev) =>
+            prev.map((p) => {
+              if (p.id !== previewId) return p;
+              if (p.url && p.url !== compressedPreviewUrl) URL.revokeObjectURL(p.url);
+              return { ...p, url: compressedPreviewUrl, status: "uploading" };
+            })
+          );
 
           const fileName = `${user.id}/${Date.now()}-${Math.random()
             .toString(36)
@@ -213,12 +245,24 @@ const EditListing = () => {
 
           successUrls.push(publicUrl);
           setUploadedImages((prev) => [...prev, publicUrl]);
+          setPendingPreviews((prev) => {
+            const match = prev.find((p) => p.id === previewId);
+            if (match?.url) URL.revokeObjectURL(match.url);
+            return prev.filter((p) => p.id !== previewId);
+          });
         } catch (err: any) {
           console.error("Image upload failed", original.name, err);
           failures.push({
             name: original.name,
             reason: err?.message || "Upload failed",
           });
+          setPendingPreviews((prev) =>
+            prev.map((p) =>
+              p.id === previewId
+                ? { ...p, status: "error", error: err?.message || "Upload failed" }
+                : p
+            )
+          );
         }
       }
 
@@ -235,6 +279,14 @@ const EditListing = () => {
     } finally {
       setUploading(false);
     }
+  };
+
+  const dismissPendingPreview = (id: string) => {
+    setPendingPreviews((prev) => {
+      const match = prev.find((p) => p.id === id);
+      if (match?.url) URL.revokeObjectURL(match.url);
+      return prev.filter((p) => p.id !== id);
+    });
   };
 
 
@@ -548,7 +600,7 @@ const EditListing = () => {
                       </FormDescription>
                     </div>
 
-                    {uploadedImages.length > 0 && (
+                    {(uploadedImages.length > 0 || pendingPreviews.length > 0) && (
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {uploadedImages.map((url, index) => (
                           <div key={url} className="relative group aspect-square">
@@ -561,6 +613,49 @@ const EditListing = () => {
                               type="button"
                               onClick={() => removeImage(url)}
                               className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                              aria-label="Remove image"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                        {pendingPreviews.map((p) => (
+                          <div
+                            key={p.id}
+                            className="relative aspect-square rounded-lg border bg-muted overflow-hidden"
+                          >
+                            {p.url ? (
+                              <img
+                                src={p.url}
+                                alt={p.name}
+                                className={`w-full h-full object-cover ${
+                                  p.status === "error" ? "opacity-40" : "opacity-70"
+                                }`}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground px-2 text-center">
+                                Preparing preview…
+                              </div>
+                            )}
+                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-background/40">
+                              {p.status === "error" ? (
+                                <span className="text-xs font-medium text-destructive px-2 text-center">
+                                  {p.error || "Failed"}
+                                </span>
+                              ) : (
+                                <>
+                                  <Loader2 className="w-5 h-5 animate-spin text-foreground" />
+                                  <span className="text-[10px] uppercase tracking-wide text-foreground/80">
+                                    {p.status === "compressing" ? "Compressing" : "Uploading"}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => dismissPendingPreview(p.id)}
+                              className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full"
+                              aria-label="Dismiss"
                             >
                               <X className="w-4 h-4" />
                             </button>
