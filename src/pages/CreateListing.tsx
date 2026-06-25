@@ -158,6 +158,10 @@ const CreateListing = () => {
       setSubcategories(data || []);
     };
     loadSubs();
+    // Reset condition when category changes
+    setSelectedCondition(null);
+    form.setValue("condition_option_id", undefined);
+    form.setValue("condition", "");
   }, [selectedCategoryId]);
 
 
