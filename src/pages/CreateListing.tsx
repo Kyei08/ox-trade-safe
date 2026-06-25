@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
@@ -85,6 +85,9 @@ interface Subcategory {
 const CreateListing = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const skipNextConditionResetRef = useRef(false);
+  const didHydrateFromUrlRef = useRef(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(false);
@@ -158,11 +161,70 @@ const CreateListing = () => {
       setSubcategories(data || []);
     };
     loadSubs();
-    // Reset condition when category changes
-    setSelectedCondition(null);
-    form.setValue("condition_option_id", undefined);
-    form.setValue("condition", "");
+    // Reset condition when category changes (skip during URL hydration)
+    if (skipNextConditionResetRef.current) {
+      skipNextConditionResetRef.current = false;
+    } else {
+      setSelectedCondition(null);
+      form.setValue("condition_option_id", undefined);
+      form.setValue("condition", "");
+    }
   }, [selectedCategoryId]);
+
+  // Hydrate category + condition from URL on first mount
+  useEffect(() => {
+    if (didHydrateFromUrlRef.current) return;
+    const urlCategory = searchParams.get("category");
+    const urlOption = searchParams.get("option");
+    if (!urlCategory && !urlOption) {
+      didHydrateFromUrlRef.current = true;
+      return;
+    }
+    didHydrateFromUrlRef.current = true;
+    (async () => {
+      if (urlCategory) {
+        if (urlOption) skipNextConditionResetRef.current = true;
+        form.setValue("category_id", urlCategory);
+      }
+      if (urlOption) {
+        const { data } = await supabase
+          .from("category_condition_options")
+          .select("id, name, slug, group_id, category_condition_groups!inner(category_id)")
+          .eq("id", urlOption)
+          .maybeSingle();
+        if (data) {
+          const catId =
+            (data as any).category_condition_groups?.category_id ?? urlCategory ?? null;
+          if (catId && !urlCategory) {
+            skipNextConditionResetRef.current = true;
+            form.setValue("category_id", catId);
+          }
+          setSelectedCondition({
+            optionId: data.id,
+            optionName: data.name,
+            optionSlug: data.slug,
+            groupId: data.group_id,
+          });
+          form.setValue("condition_option_id", data.id);
+          form.setValue("condition", data.name);
+        }
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep URL in sync with category + condition selection
+  useEffect(() => {
+    if (!didHydrateFromUrlRef.current) return;
+    const next = new URLSearchParams(searchParams);
+    if (selectedCategoryId) next.set("category", selectedCategoryId);
+    else next.delete("category");
+    if (selectedCondition?.optionId) next.set("option", selectedCondition.optionId);
+    else next.delete("option");
+    if (next.toString() !== searchParams.toString()) {
+      setSearchParams(next, { replace: true });
+    }
+  }, [selectedCategoryId, selectedCondition?.optionId]);
 
 
 
