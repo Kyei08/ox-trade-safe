@@ -81,12 +81,25 @@ const Listings = () => {
     fetchListings();
   }, [selectedCategory, selectedSubcategory, listingType, sortBy, selectedOptionIds]);
 
-  // Sync search params -> state (e.g. when arriving via homepage category card)
+  // Sync search params -> state (e.g. when arriving via homepage category card or back/forward nav)
   useEffect(() => {
     const cat = searchParams.get("category") || "all";
     const sub = searchParams.get("subcategory") || "all";
     setSelectedCategory(cat);
     setSelectedSubcategory(sub);
+
+    const urlConditions = (searchParams.get("conditions") || "")
+      .split(",")
+      .filter(Boolean);
+    setSelectedOptionIds((prev) => {
+      if (
+        prev.length === urlConditions.length &&
+        prev.every((id, i) => id === urlConditions[i])
+      ) {
+        return prev;
+      }
+      return urlConditions;
+    });
   }, [searchParams]);
 
   // Load subcategories whenever the selected category changes
