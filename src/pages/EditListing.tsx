@@ -414,11 +414,13 @@ const EditListing = () => {
       }
 
       failedReplaceFiles.delete(failedFileKey(id, oldUrl));
+      void deleteFailedReplaceFile(failedFileKey(id, oldUrl));
       toast.success("Image replaced");
     } catch (err: any) {
       console.error("Image replace failed", err);
       const message = err?.message || "Failed to replace image";
       failedReplaceFiles.set(failedFileKey(id, oldUrl), file);
+      void setFailedReplaceFile(failedFileKey(id, oldUrl), file);
       setReplaceErrors((prev) => ({ ...prev, [index]: message }));
       toast.error(message);
     } finally {
