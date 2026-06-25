@@ -64,6 +64,8 @@ const EditListing = () => {
   const [replacingIndex, setReplacingIndex] = useState<number | null>(null);
   const replaceInputRef = useRef<HTMLInputElement | null>(null);
   const replaceTargetIndexRef = useRef<number | null>(null);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [pendingPreviews, setPendingPreviews] = useState<
     { id: string; url: string; name: string; status: "compressing" | "uploading" | "error"; error?: string }[]
   >([]);
