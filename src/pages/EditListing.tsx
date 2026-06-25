@@ -234,6 +234,22 @@ const EditListing = () => {
     loadSubs();
   }, [selectedCategoryId]);
 
+  // If the user changes category away from the original, clear the dynamic
+  // condition selection — option ids are scoped per category.
+  useEffect(() => {
+    if (!selectedCategoryId) return;
+    if (
+      originalCategoryIdRef.current &&
+      selectedCategoryId !== originalCategoryIdRef.current &&
+      selectedCondition
+    ) {
+      setSelectedCondition(null);
+      form.setValue("condition_option_id", undefined);
+      form.setValue("condition", "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategoryId]);
+
 
   useEffect(() => {
     if (!authLoading && !user) {
