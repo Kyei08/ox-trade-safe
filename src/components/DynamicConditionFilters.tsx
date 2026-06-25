@@ -24,7 +24,7 @@ interface ConditionGroup {
 interface Props {
   categoryId: string | null;
   selectedOptionIds: string[];
-  onToggle: (optionId: string) => void;
+  onToggle: (optionId: string, context?: { isMultiSelect: boolean; siblingIds: string[] }) => void;
 }
 
 const DynamicConditionFilters = ({ categoryId, selectedOptionIds, onToggle }: Props) => {
