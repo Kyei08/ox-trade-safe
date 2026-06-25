@@ -66,6 +66,8 @@ const EditListing = () => {
   const replaceTargetIndexRef = useRef<number | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [replaceErrors, setReplaceErrors] = useState<Record<number, string>>({});
+  const failedReplaceFilesRef = useRef<Map<number, File>>(new Map());
   const [pendingPreviews, setPendingPreviews] = useState<
     { id: string; url: string; name: string; status: "compressing" | "uploading" | "error"; error?: string }[]
   >([]);
@@ -314,18 +316,19 @@ const EditListing = () => {
     replaceInputRef.current?.click();
   };
 
-  const handleReplaceImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target;
-    const file = input.files?.[0];
-    const index = replaceTargetIndexRef.current;
-    input.value = "";
-    replaceTargetIndexRef.current = null;
-    if (!file || index === null || !user) return;
-
+  const performReplace = async (index: number, file: File) => {
+    if (!user) return;
     const oldUrl = uploadedImages[index];
     if (!oldUrl) return;
 
     setReplacingIndex(index);
+    setReplaceErrors((prev) => {
+      if (!(index in prev)) return prev;
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
+
     try {
       const [compressed] = await compressImages([file], {
         maxWidth: 1920,
@@ -362,14 +365,50 @@ const EditListing = () => {
         /* ignore */
       }
 
+      failedReplaceFilesRef.current.delete(index);
       toast.success("Image replaced");
     } catch (err: any) {
       console.error("Image replace failed", err);
-      toast.error(err?.message || "Failed to replace image");
+      const message = err?.message || "Failed to replace image";
+      failedReplaceFilesRef.current.set(index, file);
+      setReplaceErrors((prev) => ({ ...prev, [index]: message }));
+      toast.error(message);
     } finally {
       setReplacingIndex(null);
     }
   };
+
+  const handleReplaceImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const file = input.files?.[0];
+    const index = replaceTargetIndexRef.current;
+    input.value = "";
+    replaceTargetIndexRef.current = null;
+    if (!file || index === null) return;
+    await performReplace(index, file);
+  };
+
+  const retryReplace = async (index: number) => {
+    const file = failedReplaceFilesRef.current.get(index);
+    if (!file) {
+      // No cached file (e.g. after reload) — fall back to opening the picker
+      triggerReplace(index);
+      return;
+    }
+    await performReplace(index, file);
+  };
+
+  const dismissReplaceError = (index: number) => {
+    failedReplaceFilesRef.current.delete(index);
+    setReplaceErrors((prev) => {
+      if (!(index in prev)) return prev;
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
+  };
+
+
 
   const reorderImages = (from: number, to: number) => {
     if (from === to || from < 0 || to < 0) return;
@@ -685,6 +724,7 @@ const EditListing = () => {
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {uploadedImages.map((url, index) => {
                           const isReplacing = replacingIndex === index;
+                          const replaceError = replaceErrors[index];
                           return (
                             <div
                               key={url}
@@ -746,7 +786,34 @@ const EditListing = () => {
                                   </span>
                                 </div>
                               )}
+                              {!isReplacing && replaceError && (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/85 rounded-lg p-2 text-center">
+                                  <span className="text-[10px] uppercase tracking-wide font-medium text-destructive">
+                                    Replace failed
+                                  </span>
+                                  <span className="text-[10px] text-muted-foreground line-clamp-2">
+                                    {replaceError}
+                                  </span>
+                                  <div className="flex gap-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => retryReplace(index)}
+                                      className="px-2 py-0.5 rounded-md bg-primary text-primary-foreground text-[10px] font-medium"
+                                    >
+                                      Retry
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => dismissReplaceError(index)}
+                                      className="px-2 py-0.5 rounded-md border text-[10px] font-medium"
+                                    >
+                                      Dismiss
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
                               <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+
                                 <button
                                   type="button"
                                   onClick={() => triggerReplace(index)}
