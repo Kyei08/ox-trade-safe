@@ -371,6 +371,19 @@ const EditListing = () => {
     }
   };
 
+  const reorderImages = (from: number, to: number) => {
+    if (from === to || from < 0 || to < 0) return;
+    setUploadedImages((prev) => {
+      if (from >= prev.length || to >= prev.length) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+  };
+
+
+
 
   const onSubmit = async (values: EditListingFormValues) => {
     if (!user || !id) return;
