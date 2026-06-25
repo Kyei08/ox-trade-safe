@@ -728,11 +728,13 @@ const CreateListing = () => {
                 Discard draft
               </Button>
             </div>
-          )}
+          <div className="mb-4" aria-live="polite">
+            <DraftSaveIndicator status={saveStatus} lastSavedAt={lastSavedAt} tick={savedTick} />
+          </div>
 
 
           <Card>
-            <CardHeader>
+
               <CardTitle>Listing Details</CardTitle>
               <CardDescription>
                 Provide accurate information to attract potential buyers
