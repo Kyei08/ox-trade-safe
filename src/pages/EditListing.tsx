@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Loader2, Upload, X, RefreshCw } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { compressImages } from "@/lib/imageCompression";
 import {
   setFailedReplaceFile,
@@ -177,6 +178,7 @@ const EditListing = () => {
   const [pendingPreviews, setPendingPreviews] = useState<
     { id: string; url: string; name: string; status: "compressing" | "uploading" | "error"; error?: string }[]
   >([]);
+  const [batchProgress, setBatchProgress] = useState<{ done: number; total: number } | null>(null);
   const [listingType, setListingType] = useState<string>("");
   const [listingStatus, setListingStatus] = useState<string>("");
 
@@ -357,6 +359,7 @@ const EditListing = () => {
     }
 
     setUploading(true);
+    setBatchProgress({ done: 0, total: files.length });
     const successUrls: string[] = [];
     const failures: { name: string; reason: string }[] = [];
 
@@ -426,6 +429,8 @@ const EditListing = () => {
                 : p
             )
           );
+        } finally {
+          setBatchProgress((prev) => (prev ? { ...prev, done: prev.done + 1 } : prev));
         }
       }
 
@@ -441,6 +446,7 @@ const EditListing = () => {
       }
     } finally {
       setUploading(false);
+      setBatchProgress(null);
     }
   };
 
@@ -1091,6 +1097,24 @@ const EditListing = () => {
                             </button>
                           </div>
                         ))}
+                      </div>
+                    )}
+
+                    {batchProgress && batchProgress.total > 0 && (
+                      <div className="space-y-1.5 rounded-md border bg-muted/30 p-3">
+                        <div className="flex items-center justify-between text-xs font-medium">
+                          <span className="flex items-center gap-2">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            Uploading images
+                          </span>
+                          <span className="tabular-nums text-muted-foreground">
+                            {batchProgress.done} / {batchProgress.total}
+                          </span>
+                        </div>
+                        <Progress
+                          value={(batchProgress.done / batchProgress.total) * 100}
+                          className="h-2"
+                        />
                       </div>
                     )}
 
