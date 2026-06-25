@@ -485,6 +485,19 @@ const EditListing = () => {
       return next;
     });
 
+    // Up-front validation — distinguish from real upload errors.
+    const validationError = validateReplacementFile(file);
+    if (validationError) {
+      // Don't cache the file for Retry — same file will fail again.
+      failedReplaceFiles.delete(failedFileKey(id, oldUrl));
+      void deleteFailedReplaceFile(failedFileKey(id, oldUrl));
+      setReplaceErrors((prev) => ({ ...prev, [index]: validationError }));
+      toast.error(`${validationError.title}: ${validationError.hint}`);
+      setReplacingIndex(null);
+      return;
+    }
+
+    let stage: "compression" | "upload" = "compression";
     try {
       const [compressed] = await compressImages([file], {
         maxWidth: 1920,
@@ -493,6 +506,7 @@ const EditListing = () => {
         maxSizeMB: 1,
       });
 
+      stage = "upload";
       const fileName = `${user.id}/${Date.now()}-${Math.random()
         .toString(36)
         .substring(2)}.jpg`;
@@ -526,11 +540,12 @@ const EditListing = () => {
       toast.success("Image replaced");
     } catch (err: any) {
       console.error("Image replace failed", err);
-      const message = err?.message || "Failed to replace image";
+      const classified = classifyReplaceError(err, stage);
+      // Cache the file so Retry can reuse it (only useful for transient errors).
       failedReplaceFiles.set(failedFileKey(id, oldUrl), file);
       void setFailedReplaceFile(failedFileKey(id, oldUrl), file);
-      setReplaceErrors((prev) => ({ ...prev, [index]: message }));
-      toast.error(message);
+      setReplaceErrors((prev) => ({ ...prev, [index]: classified }));
+      toast.error(`${classified.title}: ${classified.hint}`);
     } finally {
       setReplacingIndex(null);
     }
