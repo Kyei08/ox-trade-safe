@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { Loader2, Upload, X } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { compressImages } from "@/lib/imageCompression";
+import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
 
 const DELIVERY_OPTIONS = [
   { value: "collect", label: "Collection (buyer picks up)" },
@@ -32,7 +33,8 @@ const listingSchema = z.object({
   subcategory_id: z.string().optional(),
 
   listing_type: z.enum(["fixed_price", "auction"]),
-  condition: z.string().trim().min(1, "Condition is required").max(50),
+  condition: z.string().trim().max(80).optional(),
+  condition_option_id: z.string().uuid().optional(),
   location: z.string().trim().min(1, "Location is required").max(200),
   delivery_options: z.array(z.string()).min(1, "Select at least one delivery option"),
   fixed_price: z.string().optional(),
@@ -94,6 +96,8 @@ const CreateListing = () => {
   const [batchProgress, setBatchProgress] = useState<{ done: number; total: number } | null>(null);
   const cancelUploadRef = useRef(false);
   const [cancelling, setCancelling] = useState(false);
+  const [selectedCondition, setSelectedCondition] = useState<SelectedCondition | null>(null);
+  const [hasConditionGroups, setHasConditionGroups] = useState(false);
 
   const cancelBatchUpload = () => {
     cancelUploadRef.current = true;
@@ -126,6 +130,7 @@ const CreateListing = () => {
       listing_type: "fixed_price",
 
       condition: "",
+      condition_option_id: undefined,
       location: "",
       delivery_options: [],
       fixed_price: "",
@@ -153,6 +158,10 @@ const CreateListing = () => {
       setSubcategories(data || []);
     };
     loadSubs();
+    // Reset condition when category changes
+    setSelectedCondition(null);
+    form.setValue("condition_option_id", undefined);
+    form.setValue("condition", "");
   }, [selectedCategoryId]);
 
 
@@ -360,6 +369,12 @@ const CreateListing = () => {
   const onSubmit = async (values: ListingFormValues) => {
     if (!user) return;
 
+    // Enforce dynamic condition selection when this category has groups
+    if (hasConditionGroups && !selectedCondition) {
+      toast.error("Please select a condition for this item");
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -370,7 +385,7 @@ const CreateListing = () => {
         subcategory_id: values.subcategory_id || null,
 
         listing_type: values.listing_type,
-        condition: values.condition,
+        condition: selectedCondition?.optionName || values.condition || null,
         location: values.location,
         seller_id: user.id,
         status: "active",
@@ -402,6 +417,17 @@ const CreateListing = () => {
         .single();
 
       if (error) throw error;
+
+      // Persist dynamic condition selection into the junction table
+      if (data && selectedCondition) {
+        const { error: condErr } = await supabase
+          .from("listing_conditions")
+          .insert([{ listing_id: data.id, option_id: selectedCondition.optionId }]);
+        if (condErr) {
+          console.error("Failed to save condition:", condErr);
+        }
+      }
+
 
       toast.success("Listing created successfully!");
       navigate("/dashboard");
@@ -726,32 +752,23 @@ const CreateListing = () => {
                     </>
                   )}
 
-                  {/* Condition */}
-                  <FormField
-                    control={form.control}
-                    name="condition"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Condition *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select condition" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="new">New</SelectItem>
-                            <SelectItem value="like-new">Like New</SelectItem>
-                            <SelectItem value="excellent">Excellent</SelectItem>
-                            <SelectItem value="good">Good</SelectItem>
-                            <SelectItem value="fair">Fair</SelectItem>
-                            <SelectItem value="poor">Poor</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Condition (dynamic per category) */}
+                  <FormItem>
+                    <FormLabel>Condition *</FormLabel>
+                    <ConditionSelector
+                      categoryId={selectedCategoryId || null}
+                      value={selectedCondition?.optionId ?? null}
+                      onChange={(sel) => {
+                        setSelectedCondition(sel);
+                        form.setValue("condition_option_id", sel?.optionId ?? undefined, {
+                          shouldValidate: true,
+                        });
+                        form.setValue("condition", sel?.optionName ?? "");
+                      }}
+                      onGroupsLoaded={setHasConditionGroups}
+                    />
+                  </FormItem>
+
 
                   {/* Location */}
                   <FormField
