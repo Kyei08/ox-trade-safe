@@ -281,7 +281,9 @@ const Listings = () => {
     if (listingType !== "all") params.set("type", listingType);
     if (sortBy !== "newest") params.set("sort", sortBy);
     setSearchParams(params);
-    fetchListings();
+    setCursor(null);
+    setHasMore(true);
+    fetchListings("replace", null);
   };
 
   const handleCategoryChange = (value: string) => {
