@@ -85,6 +85,9 @@ interface Subcategory {
 const CreateListing = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const skipNextConditionResetRef = useRef(false);
+  const didHydrateFromUrlRef = useRef(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(false);
