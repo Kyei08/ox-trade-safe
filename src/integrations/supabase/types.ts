@@ -143,6 +143,7 @@ export type Database = {
           group_id: string
           id: string
           name: string
+          slug: string
           sort_order: number
         }
         Insert: {
@@ -150,6 +151,7 @@ export type Database = {
           group_id: string
           id?: string
           name: string
+          slug: string
           sort_order?: number
         }
         Update: {
@@ -157,6 +159,7 @@ export type Database = {
           group_id?: string
           id?: string
           name?: string
+          slug?: string
           sort_order?: number
         }
         Relationships: [
@@ -295,6 +298,39 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      listing_conditions: {
+        Row: {
+          created_at: string
+          listing_id: string
+          option_id: string
+        }
+        Insert: {
+          created_at?: string
+          listing_id: string
+          option_id: string
+        }
+        Update: {
+          created_at?: string
+          listing_id?: string
+          option_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_conditions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_conditions_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "category_condition_options"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       listings: {
         Row: {
@@ -1182,6 +1218,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      slugify: { Args: { _input: string }; Returns: string }
     }
     Enums: {
       app_role: "user" | "verified_seller" | "admin" | "courier"
