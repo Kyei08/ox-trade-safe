@@ -68,6 +68,22 @@ interface Subcategory {
   sort_order: number;
 }
 
+interface ConditionGroup {
+  id: string;
+  category_id: string;
+  name: string;
+  icon: string | null;
+  is_multi_select: boolean;
+  sort_order: number;
+}
+
+interface ConditionOption {
+  id: string;
+  group_id: string;
+  name: string;
+  sort_order: number;
+}
+
 const slugify = (s: string) =>
   s
     .toLowerCase()
