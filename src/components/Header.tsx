@@ -221,8 +221,8 @@ const Header = () => {
             {/* Mobile Menu */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open menu">
-                  <Menu className="w-5 h-5" />
+                <Button variant="ghost" size="icon" className="md:hidden min-h-11 min-w-11" aria-label="Open menu">
+                  <Menu className="w-5 h-5" aria-hidden="true" />
                 </Button>
               </SheetTrigger>
               <SheetContent
@@ -241,28 +241,28 @@ const Header = () => {
                 <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-4 flex flex-col gap-1 pb-[env(safe-area-inset-bottom)]">
                   <Link 
                     to="/" 
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname === "/" ? "font-bold" : ""}`}
+                    className={`flex items-center gap-3 px-4 py-3 min-h-11 rounded-lg hover:bg-muted transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname === "/" ? "font-bold" : ""}`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <Home className="w-5 h-5" />
+                    <Home className="w-5 h-5" aria-hidden="true" />
                     <span className="font-medium">Home</span>
                   </Link>
                   
                   <Link 
                     to="/listings" 
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname === "/listings" ? "font-bold" : ""}`}
+                    className={`flex items-center gap-3 px-4 py-3 min-h-11 rounded-lg hover:bg-muted transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname === "/listings" ? "font-bold" : ""}`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <Grid className="w-5 h-5" />
+                    <Grid className="w-5 h-5" aria-hidden="true" />
                     <span className="font-medium">Browse Listings</span>
                   </Link>
 
                   <Link
                     to="/logistics"
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname.startsWith("/logistics") ? "font-bold" : ""}`}
+                    className={`flex items-center gap-3 px-4 py-3 min-h-11 rounded-lg hover:bg-muted transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname.startsWith("/logistics") ? "font-bold" : ""}`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <Truck className="w-5 h-5" />
+                    <Truck className="w-5 h-5" aria-hidden="true" />
                     <span className="font-medium">OX Logistics</span>
                   </Link>
 
@@ -272,47 +272,47 @@ const Header = () => {
                       
                       <Link 
                         to="/dashboard" 
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname === "/dashboard" ? "font-bold" : ""}`}
+                        className={`flex items-center gap-3 px-4 py-3 min-h-11 rounded-lg hover:bg-muted transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname === "/dashboard" ? "font-bold" : ""}`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        <User className="w-5 h-5" />
+                        <User className="w-5 h-5" aria-hidden="true" />
                         <span className="font-medium">Dashboard</span>
                       </Link>
                       
                       <Link 
                         to="/create-listing" 
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname === "/create-listing" ? "font-bold" : ""}`}
+                        className={`flex items-center gap-3 px-4 py-3 min-h-11 rounded-lg hover:bg-muted transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname === "/create-listing" ? "font-bold" : ""}`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        <Plus className="w-5 h-5" />
+                        <Plus className="w-5 h-5" aria-hidden="true" />
                         <span className="font-medium">Create Listing</span>
                       </Link>
                       
                       <Link 
                         to="/messages" 
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname === "/messages" ? "font-bold" : ""}`}
+                        className={`flex items-center gap-3 px-4 py-3 min-h-11 rounded-lg hover:bg-muted transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname === "/messages" ? "font-bold" : ""}`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        <MessageSquare className="w-5 h-5" />
+                        <MessageSquare className="w-5 h-5" aria-hidden="true" />
                         <span className="font-medium">Messages</span>
                       </Link>
                       
                       <Link 
                         to="/kyc" 
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname === "/kyc" ? "font-bold" : ""}`}
+                        className={`flex items-center gap-3 px-4 py-3 min-h-11 rounded-lg hover:bg-muted transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname === "/kyc" ? "font-bold" : ""}`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        <Shield className="w-5 h-5" />
+                        <Shield className="w-5 h-5" aria-hidden="true" />
                         <span className="font-medium">KYC Verification</span>
                       </Link>
 
                       {isAdmin && (
                         <Link
                           to="/admin"
-                          className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors ${location.pathname.startsWith("/admin") ? "font-bold" : ""}`}
+                          className={`flex items-center gap-3 px-4 py-3 min-h-11 rounded-lg hover:bg-muted transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname.startsWith("/admin") ? "font-bold" : ""}`}
                           onClick={() => setMobileMenuOpen(false)}
                         >
-                          <Shield className="w-5 h-5" />
+                          <Shield className="w-5 h-5" aria-hidden="true" />
                           <span className="font-medium">Admin Panel</span>
                         </Link>
                       )}
@@ -328,7 +328,7 @@ const Header = () => {
                           setMobileMenuOpen(false);
                         }}
                       >
-                        <LogOut className="w-5 h-5" />
+                        <LogOut className="w-5 h-5" aria-hidden="true" />
                         Sign Out
                       </Button>
                     </>
