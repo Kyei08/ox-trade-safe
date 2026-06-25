@@ -1193,4 +1193,27 @@ const SortableSubRow = ({
   );
 };
 
+const SortableOptionChip = ({
+  id,
+  children,
+}: {
+  id: string;
+  children: (args: { attributes: any; listeners: any }) => React.ReactNode;
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+  });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+    zIndex: isDragging ? 10 : "auto",
+  };
+  return (
+    <div ref={setNodeRef} style={style} className="inline-flex">
+      {children({ attributes, listeners })}
+    </div>
+  );
+};
+
 export default AdminCategories;
