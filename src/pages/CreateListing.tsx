@@ -35,6 +35,60 @@ const DELIVERY_OPTIONS = [
   { value: "post", label: "Postal service" },
 ];
 
+function formatRelativeTime(date: Date): string {
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 5) return "just now";
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} min${minutes === 1 ? "" : "s"} ago`;
+  const hours = Math.floor(minutes / 60);
+  return `${hours}h ago`;
+}
+
+function DraftSaveIndicator({
+  status,
+  lastSavedAt,
+  tick,
+}: {
+  status: "idle" | "saving" | "saved" | "error";
+  lastSavedAt: Date | null;
+  tick: number;
+}) {
+  // `tick` is only here to force re-render for the relative-time label.
+  void tick;
+  if (status === "idle" && !lastSavedAt) return null;
+
+  if (status === "saving") {
+    return (
+      <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        <span>Saving draft…</span>
+      </div>
+    );
+  }
+  if (status === "error") {
+    return (
+      <div className="inline-flex items-center gap-2 text-xs text-destructive">
+        <CloudOff className="h-3.5 w-3.5" />
+        <span>
+          Couldn't sync draft.
+          {lastSavedAt ? ` Last saved ${formatRelativeTime(lastSavedAt)}.` : " Saved on this device only."}
+        </span>
+      </div>
+    );
+  }
+  // saved
+  return (
+    <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+      <Check className="h-3.5 w-3.5 text-green-600" />
+      <span>
+        Draft saved{lastSavedAt ? ` · ${formatRelativeTime(lastSavedAt)}` : ""}
+      </span>
+    </div>
+  );
+}
+
+
 const listingSchema = z.object({
   title: z.string().trim().min(5, "Title must be at least 5 characters").max(200, "Title must be less than 200 characters"),
   description: z.string().trim().min(20, "Description must be at least 20 characters").max(5000, "Description must be less than 5000 characters"),
