@@ -49,6 +49,14 @@ interface Subcategory {
   sort_order: number;
 }
 
+// Module-scoped store for failed replacement Files. Survives navigation within
+// the same tab (cleared on full reload). Keyed by `${listingId}::${imageUrl}`.
+const failedReplaceFiles: Map<string, File> = new Map();
+const failedFileKey = (listingId: string | undefined, url: string | undefined) =>
+  listingId && url ? `${listingId}::${url}` : "";
+
+
+
 
 const EditListing = () => {
   const { id } = useParams<{ id: string }>();
