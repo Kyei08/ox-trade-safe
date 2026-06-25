@@ -96,6 +96,8 @@ const CreateListing = () => {
   const [batchProgress, setBatchProgress] = useState<{ done: number; total: number } | null>(null);
   const cancelUploadRef = useRef(false);
   const [cancelling, setCancelling] = useState(false);
+  const [selectedCondition, setSelectedCondition] = useState<SelectedCondition | null>(null);
+  const [hasConditionGroups, setHasConditionGroups] = useState(false);
 
   const cancelBatchUpload = () => {
     cancelUploadRef.current = true;
