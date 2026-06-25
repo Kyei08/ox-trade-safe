@@ -698,6 +698,12 @@ const EditListing = () => {
   const onSubmit = async (values: EditListingFormValues) => {
     if (!user || !id) return;
 
+    // Enforce dynamic condition selection when the category has condition groups.
+    if (hasConditionGroups && !selectedCondition) {
+      toast.error("Please select a condition for this category.");
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -707,7 +713,7 @@ const EditListing = () => {
         category_id: values.category_id,
         subcategory_id: values.subcategory_id || null,
 
-        condition: values.condition,
+        condition: selectedCondition?.optionName || values.condition || null,
         location: values.location,
         delivery_options: values.delivery_options,
         images: uploadedImages,
@@ -725,10 +731,32 @@ const EditListing = () => {
 
       if (error) throw error;
 
+      // Sync dynamic condition selection: clear existing row(s), then insert the
+      // current one. Single-select is enforced by the listing_conditions trigger.
+      const { error: delErr } = await supabase
+        .from("listing_conditions")
+        .delete()
+        .eq("listing_id", id);
+      if (delErr) throw delErr;
+
+      if (selectedCondition) {
+        const { error: insErr } = await supabase
+          .from("listing_conditions")
+          .insert([{ listing_id: id, option_id: selectedCondition.optionId }]);
+        if (insErr) throw insErr;
+      }
+
       toast.success("Listing updated successfully!");
       navigate(`/listings/${id}`);
     } catch (error: any) {
-      toast.error(error.message || "Failed to update listing");
+      const msg = String(error?.message || "");
+      if (msg.includes("does not belong to the selected category")) {
+        toast.error("Selected condition doesn't belong to this category. Please pick again.");
+      } else if (msg.toLowerCase().includes("single-select") || msg.includes("only one condition")) {
+        toast.error("Only one condition can be selected per listing.");
+      } else {
+        toast.error(error.message || "Failed to update listing");
+      }
     } finally {
       setLoading(false);
     }
