@@ -66,6 +66,8 @@ const EditListing = () => {
   const replaceTargetIndexRef = useRef<number | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [replaceErrors, setReplaceErrors] = useState<Record<number, string>>({});
+  const failedReplaceFilesRef = useRef<Map<number, File>>(new Map());
   const [pendingPreviews, setPendingPreviews] = useState<
     { id: string; url: string; name: string; status: "compressing" | "uploading" | "error"; error?: string }[]
   >([]);
