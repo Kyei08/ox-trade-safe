@@ -587,8 +587,20 @@ const CreateListing = () => {
           .insert([{ listing_id: data.id, option_id: selectedCondition.optionId }]);
         if (condErr) {
           console.error("Failed to save condition:", condErr);
+          const msg = condErr.message || "";
+          if (/does not belong to this listing's category/i.test(msg)) {
+            toast.error("Selected condition doesn't belong to this category. Please re-select.");
+          } else if (/only have one condition selected/i.test(msg)) {
+            toast.error("Only one condition can be selected per listing.");
+          } else {
+            toast.error("Couldn't save the selected condition. Please try again.");
+          }
+          // Roll back the listing so the user can retry cleanly.
+          await supabase.from("listings").delete().eq("id", data.id);
+          return;
         }
       }
+
 
 
       if (user) clearDraft(user.id);
