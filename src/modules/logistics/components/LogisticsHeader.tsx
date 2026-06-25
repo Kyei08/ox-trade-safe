@@ -29,17 +29,10 @@ const LogisticsHeader = ({ location, onLocationClick }: Props) => {
         <nav aria-label="Logistics header" className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <Link
             to="/"
-            className="hidden sm:inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-semibold hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-11"
+            className="inline-flex items-center gap-1.5 sm:gap-2 rounded-lg border border-border bg-card px-2.5 sm:px-3 h-11 sm:py-2 text-xs sm:text-sm font-semibold hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <Store className="w-4 h-4" aria-hidden="true" />
+            <Store className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span className="whitespace-nowrap">Marketplace</span>
-          </Link>
-          <Link
-            to="/"
-            aria-label="Back to Marketplace"
-            className="sm:hidden inline-flex items-center justify-center rounded-lg border border-border bg-card h-11 w-11 hover:bg-accent hover:text-accent-foreground transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <Store className="w-4 h-4" aria-hidden="true" />
           </Link>
           <button
             type="button"
