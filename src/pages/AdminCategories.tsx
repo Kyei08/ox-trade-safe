@@ -93,6 +93,25 @@ const slugify = (s: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
+// Normalize a Lucide icon name to its PascalCase export (e.g. "refresh-cw" → "RefreshCw").
+const toPascalIconName = (raw: string) =>
+  raw
+    .trim()
+    .replace(/[_\s]+/g, "-")
+    .split("-")
+    .filter(Boolean)
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+    .join("");
+
+const resolveLucideIcon = (raw: string | null | undefined) => {
+  if (!raw || !raw.trim()) return null;
+  const map = LucideIcons as unknown as Record<string, React.ComponentType<any>>;
+  // Try exact, then PascalCase normalization.
+  if (map[raw]) return map[raw];
+  const pascal = toPascalIconName(raw);
+  return map[pascal] || null;
+};
+
 const makeSubAnnouncements = (catName: string, subs: Subcategory[]) => ({
   onDragStart({ active }: { active: any }) {
     const name = active.data.current?.name || "Subcategory";
