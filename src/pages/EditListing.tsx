@@ -677,7 +677,7 @@ const EditListing = () => {
                     <div>
                       <FormLabel>Product Images</FormLabel>
                       <FormDescription>
-                        Upload up to 8 images of your product (JPG, PNG, WEBP)
+                        Upload up to 8 images of your product (JPG, PNG, WEBP). Drag thumbnails to reorder — the first image is your cover.
                       </FormDescription>
                     </div>
 
