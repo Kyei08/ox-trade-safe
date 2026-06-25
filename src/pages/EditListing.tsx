@@ -307,6 +307,69 @@ const EditListing = () => {
     }
   };
 
+  const triggerReplace = (index: number) => {
+    replaceTargetIndexRef.current = index;
+    replaceInputRef.current?.click();
+  };
+
+  const handleReplaceImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const file = input.files?.[0];
+    const index = replaceTargetIndexRef.current;
+    input.value = "";
+    replaceTargetIndexRef.current = null;
+    if (!file || index === null || !user) return;
+
+    const oldUrl = uploadedImages[index];
+    if (!oldUrl) return;
+
+    setReplacingIndex(index);
+    try {
+      const [compressed] = await compressImages([file], {
+        maxWidth: 1920,
+        maxHeight: 1920,
+        quality: 0.8,
+        maxSizeMB: 1,
+      });
+
+      const fileName = `${user.id}/${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(2)}.jpg`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("listing-images")
+        .upload(fileName, compressed, { contentType: "image/jpeg", upsert: false });
+
+      if (uploadError) throw uploadError;
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("listing-images").getPublicUrl(fileName);
+
+      setUploadedImages((prev) => prev.map((u, i) => (i === index ? publicUrl : u)));
+
+      // Best-effort delete of the old file
+      try {
+        const parts = oldUrl.split("/listing-images/");
+        if (parts.length > 1) {
+          await supabase.storage
+            .from("listing-images")
+            .remove([parts[1].split("?")[0]]);
+        }
+      } catch {
+        /* ignore */
+      }
+
+      toast.success("Image replaced");
+    } catch (err: any) {
+      console.error("Image replace failed", err);
+      toast.error(err?.message || "Failed to replace image");
+    } finally {
+      setReplacingIndex(null);
+    }
+  };
+
+
   const onSubmit = async (values: EditListingFormValues) => {
     if (!user || !id) return;
 
