@@ -52,10 +52,10 @@ export async function setFailedReplaceFile(key: string, file: File): Promise<voi
 }
 
 export async function getFailedReplaceFile(key: string): Promise<File | undefined> {
-  const result = await withStore<File>("readonly", (store) => store.get(key));
-  return result instanceof File || result instanceof Blob
-    ? (result as File)
-    : undefined;
+  const result = (await withStore<unknown>("readonly", (store) => store.get(key) as IDBRequest<unknown>)) as unknown;
+  if (result instanceof File) return result;
+  if (result instanceof Blob) return new File([result], "replacement", { type: result.type });
+  return undefined;
 }
 
 export async function deleteFailedReplaceFile(key: string): Promise<void> {
