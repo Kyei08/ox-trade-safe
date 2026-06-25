@@ -19,6 +19,12 @@ import { Loader2, Upload, X } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { compressImages } from "@/lib/imageCompression";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
+import {
+  loadDraft,
+  saveDraft,
+  clearDraft,
+  hasMeaningfulDraft,
+} from "@/lib/createListingDraft";
 
 const DELIVERY_OPTIONS = [
   { value: "collect", label: "Collection (buyer picks up)" },
