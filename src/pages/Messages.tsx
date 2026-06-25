@@ -158,7 +158,7 @@ const Messages = () => {
     return (
       <div className="min-h-screen">
         <Header />
-        <div className="pt-20 sm:pt-32 px-4">
+        <div className="pt-16 sm:pt-32 px-4">
           <div className="container max-w-4xl mx-auto">
             <p className="text-center text-muted-foreground">Loading...</p>
           </div>
@@ -170,7 +170,7 @@ const Messages = () => {
   return (
     <div className="min-h-screen">
       <Header />
-      <div className="pt-20 sm:pt-32 px-4 pb-8">
+      <div className="pt-16 sm:pt-32 px-4 pb-8">
         <div className="container max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-6">Messages</h1>
 

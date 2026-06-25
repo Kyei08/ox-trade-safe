@@ -636,7 +636,7 @@ export default function ListingDetail() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-background pt-24 sm:pt-32 pb-12">
+      <main className="min-h-screen bg-background pt-16 sm:pt-32 pb-12">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Images and Details */}

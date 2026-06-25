@@ -338,7 +338,7 @@ const Dashboard = () => {
     return (
       <>
         <Header />
-        <main className="min-h-screen bg-background pt-24 sm:pt-32 pb-12">
+        <main className="min-h-screen bg-background pt-16 sm:pt-32 pb-12">
           <div className="container px-4">
             <Skeleton className="h-12 w-64 mb-8" />
             <Skeleton className="h-96 w-full" />
@@ -354,7 +354,7 @@ const Dashboard = () => {
     return (
       <>
         <Header />
-        <main className="min-h-screen bg-background pt-24 sm:pt-32 pb-12">
+        <main className="min-h-screen bg-background pt-16 sm:pt-32 pb-12">
           <div className="container px-4 max-w-xl">
             <Card>
               <CardHeader>
@@ -377,7 +377,7 @@ const Dashboard = () => {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-background pt-24 sm:pt-32 pb-12 overflow-x-hidden">
+      <main className="min-h-screen bg-background pt-16 sm:pt-32 pb-12 overflow-x-hidden">
         <div className="container px-4 max-w-full">
           {sectionErrors.length > 0 && (
             <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm">
