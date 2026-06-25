@@ -157,7 +157,12 @@ const Header = () => {
                 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="rounded-full">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="rounded-full min-h-11 min-w-11"
+                      aria-label="Open account menu"
+                    >
                       <Avatar className="h-9 w-9">
                         <AvatarFallback className="bg-primary text-primary-foreground">
                           {getInitials(user.email || "U")}
