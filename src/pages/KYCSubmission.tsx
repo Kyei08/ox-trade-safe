@@ -217,7 +217,7 @@ export default function KYCSubmission() {
                   id="file"
                   type="file"
                   onChange={handleFileChange}
-                  accept="image/jpeg,image/png,image/jpg,application/pdf"
+                  accept="image/*,image/heic,image/heif,application/pdf"
                   required
                 />
                 {file && (

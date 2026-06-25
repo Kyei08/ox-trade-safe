@@ -146,7 +146,7 @@ const AvatarUpload = ({ userId, currentAvatarUrl, userInitial, onAvatarUpdate }:
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp"
+        accept="image/*,image/heic,image/heif"
         onChange={handleUpload}
         className="hidden"
       />
