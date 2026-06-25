@@ -16,6 +16,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Loader2, Upload, X, RefreshCw } from "lucide-react";
 import { compressImages } from "@/lib/imageCompression";
+import {
+  setFailedReplaceFile,
+  getFailedReplaceFile,
+  deleteFailedReplaceFile,
+} from "@/lib/failedReplaceStore";
 
 const DELIVERY_OPTIONS = [
   { value: "collect", label: "Collection (buyer picks up)" },
