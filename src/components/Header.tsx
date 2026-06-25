@@ -99,26 +99,29 @@ const Header = () => {
       }`}
     >
       <div className="container px-3 sm:px-4">
-        <div className="flex items-center justify-between h-14 sm:h-28 gap-2">
-          {/* Logo */}
-          <div className="flex items-center gap-4 lg:gap-8 min-w-0 flex-1">
-            <Link to="/" className="flex items-center gap-2 shrink-0 max-w-none" aria-label="OX Marketplace home">
+        <div className="flex items-center justify-between h-14 sm:h-28 gap-3 lg:gap-6">
+          {/* Logo + Brand (priority — never shrinks) */}
+          <div className="flex items-center gap-3 lg:gap-6 shrink-0 min-w-0">
+            <Link to="/" className="flex items-center gap-2 shrink-0" aria-label="OX Marketplace home">
               <img
                 src={oxLogo.url}
                 alt="OX"
                 className="h-10 sm:h-24 w-auto shrink-0 object-contain"
               />
-              <span className="hidden lg:inline text-xl font-bold whitespace-nowrap shrink-0">Marketplace</span>
+              <span className="hidden md:inline text-lg lg:text-xl font-bold whitespace-nowrap shrink-0">
+                Marketplace
+              </span>
             </Link>
 
-
-
-            {/* Desktop Navigation */}
-            <nav aria-label="Primary" className="hidden md:flex items-center gap-6">
+            {/* Desktop Navigation — allowed to shrink */}
+            <nav
+              aria-label="Primary"
+              className="hidden md:flex items-center gap-3 lg:gap-5 xl:gap-6 min-w-0"
+            >
               <Link
                 to="/"
                 aria-current={location.pathname === "/" ? "page" : undefined}
-                className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-2 rounded-md px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname === "/" ? "font-bold" : ""}`}
+                className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0 rounded-md px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname === "/" ? "font-bold" : ""}`}
               >
                 <Home className="w-4 h-4" aria-hidden="true" />
                 Home
@@ -126,25 +129,25 @@ const Header = () => {
               <Link
                 to="/listings"
                 aria-current={location.pathname === "/listings" ? "page" : undefined}
-                className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-2 rounded-md px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname === "/listings" ? "font-bold" : ""}`}
+                className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0 rounded-md px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname === "/listings" ? "font-bold" : ""}`}
               >
                 <Grid className="w-4 h-4" aria-hidden="true" />
-                Browse Listings
+                Browse
               </Link>
               {user && (
                 <>
                   <Link
                     to="/create-listing"
                     aria-current={location.pathname === "/create-listing" ? "page" : undefined}
-                    className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-2 rounded-md px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname === "/create-listing" ? "font-bold" : ""}`}
+                    className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0 rounded-md px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname === "/create-listing" ? "font-bold" : ""}`}
                   >
                     <Plus className="w-4 h-4" aria-hidden="true" />
-                    Sell Item
+                    Sell
                   </Link>
                   <Link
                     to="/dashboard"
                     aria-current={location.pathname === "/dashboard" ? "page" : undefined}
-                    className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-2 rounded-md px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname === "/dashboard" ? "font-bold" : ""}`}
+                    className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0 rounded-md px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname === "/dashboard" ? "font-bold" : ""}`}
                   >
                     <User className="w-4 h-4" aria-hidden="true" />
                     Dashboard
