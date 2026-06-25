@@ -784,6 +784,14 @@ const EditListing = () => {
                         </label>
                       </div>
                     )}
+
+                    <input
+                      ref={replaceInputRef}
+                      type="file"
+                      className="hidden"
+                      accept="image/*,image/heic,image/heif"
+                      onChange={handleReplaceImage}
+                    />
                   </div>
 
                   <div className="flex gap-4">
