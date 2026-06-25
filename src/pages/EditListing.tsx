@@ -61,6 +61,9 @@ const EditListing = () => {
   const [fetching, setFetching] = useState(true);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [pendingPreviews, setPendingPreviews] = useState<
+    { id: string; url: string; name: string; status: "compressing" | "uploading" | "error"; error?: string }[]
+  >([]);
   const [listingType, setListingType] = useState<string>("");
   const [listingStatus, setListingStatus] = useState<string>("");
 
