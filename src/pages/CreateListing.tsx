@@ -128,6 +128,7 @@ const CreateListing = () => {
       listing_type: "fixed_price",
 
       condition: "",
+      condition_option_id: undefined,
       location: "",
       delivery_options: [],
       fixed_price: "",
