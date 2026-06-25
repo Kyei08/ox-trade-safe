@@ -242,11 +242,20 @@ const Listings = () => {
     setSearchParams(params);
   };
 
-  const toggleConditionOption = (optionId: string) => {
+  const toggleConditionOption = (
+    optionId: string,
+    context?: { isMultiSelect: boolean; siblingIds: string[] }
+  ) => {
     setSelectedOptionIds((prev) => {
-      const next = prev.includes(optionId)
-        ? prev.filter((id) => id !== optionId)
-        : [...prev, optionId];
+      const wasActive = prev.includes(optionId);
+      let next: string[];
+      if (context && !context.isMultiSelect) {
+        // Single-select: drop any sibling in the same group, then toggle this one
+        const withoutSiblings = prev.filter((id) => !context.siblingIds.includes(id));
+        next = wasActive ? withoutSiblings : [...withoutSiblings, optionId];
+      } else {
+        next = wasActive ? prev.filter((id) => id !== optionId) : [...prev, optionId];
+      }
       const params = new URLSearchParams(searchParams);
       if (next.length === 0) {
         params.delete("conditions");
@@ -254,7 +263,7 @@ const Listings = () => {
         params.set("conditions", next.join(","));
       }
       setSearchParams(params);
-      trackEvent("listings_condition_toggled", { option_id: optionId, active: !prev.includes(optionId) });
+      trackEvent("listings_condition_toggled", { option_id: optionId, active: !wasActive });
       return next;
     });
   };

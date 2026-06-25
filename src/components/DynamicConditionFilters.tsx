@@ -24,7 +24,7 @@ interface ConditionGroup {
 interface Props {
   categoryId: string | null;
   selectedOptionIds: string[];
-  onToggle: (optionId: string) => void;
+  onToggle: (optionId: string, context?: { isMultiSelect: boolean; siblingIds: string[] }) => void;
 }
 
 const DynamicConditionFilters = ({ categoryId, selectedOptionIds, onToggle }: Props) => {
@@ -85,11 +85,17 @@ const DynamicConditionFilters = ({ categoryId, selectedOptionIds, onToggle }: Pr
             <div className="flex flex-wrap gap-2">
               {group.options.map((opt) => {
                 const active = selectedOptionIds.includes(opt.id);
+                const siblingIds = group.options.map((o) => o.id);
                 return (
                   <button
                     key={opt.id}
                     type="button"
-                    onClick={() => onToggle(opt.id)}
+                    onClick={() =>
+                      onToggle(opt.id, {
+                        isMultiSelect: group.is_multi_select,
+                        siblingIds,
+                      })
+                    }
                     className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                       active
                         ? "bg-primary text-primary-foreground border-primary"
