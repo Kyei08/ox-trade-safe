@@ -88,41 +88,46 @@ const Header = () => {
 
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-6">
-              <Link 
-                to="/" 
-                className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-2 ${location.pathname === "/" ? "font-bold" : ""}`}
+            <nav aria-label="Primary" className="hidden md:flex items-center gap-6">
+              <Link
+                to="/"
+                aria-current={location.pathname === "/" ? "page" : undefined}
+                className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-2 rounded-md px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname === "/" ? "font-bold" : ""}`}
               >
-                <Home className="w-4 h-4" />
+                <Home className="w-4 h-4" aria-hidden="true" />
                 Home
               </Link>
-              <Link 
-                to="/listings" 
-                className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-2 ${location.pathname === "/listings" ? "font-bold" : ""}`}
+              <Link
+                to="/listings"
+                aria-current={location.pathname === "/listings" ? "page" : undefined}
+                className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-2 rounded-md px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname === "/listings" ? "font-bold" : ""}`}
               >
-                <Grid className="w-4 h-4" />
+                <Grid className="w-4 h-4" aria-hidden="true" />
                 Browse Listings
               </Link>
               {user && (
                 <>
-                  <Link 
-                    to="/create-listing" 
-                    className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-2 ${location.pathname === "/create-listing" ? "font-bold" : ""}`}
+                  <Link
+                    to="/create-listing"
+                    aria-current={location.pathname === "/create-listing" ? "page" : undefined}
+                    className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-2 rounded-md px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname === "/create-listing" ? "font-bold" : ""}`}
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-4 h-4" aria-hidden="true" />
                     Sell Item
                   </Link>
-                  <Link 
-                    to="/dashboard" 
-                    className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-2 ${location.pathname === "/dashboard" ? "font-bold" : ""}`}
+                  <Link
+                    to="/dashboard"
+                    aria-current={location.pathname === "/dashboard" ? "page" : undefined}
+                    className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-2 rounded-md px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname === "/dashboard" ? "font-bold" : ""}`}
                   >
-                    <User className="w-4 h-4" />
+                    <User className="w-4 h-4" aria-hidden="true" />
                     Dashboard
                   </Link>
                 </>
               )}
             </nav>
           </div>
+
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-1 sm:gap-3 shrink-0">
