@@ -138,13 +138,17 @@ const Listings = () => {
     try {
       setLoading(true);
 
-      // If condition chips are selected, get the listing_ids matching ANY of them
+      // If condition chips are selected, look up matching listing_ids first.
+      // The covering index (option_id, listing_id) on listing_conditions keeps this index-only.
       let conditionListingIds: string[] | null = null;
       if (selectedOptionIds.length > 0) {
-        const { data: lc } = await supabase
+        const uniqueOptionIds = Array.from(new Set(selectedOptionIds));
+        const { data: lc, error: lcError } = await supabase
           .from("listing_conditions")
           .select("listing_id")
-          .in("option_id", selectedOptionIds);
+          .in("option_id", uniqueOptionIds)
+          .limit(5000);
+        if (lcError) throw lcError;
         conditionListingIds = Array.from(new Set((lc || []).map((r: any) => r.listing_id)));
         if (conditionListingIds.length === 0) {
           setListings([]);
