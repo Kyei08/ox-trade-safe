@@ -194,6 +194,17 @@ const CreateListing = () => {
 
     try {
       for (const original of files) {
+        const previewId = `${Date.now()}-${Math.random().toString(36).substring(2)}`;
+        // Show an immediate placeholder. For HEIC/HEIF the browser cannot render
+        // a blob URL of the original — we'll swap to the compressed JPEG preview below.
+        const isHeic =
+          /heic|heif/i.test(original.type) || /\.(heic|heif)$/i.test(original.name);
+        const initialUrl = isHeic ? "" : URL.createObjectURL(original);
+        setPendingPreviews((prev) => [
+          ...prev,
+          { id: previewId, url: initialUrl, name: original.name, status: "compressing" },
+        ]);
+
         try {
           // Compress one at a time (iOS Safari struggles with parallel canvas decodes)
           const [file] = await compressImages([original], {
@@ -202,6 +213,17 @@ const CreateListing = () => {
             quality: 0.8,
             maxSizeMB: 1,
           });
+
+          // Generate a preview URL from the compressed JPEG — guaranteed to render
+          // even when the source was HEIC/HEIF on iOS Safari.
+          const compressedPreviewUrl = URL.createObjectURL(file);
+          setPendingPreviews((prev) =>
+            prev.map((p) => {
+              if (p.id !== previewId) return p;
+              if (p.url && p.url !== compressedPreviewUrl) URL.revokeObjectURL(p.url);
+              return { ...p, url: compressedPreviewUrl, status: "uploading" };
+            })
+          );
 
           const fileName = `${user.id}/${Date.now()}-${Math.random()
             .toString(36)
@@ -223,12 +245,24 @@ const CreateListing = () => {
           successUrls.push(publicUrl);
           // Stream successful uploads into UI immediately
           setUploadedImages((prev) => [...prev, publicUrl]);
+          setPendingPreviews((prev) => {
+            const match = prev.find((p) => p.id === previewId);
+            if (match?.url) URL.revokeObjectURL(match.url);
+            return prev.filter((p) => p.id !== previewId);
+          });
         } catch (err: any) {
           console.error("Image upload failed", original.name, err);
           failures.push({
             name: original.name,
             reason: err?.message || "Upload failed",
           });
+          setPendingPreviews((prev) =>
+            prev.map((p) =>
+              p.id === previewId
+                ? { ...p, status: "error", error: err?.message || "Upload failed" }
+                : p
+            )
+          );
         }
       }
 
@@ -245,6 +279,14 @@ const CreateListing = () => {
     } finally {
       setUploading(false);
     }
+  };
+
+  const dismissPendingPreview = (id: string) => {
+    setPendingPreviews((prev) => {
+      const match = prev.find((p) => p.id === id);
+      if (match?.url) URL.revokeObjectURL(match.url);
+      return prev.filter((p) => p.id !== id);
+    });
   };
 
 
