@@ -700,6 +700,19 @@ const Listings = () => {
               })}
             </div>
           )}
+
+          {!loading && listings.length > 0 && hasMore && (
+            <div className="flex justify-center pt-8">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={loadMore}
+                disabled={loadingMore}
+              >
+                {loadingMore ? "Loading…" : "Load more"}
+              </Button>
+            </div>
+          )}
         </div>
       </main>
     </>
