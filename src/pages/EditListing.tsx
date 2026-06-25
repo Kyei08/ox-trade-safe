@@ -61,8 +61,98 @@ const failedReplaceFiles: Map<string, File> = new Map();
 const failedFileKey = (listingId: string | undefined, url: string | undefined) =>
   listingId && url ? `${listingId}::${url}` : "";
 
+// Structured replacement-error so each failed tile can explain what went wrong
+// and what the user can do next.
+type ReplaceErrorKind =
+  | "validation"
+  | "compression"
+  | "upload"
+  | "network"
+  | "permission"
+  | "unknown";
+type ReplaceError = {
+  kind: ReplaceErrorKind;
+  title: string;
+  hint: string;
+  detail?: string;
+};
 
+const ALLOWED_REPLACE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/heic", "image/heif"];
+const MAX_REPLACE_BYTES = 25 * 1024 * 1024; // 25 MB pre-compression cap
 
+function validateReplacementFile(file: File): ReplaceError | null {
+  const typeOk = ALLOWED_REPLACE_TYPES.includes(file.type) || /\.(jpe?g|png|webp|heic|heif)$/i.test(file.name);
+  if (!typeOk) {
+    return {
+      kind: "validation",
+      title: "Unsupported file type",
+      hint: "Pick a JPG, PNG, WEBP, or HEIC image.",
+      detail: file.type || file.name,
+    };
+  }
+  if (file.size > MAX_REPLACE_BYTES) {
+    return {
+      kind: "validation",
+      title: "Image is too large",
+      hint: "Choose a photo under 25 MB, or shrink it before uploading.",
+      detail: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+    };
+  }
+  if (file.size === 0) {
+    return {
+      kind: "validation",
+      title: "Empty file",
+      hint: "The selected file has no content. Pick a different image.",
+    };
+  }
+  return null;
+}
+
+function classifyReplaceError(err: any, stage: "compression" | "upload"): ReplaceError {
+  const raw = (err?.message || String(err || "")).toString();
+  const lower = raw.toLowerCase();
+  const detail = raw.slice(0, 200);
+
+  if (stage === "compression") {
+    return {
+      kind: "compression",
+      title: "Couldn't process this image",
+      hint: "The file may be corrupted. Try a different photo or re-export it as JPG.",
+      detail,
+    };
+  }
+
+  if (!navigator.onLine || lower.includes("network") || lower.includes("failed to fetch")) {
+    return {
+      kind: "network",
+      title: "Network error",
+      hint: "Check your connection, then tap Retry.",
+      detail,
+    };
+  }
+  if (lower.includes("unauthor") || lower.includes("forbidden") || lower.includes("not allowed") || lower.includes("policy")) {
+    return {
+      kind: "permission",
+      title: "Not allowed",
+      hint: "Sign in again, then retry. If this persists, contact support.",
+      detail,
+    };
+  }
+  if (lower.includes("payload") || lower.includes("too large") || lower.includes("exceed")) {
+    return {
+      kind: "upload",
+      title: "Upload rejected (too large)",
+      hint: "Pick a smaller image and use Replace again.",
+      detail,
+    };
+  }
+  return {
+    kind: "upload",
+    title: "Upload failed",
+    hint: "Tap Retry, or pick a different image with Replace again.",
+    detail,
+  };
+}
 
 const EditListing = () => {
   const { id } = useParams<{ id: string }>();
@@ -70,6 +160,7 @@ const EditListing = () => {
   const navigate = useNavigate();
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
