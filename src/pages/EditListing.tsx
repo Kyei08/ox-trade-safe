@@ -270,14 +270,25 @@ const EditListing = () => {
       const images: string[] = data.images || [];
       setUploadedImages(images);
 
-      // Restore persisted replace-failure markers (keyed by image URL)
+      // Restore persisted replace-failure markers (keyed by image URL).
+      // Back-compat: older entries were plain strings.
       try {
         const raw = sessionStorage.getItem(`editListing:replaceErrors:${id}`);
         if (raw) {
-          const byUrl = JSON.parse(raw) as Record<string, string>;
-          const restored: Record<number, string> = {};
+          const byUrl = JSON.parse(raw) as Record<string, ReplaceError | string>;
+          const restored: Record<number, ReplaceError> = {};
           images.forEach((url, i) => {
-            if (byUrl[url]) restored[i] = byUrl[url];
+            const v = byUrl[url];
+            if (!v) return;
+            restored[i] =
+              typeof v === "string"
+                ? {
+                    kind: "unknown",
+                    title: "Replace failed",
+                    hint: "Tap Retry, or pick a different image with Replace again.",
+                    detail: v,
+                  }
+                : v;
           });
           if (Object.keys(restored).length) setReplaceErrors(restored);
         }
