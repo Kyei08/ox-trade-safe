@@ -208,6 +208,9 @@ const Listings = () => {
           break;
       }
 
+      // Cap results so the page stays fast even on huge catalogs
+      query = query.limit(200);
+
       const { data, error } = await query;
 
       if (error) throw error;
