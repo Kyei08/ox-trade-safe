@@ -564,7 +564,7 @@ const EditListing = () => {
                             id="image-upload"
                             type="file"
                             className="hidden"
-                            accept="image/jpeg,image/png,image/webp"
+                            accept="image/*,image/heic,image/heif"
                             multiple
                             onChange={handleImageUpload}
                             disabled={uploading}

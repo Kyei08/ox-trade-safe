@@ -25,11 +25,20 @@ export const compressImage = (
       return;
     }
 
-    // Skip if already small enough
-    if (opts.maxSizeMB && file.size <= opts.maxSizeMB * 1024 * 1024) {
+    // Detect HEIC/HEIF (iOS default camera format) — always re-encode to JPEG
+    const isHeic =
+      /heic|heif/i.test(file.type) || /\.(heic|heif)$/i.test(file.name);
+
+    // Skip if already small enough AND not HEIC (HEIC must be converted)
+    if (
+      !isHeic &&
+      opts.maxSizeMB &&
+      file.size <= opts.maxSizeMB * 1024 * 1024
+    ) {
       resolve(file);
       return;
     }
+
 
     const img = new Image();
     const canvas = document.createElement("canvas");
@@ -68,8 +77,9 @@ export const compressImage = (
             return;
           }
 
-          // Create new file with original name
-          const compressedFile = new File([blob], file.name, {
+          // Create new file with original name, ensure .jpg extension
+          const newName = file.name.replace(/\.(heic|heif|png|webp)$/i, ".jpg");
+          const compressedFile = new File([blob], newName, {
             type: "image/jpeg",
             lastModified: Date.now(),
           });
@@ -83,7 +93,11 @@ export const compressImage = (
 
     img.onerror = () => {
       URL.revokeObjectURL(img.src);
-      reject(new Error("Failed to load image"));
+      reject(
+        new Error(
+          "Unable to read this image. If it's a HEIC photo from iPhone, please change your camera setting to 'Most Compatible' (Settings → Camera → Formats) or pick a JPEG."
+        )
+      );
     };
 
     img.src = URL.createObjectURL(file);
@@ -96,3 +110,4 @@ export const compressImages = async (
 ): Promise<File[]> => {
   return Promise.all(files.map((file) => compressImage(file, options)));
 };
+

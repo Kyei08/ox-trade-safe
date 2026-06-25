@@ -664,7 +664,7 @@ const SellerVerification = () => {
                         <input
                           id={`file-${f.key}`}
                           type="file"
-                          accept="image/jpeg,image/png,image/jpg,application/pdf"
+                          accept="image/*,image/heic,image/heif,application/pdf"
                           className="hidden"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
