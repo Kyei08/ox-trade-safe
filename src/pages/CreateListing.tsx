@@ -16,6 +16,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Loader2, Upload, X } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { compressImages } from "@/lib/imageCompression";
 
 const DELIVERY_OPTIONS = [
