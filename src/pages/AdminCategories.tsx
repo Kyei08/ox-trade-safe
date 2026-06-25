@@ -1092,6 +1092,22 @@ const AdminCategories = () => {
                                                           <HelpCircle className="w-4 h-4 opacity-60" />
                                                         )}
                                                       </div>
+                                                      <IconPicker
+                                                        value={trimmed || null}
+                                                        onChange={(name) => {
+                                                          setGroupsByCat((p) => ({
+                                                            ...p,
+                                                            [cat.id]: (p[cat.id] || []).map((g) =>
+                                                              g.id === group.id
+                                                                ? { ...g, icon: name || "" }
+                                                                : g,
+                                                            ),
+                                                          }));
+                                                          updateConditionGroup(group, {
+                                                            icon: name,
+                                                          });
+                                                        }}
+                                                      />
                                                       <Input
                                                         className={`h-8 ${
                                                           isInvalid
