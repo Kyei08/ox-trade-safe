@@ -282,7 +282,7 @@ const CreateListing = () => {
   useEffect(() => {
     if (!user || !didHydrateFromUrlRef.current) return;
     const t = setTimeout(() => {
-      saveDraft(user.id, {
+      const payload = {
         values: {
           title: watchedValues.title,
           description: watchedValues.description,
@@ -300,8 +300,12 @@ const CreateListing = () => {
         },
         uploadedImages,
         selectedCondition,
-      });
-    }, 400);
+      };
+      // Fast local cache
+      saveDraft(user.id, payload);
+      // Cross-device sync (fire & forget)
+      void pushRemoteDraft(user.id, payload);
+    }, 600);
     return () => clearTimeout(t);
   }, [user, watchedValues, uploadedImages, selectedCondition]);
 
