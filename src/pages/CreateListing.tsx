@@ -92,6 +92,13 @@ const CreateListing = () => {
     { id: string; url: string; name: string; status: "compressing" | "uploading" | "error"; error?: string }[]
   >([]);
   const [batchProgress, setBatchProgress] = useState<{ done: number; total: number } | null>(null);
+  const cancelUploadRef = useRef(false);
+  const [cancelling, setCancelling] = useState(false);
+
+  const cancelBatchUpload = () => {
+    cancelUploadRef.current = true;
+    setCancelling(true);
+  };
   const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
   const [checkingVerification, setCheckingVerification] = useState(true);
 
