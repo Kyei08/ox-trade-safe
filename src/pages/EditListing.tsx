@@ -192,6 +192,7 @@ const EditListing = () => {
   const [listingStatus, setListingStatus] = useState<string>("");
   const [selectedCondition, setSelectedCondition] = useState<SelectedCondition | null>(null);
   const [hasConditionGroups, setHasConditionGroups] = useState(false);
+  const [conditionSyncError, setConditionSyncError] = useState<string | null>(null);
   // Track the original category_id of the listing so we can detect category changes
   // that should invalidate the existing condition selection.
   const originalCategoryIdRef = useRef<string | null>(null);
@@ -704,6 +705,7 @@ const EditListing = () => {
       return;
     }
 
+    setConditionSyncError(null);
     try {
       setLoading(true);
 
@@ -733,30 +735,45 @@ const EditListing = () => {
 
       // Sync dynamic condition selection: clear existing row(s), then insert the
       // current one. Single-select is enforced by the listing_conditions trigger.
-      const { error: delErr } = await supabase
-        .from("listing_conditions")
-        .delete()
-        .eq("listing_id", id);
-      if (delErr) throw delErr;
-
-      if (selectedCondition) {
-        const { error: insErr } = await supabase
+      try {
+        const { error: delErr } = await supabase
           .from("listing_conditions")
-          .insert([{ listing_id: id, option_id: selectedCondition.optionId }]);
-        if (insErr) throw insErr;
+          .delete()
+          .eq("listing_id", id);
+        if (delErr) throw delErr;
+
+        if (selectedCondition) {
+          const { error: insErr } = await supabase
+            .from("listing_conditions")
+            .insert([{ listing_id: id, option_id: selectedCondition.optionId }]);
+          if (insErr) throw insErr;
+        }
+      } catch (condErr: any) {
+        const msg = String(condErr?.message || "");
+        let friendly: string;
+        if (msg.includes("does not belong to this listing's category") || msg.includes("does not belong to the selected category")) {
+          friendly = "The selected condition doesn't belong to this listing's category. Please pick a different option.";
+        } else if (msg.toLowerCase().includes("only one condition") || msg.toLowerCase().includes("single-select")) {
+          friendly = "Only one condition can be selected per listing.";
+        } else if (msg.toLowerCase().includes("permission") || msg.toLowerCase().includes("row-level security")) {
+          friendly = "You don't have permission to update this listing's condition.";
+        } else {
+          friendly = msg || "Failed to save the condition for this listing.";
+        }
+        setConditionSyncError(friendly);
+        toast.error("Couldn't save condition", {
+          description: `${friendly} Your other changes were saved — try selecting the condition again.`,
+        });
+        // Keep form state intact; do not navigate away.
+        return;
       }
 
       toast.success("Listing updated successfully!");
       navigate(`/listings/${id}`);
     } catch (error: any) {
-      const msg = String(error?.message || "");
-      if (msg.includes("does not belong to the selected category")) {
-        toast.error("Selected condition doesn't belong to this category. Please pick again.");
-      } else if (msg.toLowerCase().includes("single-select") || msg.includes("only one condition")) {
-        toast.error("Only one condition can be selected per listing.");
-      } else {
-        toast.error(error.message || "Failed to update listing");
-      }
+      toast.error("Failed to update listing", {
+        description: error?.message || "Something went wrong. Your changes are still here — please try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -932,6 +949,7 @@ const EditListing = () => {
                       value={selectedCondition?.optionId ?? null}
                       onChange={(sel) => {
                         setSelectedCondition(sel);
+                        setConditionSyncError(null);
                         form.setValue("condition_option_id", sel?.optionId ?? undefined, {
                           shouldValidate: true,
                         });
@@ -939,10 +957,19 @@ const EditListing = () => {
                       }}
                       onGroupsLoaded={setHasConditionGroups}
                     />
-                    {hasConditionGroups && !selectedCondition && (
+                    {hasConditionGroups && !selectedCondition && !conditionSyncError && (
                       <p className="text-sm font-medium text-destructive mt-1">
                         Please select a condition.
                       </p>
+                    )}
+                    {conditionSyncError && (
+                      <div
+                        role="alert"
+                        aria-live="polite"
+                        className="mt-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
+                      >
+                        {conditionSyncError}
+                      </div>
                     )}
                   </FormItem>
 
