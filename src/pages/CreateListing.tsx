@@ -670,9 +670,11 @@ const CreateListing = () => {
         if (condErr) {
           console.error("Failed to save condition:", condErr);
           const msg = condErr.message || "";
-          if (/does not belong to this listing's category/i.test(msg)) {
-            toast.error("Selected condition doesn't belong to this category. Please re-select.");
-          } else if (/only have one condition selected/i.test(msg)) {
+          if (/different category than this listing|does not belong to this listing's category/i.test(msg)) {
+            toast.error("Condition doesn't match category", {
+              description: "The selected condition belongs to a different category. Please pick one from this listing's category.",
+            });
+          } else if (/only one condition can be selected|only have one condition selected/i.test(msg)) {
             toast.error("Only one condition can be selected per listing.");
           } else {
             toast.error("Couldn't save the selected condition. Please try again.");
