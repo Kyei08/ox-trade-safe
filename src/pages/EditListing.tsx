@@ -192,6 +192,7 @@ const EditListing = () => {
   const [listingStatus, setListingStatus] = useState<string>("");
   const [selectedCondition, setSelectedCondition] = useState<SelectedCondition | null>(null);
   const [hasConditionGroups, setHasConditionGroups] = useState(false);
+  const [conditionSyncError, setConditionSyncError] = useState<string | null>(null);
   // Track the original category_id of the listing so we can detect category changes
   // that should invalidate the existing condition selection.
   const originalCategoryIdRef = useRef<string | null>(null);
