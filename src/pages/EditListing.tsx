@@ -751,9 +751,9 @@ const EditListing = () => {
       } catch (condErr: any) {
         const msg = String(condErr?.message || "");
         let friendly: string;
-        if (msg.includes("does not belong to this listing's category") || msg.includes("does not belong to the selected category")) {
-          friendly = "The selected condition doesn't belong to this listing's category. Please pick a different option.";
-        } else if (msg.toLowerCase().includes("only one condition") || msg.toLowerCase().includes("single-select")) {
+        if (/different category than this listing|does not belong to this listing's category|does not belong to the selected category/i.test(msg)) {
+          friendly = "The selected condition belongs to a different category than this listing. Please pick a condition from this listing's category.";
+        } else if (/only one condition can be selected/i.test(msg) || msg.toLowerCase().includes("single-select")) {
           friendly = "Only one condition can be selected per listing.";
         } else if (msg.toLowerCase().includes("permission") || msg.toLowerCase().includes("row-level security")) {
           friendly = "You don't have permission to update this listing's condition.";
