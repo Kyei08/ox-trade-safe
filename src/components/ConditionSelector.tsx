@@ -137,6 +137,7 @@ const ConditionSelector = ({ categoryId, value, onChange, onGroupsLoaded }: Prop
                               optionName: opt.name,
                               optionSlug: opt.slug,
                               groupId: group.id,
+                              groupCategoryId: group.category_id,
                             }
                       )
                     }
