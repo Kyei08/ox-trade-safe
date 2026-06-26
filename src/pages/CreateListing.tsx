@@ -308,6 +308,7 @@ const CreateListing = () => {
               optionName: data.name,
               optionSlug: data.slug,
               groupId: data.group_id,
+              groupCategoryId: catId,
             });
             form.setValue("condition_option_id", data.id);
             form.setValue("condition", data.name);
