@@ -706,6 +706,19 @@ const EditListing = () => {
       return;
     }
 
+    // Client-side pre-validation: condition's group must belong to the selected category.
+    if (
+      selectedCondition?.groupCategoryId &&
+      values.category_id &&
+      selectedCondition.groupCategoryId !== values.category_id
+    ) {
+      const friendly =
+        "The selected condition belongs to a different category than this listing. Please pick a condition from this listing's category.";
+      setConditionSyncError(friendly);
+      toast.error("Condition doesn't match category", { description: friendly });
+      return;
+    }
+
     setConditionSyncError(null);
     try {
       setLoading(true);
