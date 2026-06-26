@@ -949,6 +949,7 @@ const EditListing = () => {
                       value={selectedCondition?.optionId ?? null}
                       onChange={(sel) => {
                         setSelectedCondition(sel);
+                        setConditionSyncError(null);
                         form.setValue("condition_option_id", sel?.optionId ?? undefined, {
                           shouldValidate: true,
                         });
@@ -956,10 +957,19 @@ const EditListing = () => {
                       }}
                       onGroupsLoaded={setHasConditionGroups}
                     />
-                    {hasConditionGroups && !selectedCondition && (
+                    {hasConditionGroups && !selectedCondition && !conditionSyncError && (
                       <p className="text-sm font-medium text-destructive mt-1">
                         Please select a condition.
                       </p>
+                    )}
+                    {conditionSyncError && (
+                      <div
+                        role="alert"
+                        aria-live="polite"
+                        className="mt-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
+                      >
+                        {conditionSyncError}
+                      </div>
                     )}
                   </FormItem>
 
