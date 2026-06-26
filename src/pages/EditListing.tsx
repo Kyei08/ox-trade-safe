@@ -337,7 +337,7 @@ const EditListing = () => {
       try {
         const { data: lc } = await supabase
           .from("listing_conditions")
-          .select("option_id, category_condition_options!inner(id, name, slug, group_id)")
+          .select("option_id, category_condition_options!inner(id, name, slug, group_id, category_condition_groups!inner(category_id))")
           .eq("listing_id", id)
           .maybeSingle();
         if (lc && (lc as any).category_condition_options) {
@@ -348,6 +348,7 @@ const EditListing = () => {
             optionName: opt.name,
             optionSlug: opt.slug,
             groupId: opt.group_id,
+            groupCategoryId: opt.category_condition_groups?.category_id,
           });
         }
       } catch {
