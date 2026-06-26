@@ -620,6 +620,19 @@ const CreateListing = () => {
       return;
     }
 
+    // Client-side pre-validation: condition's group must belong to the selected category.
+    if (
+      selectedCondition?.groupCategoryId &&
+      values.category_id &&
+      selectedCondition.groupCategoryId !== values.category_id
+    ) {
+      toast.error("Condition doesn't match category", {
+        description:
+          "The selected condition belongs to a different category. Please pick a condition from this listing's category.",
+      });
+      return;
+    }
+
     try {
       setLoading(true);
 
