@@ -705,6 +705,7 @@ const EditListing = () => {
       return;
     }
 
+    setConditionSyncError(null);
     try {
       setLoading(true);
 
@@ -734,30 +735,45 @@ const EditListing = () => {
 
       // Sync dynamic condition selection: clear existing row(s), then insert the
       // current one. Single-select is enforced by the listing_conditions trigger.
-      const { error: delErr } = await supabase
-        .from("listing_conditions")
-        .delete()
-        .eq("listing_id", id);
-      if (delErr) throw delErr;
-
-      if (selectedCondition) {
-        const { error: insErr } = await supabase
+      try {
+        const { error: delErr } = await supabase
           .from("listing_conditions")
-          .insert([{ listing_id: id, option_id: selectedCondition.optionId }]);
-        if (insErr) throw insErr;
+          .delete()
+          .eq("listing_id", id);
+        if (delErr) throw delErr;
+
+        if (selectedCondition) {
+          const { error: insErr } = await supabase
+            .from("listing_conditions")
+            .insert([{ listing_id: id, option_id: selectedCondition.optionId }]);
+          if (insErr) throw insErr;
+        }
+      } catch (condErr: any) {
+        const msg = String(condErr?.message || "");
+        let friendly: string;
+        if (msg.includes("does not belong to this listing's category") || msg.includes("does not belong to the selected category")) {
+          friendly = "The selected condition doesn't belong to this listing's category. Please pick a different option.";
+        } else if (msg.toLowerCase().includes("only one condition") || msg.toLowerCase().includes("single-select")) {
+          friendly = "Only one condition can be selected per listing.";
+        } else if (msg.toLowerCase().includes("permission") || msg.toLowerCase().includes("row-level security")) {
+          friendly = "You don't have permission to update this listing's condition.";
+        } else {
+          friendly = msg || "Failed to save the condition for this listing.";
+        }
+        setConditionSyncError(friendly);
+        toast.error("Couldn't save condition", {
+          description: `${friendly} Your other changes were saved — try selecting the condition again.`,
+        });
+        // Keep form state intact; do not navigate away.
+        return;
       }
 
       toast.success("Listing updated successfully!");
       navigate(`/listings/${id}`);
     } catch (error: any) {
-      const msg = String(error?.message || "");
-      if (msg.includes("does not belong to the selected category")) {
-        toast.error("Selected condition doesn't belong to this category. Please pick again.");
-      } else if (msg.toLowerCase().includes("single-select") || msg.includes("only one condition")) {
-        toast.error("Only one condition can be selected per listing.");
-      } else {
-        toast.error(error.message || "Failed to update listing");
-      }
+      toast.error("Failed to update listing", {
+        description: error?.message || "Something went wrong. Your changes are still here — please try again.",
+      });
     } finally {
       setLoading(false);
     }
