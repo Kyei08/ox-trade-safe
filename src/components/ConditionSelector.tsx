@@ -26,6 +26,8 @@ export interface SelectedCondition {
   optionName: string;
   optionSlug: string;
   groupId: string;
+  /** Category the option's group belongs to — used for client-side pre-validation. May be absent on legacy drafts. */
+  groupCategoryId?: string;
 }
 
 interface Props {
@@ -135,6 +137,7 @@ const ConditionSelector = ({ categoryId, value, onChange, onGroupsLoaded }: Prop
                               optionName: opt.name,
                               optionSlug: opt.slug,
                               groupId: group.id,
+                              groupCategoryId: group.category_id,
                             }
                       )
                     }

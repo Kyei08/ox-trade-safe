@@ -337,7 +337,7 @@ const EditListing = () => {
       try {
         const { data: lc } = await supabase
           .from("listing_conditions")
-          .select("option_id, category_condition_options!inner(id, name, slug, group_id)")
+          .select("option_id, category_condition_options!inner(id, name, slug, group_id, category_condition_groups!inner(category_id))")
           .eq("listing_id", id)
           .maybeSingle();
         if (lc && (lc as any).category_condition_options) {
@@ -348,6 +348,7 @@ const EditListing = () => {
             optionName: opt.name,
             optionSlug: opt.slug,
             groupId: opt.group_id,
+            groupCategoryId: opt.category_condition_groups?.category_id,
           });
         }
       } catch {
@@ -702,6 +703,19 @@ const EditListing = () => {
     // Enforce dynamic condition selection when the category has condition groups.
     if (hasConditionGroups && !selectedCondition) {
       toast.error("Please select a condition for this category.");
+      return;
+    }
+
+    // Client-side pre-validation: condition's group must belong to the selected category.
+    if (
+      selectedCondition?.groupCategoryId &&
+      values.category_id &&
+      selectedCondition.groupCategoryId !== values.category_id
+    ) {
+      const friendly =
+        "The selected condition belongs to a different category than this listing. Please pick a condition from this listing's category.";
+      setConditionSyncError(friendly);
+      toast.error("Condition doesn't match category", { description: friendly });
       return;
     }
 
