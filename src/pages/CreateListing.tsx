@@ -628,8 +628,7 @@ const CreateListing = () => {
       selectedCondition.groupCategoryId !== values.category_id
     ) {
       toast.error("Condition doesn't match category", {
-        description:
-          "The selected condition belongs to a different category. Please pick a condition from this listing's category.",
+        description: CATEGORY_MISMATCH_ERROR,
       });
       return;
     }
@@ -685,9 +684,9 @@ const CreateListing = () => {
         if (condErr) {
           console.error("Failed to save condition:", condErr);
           const msg = condErr.message || "";
-          if (/different category than this listing|does not belong to this listing's category/i.test(msg)) {
+          if (isCategoryMismatchError(msg)) {
             toast.error("Condition doesn't match category", {
-              description: "The selected condition belongs to a different category. Please pick one from this listing's category.",
+              description: CATEGORY_MISMATCH_ERROR,
             });
           } else if (/only one condition can be selected|only have one condition selected/i.test(msg)) {
             toast.error("Only one condition can be selected per listing.");
