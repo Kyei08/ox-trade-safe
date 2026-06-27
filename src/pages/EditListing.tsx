@@ -1333,7 +1333,15 @@ const EditListing = () => {
                     >
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={loading}>
+                    <Button
+                      type="submit"
+                      disabled={
+                        loading ||
+                        !!conditionSyncError ||
+                        (hasConditionGroups && !selectedCondition) ||
+                        !!(selectedCondition?.groupCategoryId && selectedCondition.groupCategoryId !== selectedCategoryId)
+                      }
+                    >
                       {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Save Changes
                     </Button>
