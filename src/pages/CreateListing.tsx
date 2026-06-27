@@ -1062,7 +1062,7 @@ const CreateListing = () => {
                     />
                     {selectedCondition?.groupCategoryId && selectedCondition.groupCategoryId !== selectedCategoryId && (
                       <p className="text-sm font-medium text-destructive mt-2">
-                        The selected condition belongs to a different category. Please pick a condition from this listing's category.
+                        {CATEGORY_MISMATCH_ERROR}
                       </p>
                     )}
                   </FormItem>
