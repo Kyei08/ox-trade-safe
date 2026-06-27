@@ -23,6 +23,7 @@ import {
   deleteFailedReplaceFile,
   maybeCleanupFailedReplaceStore,
 } from "@/lib/failedReplaceStore";
+import { CATEGORY_MISMATCH_ERROR, isCategoryMismatchError } from "@/lib/listingValidation";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
 
 const DELIVERY_OPTIONS = [
@@ -712,8 +713,7 @@ const EditListing = () => {
       values.category_id &&
       selectedCondition.groupCategoryId !== values.category_id
     ) {
-      const friendly =
-        "The selected condition belongs to a different category than this listing. Please pick a condition from this listing's category.";
+      const friendly = CATEGORY_MISMATCH_ERROR;
       setConditionSyncError(friendly);
       toast.error("Condition doesn't match category", { description: friendly });
       return;
@@ -765,8 +765,8 @@ const EditListing = () => {
       } catch (condErr: any) {
         const msg = String(condErr?.message || "");
         let friendly: string;
-        if (/different category than this listing|does not belong to this listing's category|does not belong to the selected category/i.test(msg)) {
-          friendly = "The selected condition belongs to a different category than this listing. Please pick a condition from this listing's category.";
+        if (isCategoryMismatchError(msg)) {
+          friendly = CATEGORY_MISMATCH_ERROR;
         } else if (/only one condition can be selected/i.test(msg) || msg.toLowerCase().includes("single-select")) {
           friendly = "Only one condition can be selected per listing.";
         } else if (msg.toLowerCase().includes("permission") || msg.toLowerCase().includes("row-level security")) {
@@ -978,7 +978,7 @@ const EditListing = () => {
                     )}
                     {selectedCondition?.groupCategoryId && selectedCondition.groupCategoryId !== selectedCategoryId && !conditionSyncError && (
                       <p className="text-sm font-medium text-destructive mt-1">
-                        The selected condition belongs to a different category. Please pick a condition from this listing's category.
+                        {CATEGORY_MISMATCH_ERROR}
                       </p>
                     )}
                     {conditionSyncError && (

@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { Loader2, Upload, X, Check, CloudOff, RefreshCw } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { compressImages } from "@/lib/imageCompression";
+import { CATEGORY_MISMATCH_ERROR, isCategoryMismatchError } from "@/lib/listingValidation";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
 import {
   loadDraft,
@@ -627,8 +628,7 @@ const CreateListing = () => {
       selectedCondition.groupCategoryId !== values.category_id
     ) {
       toast.error("Condition doesn't match category", {
-        description:
-          "The selected condition belongs to a different category. Please pick a condition from this listing's category.",
+        description: CATEGORY_MISMATCH_ERROR,
       });
       return;
     }
@@ -684,9 +684,9 @@ const CreateListing = () => {
         if (condErr) {
           console.error("Failed to save condition:", condErr);
           const msg = condErr.message || "";
-          if (/different category than this listing|does not belong to this listing's category/i.test(msg)) {
+          if (isCategoryMismatchError(msg)) {
             toast.error("Condition doesn't match category", {
-              description: "The selected condition belongs to a different category. Please pick one from this listing's category.",
+              description: CATEGORY_MISMATCH_ERROR,
             });
           } else if (/only one condition can be selected|only have one condition selected/i.test(msg)) {
             toast.error("Only one condition can be selected per listing.");
@@ -1062,7 +1062,7 @@ const CreateListing = () => {
                     />
                     {selectedCondition?.groupCategoryId && selectedCondition.groupCategoryId !== selectedCategoryId && (
                       <p className="text-sm font-medium text-destructive mt-2">
-                        The selected condition belongs to a different category. Please pick a condition from this listing's category.
+                        {CATEGORY_MISMATCH_ERROR}
                       </p>
                     )}
                   </FormItem>
