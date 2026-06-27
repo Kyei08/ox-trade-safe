@@ -1060,6 +1060,11 @@ const CreateListing = () => {
                       }}
                       onGroupsLoaded={setHasConditionGroups}
                     />
+                    {selectedCondition?.groupCategoryId && selectedCondition.groupCategoryId !== selectedCategoryId && (
+                      <p className="text-sm font-medium text-destructive mt-2">
+                        The selected condition belongs to a different category. Please pick a condition from this listing's category.
+                      </p>
+                    )}
                   </FormItem>
 
 
@@ -1282,7 +1287,15 @@ const CreateListing = () => {
                     >
                       Save & Exit
                     </Button>
-                    <Button type="submit" disabled={loading} className="ml-auto">
+                    <Button
+                      type="submit"
+                      disabled={
+                        loading ||
+                        (hasConditionGroups && !selectedCondition) ||
+                        !!(selectedCondition?.groupCategoryId && selectedCondition.groupCategoryId !== selectedCategoryId)
+                      }
+                      className="ml-auto"
+                    >
                       {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Create Listing
                     </Button>

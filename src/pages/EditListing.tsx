@@ -976,6 +976,11 @@ const EditListing = () => {
                         Please select a condition.
                       </p>
                     )}
+                    {selectedCondition?.groupCategoryId && selectedCondition.groupCategoryId !== selectedCategoryId && !conditionSyncError && (
+                      <p className="text-sm font-medium text-destructive mt-1">
+                        The selected condition belongs to a different category. Please pick a condition from this listing's category.
+                      </p>
+                    )}
                     {conditionSyncError && (
                       <div
                         role="alert"
@@ -1328,7 +1333,15 @@ const EditListing = () => {
                     >
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={loading}>
+                    <Button
+                      type="submit"
+                      disabled={
+                        loading ||
+                        !!conditionSyncError ||
+                        (hasConditionGroups && !selectedCondition) ||
+                        !!(selectedCondition?.groupCategoryId && selectedCondition.groupCategoryId !== selectedCategoryId)
+                      }
+                    >
                       {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Save Changes
                     </Button>
