@@ -23,7 +23,7 @@ import {
   deleteFailedReplaceFile,
   maybeCleanupFailedReplaceStore,
 } from "@/lib/failedReplaceStore";
-import { CATEGORY_MISMATCH_ERROR, isCategoryMismatchError } from "@/lib/listingValidation";
+import { CATEGORY_MISMATCH_ERROR, normalizeListingError } from "@/lib/listingValidation";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
 
 const DELIVERY_OPTIONS = [
