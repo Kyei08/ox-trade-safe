@@ -23,8 +23,9 @@ import {
   deleteFailedReplaceFile,
   maybeCleanupFailedReplaceStore,
 } from "@/lib/failedReplaceStore";
-import { CATEGORY_MISMATCH_ERROR, normalizeListingError } from "@/lib/listingValidation";
+import { normalizeListingError } from "@/lib/listingValidation";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
+import CategoryMismatchError from "@/components/CategoryMismatchError";
 
 const DELIVERY_OPTIONS = [
   { value: "collect", label: "Collection (buyer picks up)" },

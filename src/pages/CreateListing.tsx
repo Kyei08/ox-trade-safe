@@ -18,8 +18,9 @@ import { toast } from "sonner";
 import { Loader2, Upload, X, Check, CloudOff, RefreshCw } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { compressImages } from "@/lib/imageCompression";
-import { CATEGORY_MISMATCH_ERROR, normalizeListingError } from "@/lib/listingValidation";
+import { normalizeListingError } from "@/lib/listingValidation";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
+import CategoryMismatchError from "@/components/CategoryMismatchError";
 import {
   loadDraft,
   saveDraft,
