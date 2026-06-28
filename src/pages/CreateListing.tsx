@@ -20,6 +20,7 @@ import { Progress } from "@/components/ui/progress";
 import { compressImages } from "@/lib/imageCompression";
 import { CATEGORY_MISMATCH_ERROR, normalizeListingError } from "@/lib/listingValidation";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
+import CategoryMismatchError from "@/components/CategoryMismatchError";
 import {
   loadDraft,
   saveDraft,
@@ -1052,11 +1053,7 @@ const CreateListing = () => {
                       }}
                       onGroupsLoaded={setHasConditionGroups}
                     />
-                    {selectedCondition?.groupCategoryId && selectedCondition.groupCategoryId !== selectedCategoryId && (
-                      <p className="text-sm font-medium text-destructive mt-2">
-                        {CATEGORY_MISMATCH_ERROR}
-                      </p>
-                    )}
+                    <CategoryMismatchError visible={selectedCondition?.groupCategoryId !== undefined && selectedCondition.groupCategoryId !== selectedCategoryId} />
                   </FormItem>
 
 

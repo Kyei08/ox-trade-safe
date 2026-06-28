@@ -25,6 +25,7 @@ import {
 } from "@/lib/failedReplaceStore";
 import { CATEGORY_MISMATCH_ERROR, normalizeListingError } from "@/lib/listingValidation";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
+import CategoryMismatchError from "@/components/CategoryMismatchError";
 
 const DELIVERY_OPTIONS = [
   { value: "collect", label: "Collection (buyer picks up)" },
@@ -966,11 +967,7 @@ const EditListing = () => {
                         Please select a condition.
                       </p>
                     )}
-                    {selectedCondition?.groupCategoryId && selectedCondition.groupCategoryId !== selectedCategoryId && !conditionSyncError && (
-                      <p className="text-sm font-medium text-destructive mt-1">
-                        {CATEGORY_MISMATCH_ERROR}
-                      </p>
-                    )}
+                    <CategoryMismatchError visible={selectedCondition?.groupCategoryId !== undefined && selectedCondition.groupCategoryId !== selectedCategoryId && !conditionSyncError} />
                     {conditionSyncError && (
                       <div
                         role="alert"
