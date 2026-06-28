@@ -23,8 +23,9 @@ import {
   deleteFailedReplaceFile,
   maybeCleanupFailedReplaceStore,
 } from "@/lib/failedReplaceStore";
-import { CATEGORY_MISMATCH_ERROR, normalizeListingError } from "@/lib/listingValidation";
+import { normalizeListingError } from "@/lib/listingValidation";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
+import { useConditionCategoryMatch } from "@/hooks/useConditionCategoryMatch";
 import CategoryMismatchError from "@/components/CategoryMismatchError";
 
 const DELIVERY_OPTIONS = [
@@ -215,6 +216,11 @@ const EditListing = () => {
   });
 
   const selectedCategoryId = form.watch("category_id");
+  const conditionMatch = useConditionCategoryMatch({
+    selectedCategoryId,
+    selectedCondition,
+    hasConditionGroups,
+  });
 
   useEffect(() => {
     // Throttled cleanup of stale failed-replace File entries in IndexedDB.
@@ -709,12 +715,8 @@ const EditListing = () => {
     }
 
     // Client-side pre-validation: condition's group must belong to the selected category.
-    if (
-      selectedCondition?.groupCategoryId &&
-      values.category_id &&
-      selectedCondition.groupCategoryId !== values.category_id
-    ) {
-      const friendly = CATEGORY_MISMATCH_ERROR;
+    if (conditionMatch.isMismatch) {
+      const friendly = conditionMatch.mismatchMessage;
       setConditionSyncError(friendly);
       toast.error("Condition doesn't match category", { description: friendly });
       return;
@@ -962,12 +964,12 @@ const EditListing = () => {
                       }}
                       onGroupsLoaded={setHasConditionGroups}
                     />
-                    {hasConditionGroups && !selectedCondition && !conditionSyncError && (
+                    {conditionMatch.isMissingRequired && !conditionSyncError && (
                       <p className="text-sm font-medium text-destructive mt-1">
                         Please select a condition.
                       </p>
                     )}
-                    <CategoryMismatchError visible={selectedCondition?.groupCategoryId !== undefined && selectedCondition.groupCategoryId !== selectedCategoryId && !conditionSyncError} />
+                    <CategoryMismatchError visible={conditionMatch.isMismatch && !conditionSyncError} />
                     {conditionSyncError && (
                       <div
                         role="alert"
@@ -1325,8 +1327,7 @@ const EditListing = () => {
                       disabled={
                         loading ||
                         !!conditionSyncError ||
-                        (hasConditionGroups && !selectedCondition) ||
-                        !!(selectedCondition?.groupCategoryId && selectedCondition.groupCategoryId !== selectedCategoryId)
+                        conditionMatch.blocksSubmit
                       }
                     >
                       {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

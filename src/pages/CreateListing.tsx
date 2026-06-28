@@ -18,9 +18,10 @@ import { toast } from "sonner";
 import { Loader2, Upload, X, Check, CloudOff, RefreshCw } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { compressImages } from "@/lib/imageCompression";
-import { CATEGORY_MISMATCH_ERROR, normalizeListingError } from "@/lib/listingValidation";
+import { normalizeListingError } from "@/lib/listingValidation";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
 import CategoryMismatchError from "@/components/CategoryMismatchError";
+import { useConditionCategoryMatch } from "@/hooks/useConditionCategoryMatch";
 import {
   loadDraft,
   saveDraft,
@@ -210,6 +211,11 @@ const CreateListing = () => {
 
   const listingType = form.watch("listing_type");
   const selectedCategoryId = form.watch("category_id");
+  const conditionMatch = useConditionCategoryMatch({
+    selectedCategoryId,
+    selectedCondition,
+    hasConditionGroups,
+  });
 
   // Load subcategories whenever the chosen category changes
   useEffect(() => {
@@ -623,13 +629,9 @@ const CreateListing = () => {
     }
 
     // Client-side pre-validation: condition's group must belong to the selected category.
-    if (
-      selectedCondition?.groupCategoryId &&
-      values.category_id &&
-      selectedCondition.groupCategoryId !== values.category_id
-    ) {
+    if (conditionMatch.isMismatch) {
       toast.error("Condition doesn't match category", {
-        description: CATEGORY_MISMATCH_ERROR,
+        description: conditionMatch.mismatchMessage,
       });
       return;
     }
@@ -1053,7 +1055,7 @@ const CreateListing = () => {
                       }}
                       onGroupsLoaded={setHasConditionGroups}
                     />
-                    <CategoryMismatchError visible={selectedCondition?.groupCategoryId !== undefined && selectedCondition.groupCategoryId !== selectedCategoryId} />
+                    <CategoryMismatchError visible={conditionMatch.isMismatch} />
                   </FormItem>
 
 
@@ -1278,11 +1280,7 @@ const CreateListing = () => {
                     </Button>
                     <Button
                       type="submit"
-                      disabled={
-                        loading ||
-                        (hasConditionGroups && !selectedCondition) ||
-                        !!(selectedCondition?.groupCategoryId && selectedCondition.groupCategoryId !== selectedCategoryId)
-                      }
+                      disabled={loading || conditionMatch.blocksSubmit}
                       className="ml-auto"
                     >
                       {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
