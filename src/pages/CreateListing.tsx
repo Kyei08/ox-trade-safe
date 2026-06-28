@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { Loader2, Upload, X, Check, CloudOff, RefreshCw } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { compressImages } from "@/lib/imageCompression";
-import { CATEGORY_MISMATCH_ERROR, isCategoryMismatchError } from "@/lib/listingValidation";
+import { CATEGORY_MISMATCH_ERROR, normalizeListingError } from "@/lib/listingValidation";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
 import {
   loadDraft,
@@ -683,16 +683,8 @@ const CreateListing = () => {
           .insert([{ listing_id: data.id, option_id: selectedCondition.optionId }]);
         if (condErr) {
           console.error("Failed to save condition:", condErr);
-          const msg = condErr.message || "";
-          if (isCategoryMismatchError(msg)) {
-            toast.error("Condition doesn't match category", {
-              description: CATEGORY_MISMATCH_ERROR,
-            });
-          } else if (/only one condition can be selected|only have one condition selected/i.test(msg)) {
-            toast.error("Only one condition can be selected per listing.");
-          } else {
-            toast.error("Couldn't save the selected condition. Please try again.");
-          }
+          const normalized = normalizeListingError(condErr);
+          toast.error(normalized.title, { description: normalized.message });
           // Roll back the listing so the user can retry cleanly.
           await supabase.from("listings").delete().eq("id", data.id);
           return;

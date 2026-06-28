@@ -23,7 +23,7 @@ import {
   deleteFailedReplaceFile,
   maybeCleanupFailedReplaceStore,
 } from "@/lib/failedReplaceStore";
-import { CATEGORY_MISMATCH_ERROR, isCategoryMismatchError } from "@/lib/listingValidation";
+import { CATEGORY_MISMATCH_ERROR, normalizeListingError } from "@/lib/listingValidation";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
 
 const DELIVERY_OPTIONS = [
@@ -762,21 +762,11 @@ const EditListing = () => {
             .insert([{ listing_id: id, option_id: selectedCondition.optionId }]);
           if (insErr) throw insErr;
         }
-      } catch (condErr: any) {
-        const msg = String(condErr?.message || "");
-        let friendly: string;
-        if (isCategoryMismatchError(msg)) {
-          friendly = CATEGORY_MISMATCH_ERROR;
-        } else if (/only one condition can be selected/i.test(msg) || msg.toLowerCase().includes("single-select")) {
-          friendly = "Only one condition can be selected per listing.";
-        } else if (msg.toLowerCase().includes("permission") || msg.toLowerCase().includes("row-level security")) {
-          friendly = "You don't have permission to update this listing's condition.";
-        } else {
-          friendly = msg || "Failed to save the condition for this listing.";
-        }
-        setConditionSyncError(friendly);
-        toast.error("Couldn't save condition", {
-          description: `${friendly} Your other changes were saved — try selecting the condition again.`,
+      } catch (condErr: unknown) {
+        const normalized = normalizeListingError(condErr);
+        setConditionSyncError(normalized.message);
+        toast.error(normalized.title, {
+          description: `${normalized.message} Your other changes were saved — try selecting the condition again.`,
         });
         // Keep form state intact; do not navigate away.
         return;
