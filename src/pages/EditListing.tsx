@@ -27,6 +27,8 @@ import { normalizeListingError } from "@/lib/listingValidation";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
 import { useConditionCategoryMatch } from "@/hooks/useConditionCategoryMatch";
 import CategoryMismatchError from "@/components/CategoryMismatchError";
+import ListingPreviewDialog from "@/components/ListingPreviewDialog";
+import { formatZAR } from "@/lib/currency";
 
 const DELIVERY_OPTIONS = [
   { value: "collect", label: "Collection (buyer picks up)" },
