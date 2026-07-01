@@ -1364,15 +1364,10 @@ const EditListing = () => {
               categoryName: categories.find((c) => c.id === form.watch("category_id"))?.name,
               subcategoryName: subcategories.find((s) => s.id === form.watch("subcategory_id"))?.name,
               conditionName: selectedCondition?.optionName,
-              listingType: form.watch("listing_type"),
-              priceDisplay:
-                form.watch("listing_type") === "auction"
-                  ? form.watch("starting_price")
-                    ? `From ${formatZAR(Number(form.watch("starting_price")))}`
-                    : undefined
-                  : form.watch("fixed_price")
-                    ? formatZAR(Number(form.watch("fixed_price")))
-                    : undefined,
+              listingType: "fixed_price",
+              priceDisplay: form.watch("fixed_price")
+                ? formatZAR(Number(form.watch("fixed_price")))
+                : undefined,
               location: form.watch("location"),
               deliveryOptions: form.watch("delivery_options") as string[] | undefined,
               images: uploadedImages,
