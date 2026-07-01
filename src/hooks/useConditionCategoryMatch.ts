@@ -29,7 +29,10 @@ export interface UseConditionCategoryMatchArgs {
    * reports this via `onGroupsLoaded`). When true, a selection is required.
    */
   hasConditionGroups: boolean;
+  /** Source form for analytics segmentation (e.g. "create_listing"). */
+  source?: string;
 }
+
 
 export interface UseConditionCategoryMatchResult {
   /** Valid condition groups for the selected category. */
