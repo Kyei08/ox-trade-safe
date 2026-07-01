@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { SelectedCondition } from "@/components/ConditionSelector";
 import { CATEGORY_MISMATCH_ERROR } from "@/lib/listingValidation";
+import { trackEvent } from "@/lib/analytics";
 
 /**
  * Shared hook that derives the valid condition groups for a selected
