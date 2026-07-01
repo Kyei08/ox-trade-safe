@@ -22,6 +22,8 @@ import { normalizeListingError } from "@/lib/listingValidation";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
 import CategoryMismatchError from "@/components/CategoryMismatchError";
 import { useConditionCategoryMatch } from "@/hooks/useConditionCategoryMatch";
+import ListingPreviewDialog from "@/components/ListingPreviewDialog";
+import { formatZAR } from "@/lib/currency";
 import {
   loadDraft,
   saveDraft,
