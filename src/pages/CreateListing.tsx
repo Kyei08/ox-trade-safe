@@ -169,6 +169,7 @@ const CreateListing = () => {
   const [cancelling, setCancelling] = useState(false);
   const [selectedCondition, setSelectedCondition] = useState<SelectedCondition | null>(null);
   const [hasConditionGroups, setHasConditionGroups] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const cancelBatchUpload = () => {
     cancelUploadRef.current = true;
