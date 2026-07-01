@@ -57,6 +57,7 @@ export function useConditionCategoryMatch({
   selectedCategoryId,
   selectedCondition,
   hasConditionGroups,
+  source,
 }: UseConditionCategoryMatchArgs): UseConditionCategoryMatchResult {
   const [validGroups, setValidGroups] = useState<ConditionGroupRef[]>([]);
   const [loadingGroups, setLoadingGroups] = useState(false);
@@ -89,6 +90,46 @@ export function useConditionCategoryMatch({
 
   const isMissingRequired = hasConditionGroups && !selectedCondition;
   const blocksSubmit = isMismatch || isMissingRequired;
+
+  // Emit analytics for mismatches and successful valid matches. Fires only
+  // on transitions so we don't spam the queue on every re-render.
+  const lastMismatchKeyRef = useRef<string | null>(null);
+  const lastMatchKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!selectedCategoryId || !selectedCondition) {
+      lastMismatchKeyRef.current = null;
+      lastMatchKeyRef.current = null;
+      return;
+    }
+    if (isMismatch) {
+      const key = `${selectedCategoryId}:${selectedCondition.optionId}`;
+      if (lastMismatchKeyRef.current !== key) {
+        lastMismatchKeyRef.current = key;
+        lastMatchKeyRef.current = null;
+        trackEvent("condition_category_mismatch", {
+          source: source ?? "unknown",
+          category_id: selectedCategoryId,
+          option_id: selectedCondition.optionId,
+          option_slug: selectedCondition.optionSlug,
+          group_id: selectedCondition.groupId,
+          group_category_id: selectedCondition.groupCategoryId ?? null,
+        });
+      }
+    } else {
+      const key = `${selectedCategoryId}:${selectedCondition.optionId}`;
+      if (lastMatchKeyRef.current !== key) {
+        lastMatchKeyRef.current = key;
+        lastMismatchKeyRef.current = null;
+        trackEvent("condition_category_match", {
+          source: source ?? "unknown",
+          category_id: selectedCategoryId,
+          option_id: selectedCondition.optionId,
+          option_slug: selectedCondition.optionSlug,
+          group_id: selectedCondition.groupId,
+        });
+      }
+    }
+  }, [isMismatch, selectedCategoryId, selectedCondition, source]);
 
   return {
     validGroups,
