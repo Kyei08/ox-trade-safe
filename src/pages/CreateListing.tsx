@@ -215,6 +215,7 @@ const CreateListing = () => {
     selectedCategoryId,
     selectedCondition,
     hasConditionGroups,
+    source: "create_listing",
   });
 
   // Load subcategories whenever the chosen category changes

@@ -220,6 +220,7 @@ const EditListing = () => {
     selectedCategoryId,
     selectedCondition,
     hasConditionGroups,
+    source: "edit_listing",
   });
 
   useEffect(() => {
