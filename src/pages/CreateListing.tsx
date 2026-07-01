@@ -22,6 +22,8 @@ import { normalizeListingError } from "@/lib/listingValidation";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
 import CategoryMismatchError from "@/components/CategoryMismatchError";
 import { useConditionCategoryMatch } from "@/hooks/useConditionCategoryMatch";
+import ListingPreviewDialog from "@/components/ListingPreviewDialog";
+import { formatZAR } from "@/lib/currency";
 import {
   loadDraft,
   saveDraft,
@@ -167,6 +169,7 @@ const CreateListing = () => {
   const [cancelling, setCancelling] = useState(false);
   const [selectedCondition, setSelectedCondition] = useState<SelectedCondition | null>(null);
   const [hasConditionGroups, setHasConditionGroups] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const cancelBatchUpload = () => {
     cancelUploadRef.current = true;
@@ -1280,18 +1283,60 @@ const CreateListing = () => {
                       Save & Exit
                     </Button>
                     <Button
-                      type="submit"
+                      type="button"
+                      onClick={async () => {
+                        const ok = await form.trigger();
+                        if (!ok) return;
+                        if (conditionMatch.blocksSubmit) {
+                          toast.error(conditionMatch.mismatchMessage);
+                          return;
+                        }
+                        setPreviewOpen(true);
+                      }}
                       disabled={loading || conditionMatch.blocksSubmit}
                       className="ml-auto"
                     >
                       {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Create Listing
+                      Review & Publish
                     </Button>
                   </div>
                 </form>
               </Form>
             </CardContent>
           </Card>
+
+          <ListingPreviewDialog
+            open={previewOpen}
+            onOpenChange={setPreviewOpen}
+            submitting={loading}
+            conditionMatch={conditionMatch}
+            mode="create"
+            values={{
+              title: form.watch("title"),
+              description: form.watch("description"),
+              categoryName: categories.find((c) => c.id === form.watch("category_id"))?.name,
+              subcategoryName: subcategories.find((s) => s.id === form.watch("subcategory_id"))?.name,
+              conditionName: selectedCondition?.optionName,
+              listingType: form.watch("listing_type"),
+              priceDisplay:
+                form.watch("listing_type") === "auction"
+                  ? form.watch("starting_price")
+                    ? `From ${formatZAR(Number(form.watch("starting_price")))}`
+                    : undefined
+                  : form.watch("fixed_price")
+                    ? formatZAR(Number(form.watch("fixed_price")))
+                    : undefined,
+              location: form.watch("location"),
+              deliveryOptions: form.watch("delivery_options") as string[] | undefined,
+              images: uploadedImages,
+            }}
+            onConfirm={() => {
+              form.handleSubmit(async (v) => {
+                await onSubmit(v);
+                setPreviewOpen(false);
+              })();
+            }}
+          />
         </div>
       </main>
     </>

@@ -27,6 +27,8 @@ import { normalizeListingError } from "@/lib/listingValidation";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
 import { useConditionCategoryMatch } from "@/hooks/useConditionCategoryMatch";
 import CategoryMismatchError from "@/components/CategoryMismatchError";
+import ListingPreviewDialog from "@/components/ListingPreviewDialog";
+import { formatZAR } from "@/lib/currency";
 
 const DELIVERY_OPTIONS = [
   { value: "collect", label: "Collection (buyer picks up)" },
@@ -195,6 +197,7 @@ const EditListing = () => {
   const [listingStatus, setListingStatus] = useState<string>("");
   const [selectedCondition, setSelectedCondition] = useState<SelectedCondition | null>(null);
   const [hasConditionGroups, setHasConditionGroups] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [conditionSyncError, setConditionSyncError] = useState<string | null>(null);
   // Track the original category_id of the listing so we can detect category changes
   // that should invalidate the existing condition selection.
@@ -1324,7 +1327,16 @@ const EditListing = () => {
                       Cancel
                     </Button>
                     <Button
-                      type="submit"
+                      type="button"
+                      onClick={async () => {
+                        const ok = await form.trigger();
+                        if (!ok) return;
+                        if (conditionMatch.blocksSubmit) {
+                          toast.error(conditionMatch.mismatchMessage);
+                          return;
+                        }
+                        setPreviewOpen(true);
+                      }}
                       disabled={
                         loading ||
                         !!conditionSyncError ||
@@ -1332,13 +1344,41 @@ const EditListing = () => {
                       }
                     >
                       {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Save Changes
+                      Review & Save
                     </Button>
                   </div>
                 </form>
               </Form>
             </CardContent>
           </Card>
+
+          <ListingPreviewDialog
+            open={previewOpen}
+            onOpenChange={setPreviewOpen}
+            submitting={loading}
+            conditionMatch={conditionMatch}
+            mode="edit"
+            values={{
+              title: form.watch("title"),
+              description: form.watch("description"),
+              categoryName: categories.find((c) => c.id === form.watch("category_id"))?.name,
+              subcategoryName: subcategories.find((s) => s.id === form.watch("subcategory_id"))?.name,
+              conditionName: selectedCondition?.optionName,
+              listingType: "fixed_price",
+              priceDisplay: form.watch("fixed_price")
+                ? formatZAR(Number(form.watch("fixed_price")))
+                : undefined,
+              location: form.watch("location"),
+              deliveryOptions: form.watch("delivery_options") as string[] | undefined,
+              images: uploadedImages,
+            }}
+            onConfirm={() => {
+              form.handleSubmit(async (v) => {
+                await onSubmit(v);
+                setPreviewOpen(false);
+              })();
+            }}
+          />
         </div>
       </main>
     </>
