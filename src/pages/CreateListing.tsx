@@ -19,6 +19,7 @@ import { Loader2, Upload, X, Check, CloudOff, RefreshCw } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { compressImages } from "@/lib/imageCompression";
 import { normalizeListingError } from "@/lib/listingValidation";
+import { trackEvent } from "@/lib/analytics";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
 import CategoryMismatchError from "@/components/CategoryMismatchError";
 import { useConditionCategoryMatch } from "@/hooks/useConditionCategoryMatch";
@@ -1331,6 +1332,15 @@ const CreateListing = () => {
               images: uploadedImages,
             }}
             onConfirm={() => {
+              if (conditionMatch.blocksSubmit) {
+                trackEvent("listing_preview_confirm_blocked", {
+                  source: "create_listing",
+                  reason: conditionMatch.isMismatch ? "category_mismatch" : "missing_required_condition",
+                  category_id: selectedCategoryId ?? null,
+                  option_id: selectedCondition?.optionId ?? null,
+                });
+                return;
+              }
               form.handleSubmit(async (v) => {
                 await onSubmit(v);
                 setPreviewOpen(false);
