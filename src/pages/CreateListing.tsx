@@ -19,6 +19,7 @@ import { Loader2, Upload, X, Check, CloudOff, RefreshCw } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { compressImages } from "@/lib/imageCompression";
 import { normalizeListingError } from "@/lib/listingValidation";
+import { trackEvent } from "@/lib/analytics";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
 import CategoryMismatchError from "@/components/CategoryMismatchError";
 import { useConditionCategoryMatch } from "@/hooks/useConditionCategoryMatch";
