@@ -1332,6 +1332,15 @@ const CreateListing = () => {
               images: uploadedImages,
             }}
             onConfirm={() => {
+              if (conditionMatch.blocksSubmit) {
+                trackEvent("listing_preview_confirm_blocked", {
+                  source: "create_listing",
+                  reason: conditionMatch.isMismatch ? "category_mismatch" : "missing_required_condition",
+                  category_id: selectedCategoryId ?? null,
+                  option_id: selectedCondition?.optionId ?? null,
+                });
+                return;
+              }
               form.handleSubmit(async (v) => {
                 await onSubmit(v);
                 setPreviewOpen(false);
