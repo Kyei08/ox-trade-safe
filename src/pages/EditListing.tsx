@@ -1390,12 +1390,16 @@ const EditListing = () => {
             }}
             onConfirm={() => {
               if (conditionMatch.blocksSubmit) {
-                trackEvent("listing_preview_confirm_blocked", {
-                  source: "edit_listing",
-                  reason: conditionMatch.isMismatch ? "category_mismatch" : "missing_required_condition",
-                  category_id: selectedCategoryId ?? null,
-                  option_id: selectedCondition?.optionId ?? null,
-                });
+                if (!blockedEmitRef.current.emitted) {
+                  blockedEmitRef.current.emitted = true;
+                  trackEvent("listing_preview_confirm_blocked", {
+                    source: "edit_listing",
+                    reason: conditionMatch.isMismatch ? "category_mismatch" : "missing_required_condition",
+                    category_id: selectedCategoryId ?? null,
+                    option_id: selectedCondition?.optionId ?? null,
+                    attempt_id: blockedEmitRef.current.attemptId,
+                  });
+                }
                 return;
               }
               form.handleSubmit(async (v) => {
