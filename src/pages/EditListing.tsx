@@ -24,6 +24,7 @@ import {
   maybeCleanupFailedReplaceStore,
 } from "@/lib/failedReplaceStore";
 import { normalizeListingError } from "@/lib/listingValidation";
+import { trackEvent } from "@/lib/analytics";
 import ConditionSelector, { type SelectedCondition } from "@/components/ConditionSelector";
 import { useConditionCategoryMatch } from "@/hooks/useConditionCategoryMatch";
 import CategoryMismatchError from "@/components/CategoryMismatchError";
