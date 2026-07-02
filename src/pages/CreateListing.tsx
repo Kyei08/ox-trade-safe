@@ -171,6 +171,21 @@ const CreateListing = () => {
   const [selectedCondition, setSelectedCondition] = useState<SelectedCondition | null>(null);
   const [hasConditionGroups, setHasConditionGroups] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const blockedEmitRef = useRef<{ attemptId: string | null; emitted: boolean }>({
+    attemptId: null,
+    emitted: false,
+  });
+  useEffect(() => {
+    if (previewOpen) {
+      blockedEmitRef.current = {
+        attemptId:
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `att_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+        emitted: false,
+      };
+    }
+  }, [previewOpen]);
 
   const cancelBatchUpload = () => {
     cancelUploadRef.current = true;
@@ -1333,12 +1348,16 @@ const CreateListing = () => {
             }}
             onConfirm={() => {
               if (conditionMatch.blocksSubmit) {
-                trackEvent("listing_preview_confirm_blocked", {
-                  source: "create_listing",
-                  reason: conditionMatch.isMismatch ? "category_mismatch" : "missing_required_condition",
-                  category_id: selectedCategoryId ?? null,
-                  option_id: selectedCondition?.optionId ?? null,
-                });
+                if (!blockedEmitRef.current.emitted) {
+                  blockedEmitRef.current.emitted = true;
+                  trackEvent("listing_preview_confirm_blocked", {
+                    source: "create_listing",
+                    reason: conditionMatch.isMismatch ? "category_mismatch" : "missing_required_condition",
+                    category_id: selectedCategoryId ?? null,
+                    option_id: selectedCondition?.optionId ?? null,
+                    attempt_id: blockedEmitRef.current.attemptId,
+                  });
+                }
                 return;
               }
               form.handleSubmit(async (v) => {
