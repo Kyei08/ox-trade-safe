@@ -171,6 +171,21 @@ const CreateListing = () => {
   const [selectedCondition, setSelectedCondition] = useState<SelectedCondition | null>(null);
   const [hasConditionGroups, setHasConditionGroups] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const blockedEmitRef = useRef<{ attemptId: string | null; emitted: boolean }>({
+    attemptId: null,
+    emitted: false,
+  });
+  useEffect(() => {
+    if (previewOpen) {
+      blockedEmitRef.current = {
+        attemptId:
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `att_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+        emitted: false,
+      };
+    }
+  }, [previewOpen]);
 
   const cancelBatchUpload = () => {
     cancelUploadRef.current = true;
