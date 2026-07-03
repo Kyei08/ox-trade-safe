@@ -1360,6 +1360,10 @@ const CreateListing = () => {
                 }
                 return;
               }
+              trackEvent("listing_preview_confirm_success", {
+                source: "create_listing",
+                attempt_id: blockedEmitRef.current.attemptId,
+              });
               form.handleSubmit(async (v) => {
                 await onSubmit(v);
                 setPreviewOpen(false);
