@@ -1,4 +1,4 @@
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import CategoryMismatchError from "@/components/CategoryMismatchError";
 import type { UseConditionCategoryMatchResult } from "@/hooks/useConditionCategoryMatch";
 
 export interface ListingPreviewValues {
@@ -67,12 +66,44 @@ export default function ListingPreviewDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Mismatch guard — identical presentation to the inline form */}
-        <CategoryMismatchError visible={conditionMatch.isMismatch} />
+        {/* Mismatch guard — specific, actionable copy using the actual names */}
+        {conditionMatch.isMismatch && (
+          <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-destructive">
+                  {values.conditionName && values.categoryName
+                    ? `"${values.conditionName}" doesn't match ${values.categoryName}`
+                    : values.conditionName
+                      ? `"${values.conditionName}" doesn't match this category`
+                      : "Condition doesn't match category"}
+                </p>
+                <p className="text-sm text-destructive/90 mt-1">
+                  {values.categoryName
+                    ? `Go back and select a valid condition for ${values.categoryName}.`
+                       : "Go back and select a valid condition."}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         {conditionMatch.isMissingRequired && !conditionMatch.isMismatch && (
-          <p className="text-sm text-destructive">
-            Select a condition that matches the chosen category before continuing.
-          </p>
+          <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-destructive">
+                  Condition required
+                </p>
+                <p className="text-sm text-destructive/90 mt-1">
+                  {values.categoryName
+                    ? `"${values.categoryName}" requires a condition. Go back and select one before ${mode === "create" ? "publishing" : "saving"}.`
+                    : `Select a condition before ${mode === "create" ? "publishing" : "saving"}.`}
+                </p>
+              </div>
+            </div>
+          </div>
         )}
 
         {values.images && values.images.length > 0 && (
