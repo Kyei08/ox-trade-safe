@@ -205,7 +205,12 @@ export default function ListingPreviewDialog({
           <Button
             type="button"
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={() => {
+              if (conditionMatch.blocksSubmit) {
+                onFocusField?.(focusField);
+              }
+              onOpenChange(false);
+            }}
             disabled={submitting}
           >
             Back to edit
