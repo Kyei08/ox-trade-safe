@@ -1346,6 +1346,14 @@ const CreateListing = () => {
               deliveryOptions: form.watch("delivery_options") as string[] | undefined,
               images: uploadedImages,
             }}
+            onFocusField={(field) => {
+              const id = field === "condition" ? "condition-field" : "category-select-trigger";
+              const el = document.getElementById(id);
+              if (el) {
+                el.focus();
+                el.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
+            }}
             onConfirm={() => {
               if (conditionMatch.blocksSubmit) {
                 if (!blockedEmitRef.current.emitted) {
