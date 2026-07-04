@@ -36,6 +36,11 @@ interface Props {
   submitting: boolean;
   onConfirm: () => void;
   mode: "create" | "edit";
+  /**
+   * Called when the user clicks "Back to edit" while submission is blocked.
+   * The dialog will close and the parent should focus the relevant form field.
+   */
+  onFocusField?: (field: "condition" | "category") => void;
 }
 
 /**
