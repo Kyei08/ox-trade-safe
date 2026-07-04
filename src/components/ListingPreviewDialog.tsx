@@ -73,6 +73,9 @@ export default function ListingPreviewDialog({
   }, [conditionMatch.blocksSubmit]);
 
   // Determine which parent field is most relevant to focus when going back.
+  // A missing condition is always the blocking reason today, but keeping the
+  // branch lets us route to category if we ever add a "no category selected"
+  // block without changing the dialog API.
   const focusField: "condition" | "category" =
     conditionMatch.isMissingRequired && !values.categoryName
       ? "category"
