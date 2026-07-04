@@ -886,7 +886,7 @@ const CreateListing = () => {
                           value={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger id="category-select-trigger">
                               <SelectValue placeholder="Select a category" />
                             </SelectTrigger>
                           </FormControl>
@@ -1061,7 +1061,7 @@ const CreateListing = () => {
                   )}
 
                   {/* Condition (dynamic per category) */}
-                  <FormItem>
+                  <FormItem id="condition-field" tabIndex={-1}>
                     <FormLabel>Condition *</FormLabel>
                     <ConditionSelector
                       categoryId={selectedCategoryId || null}
@@ -1345,6 +1345,14 @@ const CreateListing = () => {
               location: form.watch("location"),
               deliveryOptions: form.watch("delivery_options") as string[] | undefined,
               images: uploadedImages,
+            }}
+            onFocusField={(field) => {
+              const id = field === "condition" ? "condition-field" : "category-select-trigger";
+              const el = document.getElementById(id);
+              if (el) {
+                el.focus();
+                el.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
             }}
             onConfirm={() => {
               if (conditionMatch.blocksSubmit) {

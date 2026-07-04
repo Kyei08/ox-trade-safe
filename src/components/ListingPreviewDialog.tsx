@@ -1,3 +1,4 @@
+import { useRef, useEffect } from "react";
 import { Loader2, AlertTriangle } from "lucide-react";
 import {
   Dialog,
@@ -36,6 +37,11 @@ interface Props {
   submitting: boolean;
   onConfirm: () => void;
   mode: "create" | "edit";
+  /**
+   * Called when the user clicks "Back to edit" while submission is blocked.
+   * The dialog will close and the parent should focus the relevant form field.
+   */
+  onFocusField?: (field: "condition" | "category") => void;
 }
 
 /**
@@ -53,8 +59,27 @@ export default function ListingPreviewDialog({
   submitting,
   onConfirm,
   mode,
+  onFocusField,
 }: Props) {
   const confirmLabel = mode === "create" ? "Publish listing" : "Save changes";
+  const alertRef = useRef<HTMLDivElement>(null);
+
+  // Auto-focus the error alert when submission is blocked so screen-reader
+  // users are immediately notified.
+  useEffect(() => {
+    if (conditionMatch.blocksSubmit && alertRef.current) {
+      alertRef.current.focus();
+    }
+  }, [conditionMatch.blocksSubmit]);
+
+  // Determine which parent field is most relevant to focus when going back.
+  // A missing condition is always the blocking reason today, but keeping the
+  // branch lets us route to category if we ever add a "no category selected"
+  // block without changing the dialog API.
+  const focusField: "condition" | "category" =
+    conditionMatch.isMissingRequired && !values.categoryName
+      ? "category"
+      : "condition";
 
   return (
     <Dialog open={open} onOpenChange={(v) => (submitting ? null : onOpenChange(v))}>
@@ -68,7 +93,13 @@ export default function ListingPreviewDialog({
 
         {/* Mismatch guard — specific, actionable copy using the actual names */}
         {conditionMatch.isMismatch && (
-          <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-4">
+          <div
+            ref={alertRef}
+            tabIndex={-1}
+            role="alert"
+            aria-live="assertive"
+            className="rounded-lg border border-destructive/50 bg-destructive/5 p-4 outline-none"
+          >
             <div className="flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
               <div>
@@ -89,7 +120,13 @@ export default function ListingPreviewDialog({
           </div>
         )}
         {conditionMatch.isMissingRequired && !conditionMatch.isMismatch && (
-          <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-4">
+          <div
+            ref={!conditionMatch.isMismatch ? alertRef : undefined}
+            tabIndex={-1}
+            role="alert"
+            aria-live="assertive"
+            className="rounded-lg border border-destructive/50 bg-destructive/5 p-4 outline-none"
+          >
             <div className="flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
               <div>
@@ -171,7 +208,12 @@ export default function ListingPreviewDialog({
           <Button
             type="button"
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={() => {
+              if (conditionMatch.blocksSubmit) {
+                onFocusField?.(focusField);
+              }
+              onOpenChange(false);
+            }}
             disabled={submitting}
           >
             Back to edit
