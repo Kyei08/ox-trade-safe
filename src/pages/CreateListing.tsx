@@ -886,7 +886,7 @@ const CreateListing = () => {
                           value={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger id="category-select-trigger">
                               <SelectValue placeholder="Select a category" />
                             </SelectTrigger>
                           </FormControl>
@@ -1061,7 +1061,7 @@ const CreateListing = () => {
                   )}
 
                   {/* Condition (dynamic per category) */}
-                  <FormItem>
+                  <FormItem id="condition-field" tabIndex={-1}>
                     <FormLabel>Condition *</FormLabel>
                     <ConditionSelector
                       categoryId={selectedCategoryId || null}
