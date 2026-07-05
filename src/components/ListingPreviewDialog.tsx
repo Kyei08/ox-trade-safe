@@ -238,8 +238,11 @@ export default function ListingPreviewDialog({
             type="button"
             variant="outline"
             onClick={() => {
-              if (conditionMatch.blocksSubmit) {
-                onFocusField?.(focusField);
+              if (conditionMatch.blocksSubmit && onFocusField) {
+                // Parent will move focus to the offending field — don't
+                // restore focus to the original trigger button.
+                skipRestoreRef.current = true;
+                onFocusField(focusField);
               }
               onOpenChange(false);
             }}
