@@ -1,38 +1,40 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Lock, BadgeCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import heroImage from "@/assets/hero-auction.jpg";
 import SearchFilters from "@/components/SearchFilters";
+
+const HERO_GRADIENT = `
+  radial-gradient(circle at 50% 15%, #FFFFFF 0%, #F8FBFF 25%, rgba(255,255,255,0) 60%),
+  radial-gradient(circle at 0% 50%, rgba(90,149,255,0.25) 0%, rgba(90,149,255,0) 70%),
+  radial-gradient(circle at 100% 50%, rgba(90,149,255,0.28) 0%, rgba(90,149,255,0) 70%),
+  linear-gradient(180deg, #FFFFFF 0%, #F8FBFF 40%, #EDF5FF 70%, #DCEBFF 100%)
+`;
 
 const Hero = () => {
   const navigate = useNavigate();
 
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
-      {/* Background Image with Overlay */}
-      <div className="absolute inset-0 z-0">
-        <img 
-          src={heroImage} 
-          alt="OX Marketplace - Secure Auction Platform" 
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/95 to-primary/80" />
-      </div>
+      {/* OX Brand Gradient Background */}
+      <div
+        className="absolute inset-0 z-0"
+        style={{ background: HERO_GRADIENT }}
+      />
 
       {/* Content */}
       <div className="container relative z-10 px-4 py-20">
         <div className="max-w-4xl mx-auto text-center animate-fade-in">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/20 border border-accent/30 text-accent-foreground mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 text-accent mb-6">
             <Shield className="w-4 h-4" />
             <span className="text-sm font-medium">South Africa's Most Trusted Marketplace</span>
           </div>
-          
-          <h1 className="text-5xl md:text-7xl font-bold text-primary-foreground mb-6 leading-tight">
+
+          <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-6 leading-tight">
             Buy. Bid. Sell. <br />
             <span className="text-accent">Securely.</span>
           </h1>
-          
-          <p className="text-xl md:text-2xl text-primary-foreground/90 mb-8 max-w-2xl mx-auto">
+
+          <p className="text-xl md:text-2xl text-foreground/80 mb-8 max-w-2xl mx-auto">
             South Africa's premier auction and classifieds platform. Trade with confidence using KYC verification and escrow payments.
           </p>
 
@@ -46,22 +48,22 @@ const Hero = () => {
               Start Bidding Now
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10" onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}>
+            <Button size="lg" variant="outline" className="text-lg px-8 border-foreground/20 text-foreground hover:bg-foreground/5" onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}>
               How It Works
             </Button>
           </div>
 
           {/* Trust Indicators */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-            <div className="flex items-center justify-center gap-3 text-primary-foreground/90">
+            <div className="flex items-center justify-center gap-3 text-foreground/80">
               <BadgeCheck className="w-6 h-6 text-success" />
               <span className="font-medium">KYC Verified</span>
             </div>
-            <div className="flex items-center justify-center gap-3 text-primary-foreground/90">
+            <div className="flex items-center justify-center gap-3 text-foreground/80">
               <Lock className="w-6 h-6 text-success" />
               <span className="font-medium">Escrow Protected</span>
             </div>
-            <div className="flex items-center justify-center gap-3 text-primary-foreground/90">
+            <div className="flex items-center justify-center gap-3 text-foreground/80">
               <Shield className="w-6 h-6 text-success" />
               <span className="font-medium">100% Secure</span>
             </div>
