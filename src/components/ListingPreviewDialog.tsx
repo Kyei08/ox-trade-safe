@@ -63,14 +63,43 @@ export default function ListingPreviewDialog({
 }: Props) {
   const confirmLabel = mode === "create" ? "Publish listing" : "Save changes";
   const alertRef = useRef<HTMLDivElement>(null);
+  // Element that had focus at the moment the dialog opened. We restore focus
+  // to it on close so keyboard/screen-reader users land back on the trigger
+  // (typically the "Preview & publish"/"Preview & save" button).
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  // When the parent takes over focus (Back to edit while blocked routes focus
+  // to a specific form field), we skip our own restore so we don't fight it.
+  const skipRestoreRef = useRef(false);
+
+  useEffect(() => {
+    if (open) {
+      const active = document.activeElement;
+      previousFocusRef.current =
+        active instanceof HTMLElement ? active : null;
+      skipRestoreRef.current = false;
+    } else if (previousFocusRef.current) {
+      const target = previousFocusRef.current;
+      previousFocusRef.current = null;
+      if (skipRestoreRef.current) {
+        skipRestoreRef.current = false;
+        return;
+      }
+      // Defer to next frame so Radix finishes its own focus teardown first.
+      requestAnimationFrame(() => {
+        if (document.body.contains(target)) {
+          target.focus();
+        }
+      });
+    }
+  }, [open]);
 
   // Auto-focus the error alert when submission is blocked so screen-reader
   // users are immediately notified.
   useEffect(() => {
-    if (conditionMatch.blocksSubmit && alertRef.current) {
+    if (open && conditionMatch.blocksSubmit && alertRef.current) {
       alertRef.current.focus();
     }
-  }, [conditionMatch.blocksSubmit]);
+  }, [open, conditionMatch.blocksSubmit]);
 
   // Determine which parent field is most relevant to focus when going back.
   // A missing condition is always the blocking reason today, but keeping the
