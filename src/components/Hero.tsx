@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Lock, BadgeCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import SearchFilters from "@/components/SearchFilters";
+import { TrustBadge } from "@/components/TrustBadge";
 
 const HERO_GRADIENT = `
   radial-gradient(circle at 50% 15%, #FFFFFF 0%, #F8FBFF 25%, rgba(255,255,255,0) 60%),

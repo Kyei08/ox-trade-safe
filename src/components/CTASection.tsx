@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { TrustBadge } from "@/components/TrustBadge";
 
 const CTASection = () => {
   const navigate = useNavigate();
