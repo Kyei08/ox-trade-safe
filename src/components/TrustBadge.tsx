@@ -2,7 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type TrustBadgeVariant = "pill" | "icon";
-type TrustBadgeColor = "success" | "accent" | "primary";
+type TrustBadgeColor = "success" | "accent" | "primary" | "accent-bold" | "primary-bold" | "success-bold";
 
 interface TrustBadgeProps {
   variant?: TrustBadgeVariant;
