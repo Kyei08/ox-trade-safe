@@ -16,10 +16,7 @@ const CTASection = () => {
 
       <div className="container px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/20 border border-accent/30 text-accent-foreground mb-6">
-            <Sparkles className="w-4 h-4" />
-            <span className="text-sm font-medium">Join 50,000+ Verified Users</span>
-          </div>
+          <TrustBadge variant="pill" color="accent-bold" icon={Sparkles} label="Join 50,000+ Verified Users" className="mb-6" />
 
           <h2 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-6">
             Ready to Start Trading?

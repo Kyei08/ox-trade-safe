@@ -160,10 +160,7 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-hero p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/20 border border-accent/30 text-accent-foreground mb-4">
-            <Shield className="w-4 h-4" />
-            <span className="text-sm font-medium">Secure & Trusted</span>
-          </div>
+          <TrustBadge variant="pill" color="accent-bold" icon={Shield} label="Secure & Trusted" className="mb-4" />
           <h1 className="text-4xl font-bold text-primary-foreground mb-2">
             Join OX Marketplace
           </h1>
