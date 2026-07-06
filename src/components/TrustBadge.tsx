@@ -17,6 +17,9 @@ const colorMap: Record<TrustBadgeColor, string> = {
   success: "bg-success/10 border-success/30 text-success",
   accent: "bg-accent/10 border-accent/20 text-accent",
   primary: "bg-primary/10 border-primary/20 text-primary",
+  "accent-bold": "bg-accent/20 border-accent/30 text-accent-foreground",
+  "primary-bold": "bg-primary/20 border-primary/30 text-primary-foreground",
+  "success-bold": "bg-success/20 border-success/30 text-success-foreground",
 };
 
 const iconSizeMap: Record<string, string> = {
