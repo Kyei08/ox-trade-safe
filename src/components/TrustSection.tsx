@@ -55,12 +55,11 @@ const TrustSection = () => {
             </p>
 
             <div className="flex justify-center lg:justify-start mb-8">
-              <img 
-                src={trustBadge} 
-                alt="Trust and Security Badge" 
-                className="w-48 h-48 object-contain"
-              />
+              <div className="w-48 h-48 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <Shield className="w-24 h-24 text-primary" strokeWidth={1.5} />
+              </div>
             </div>
+
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4 max-w-md mx-auto lg:mx-0">
