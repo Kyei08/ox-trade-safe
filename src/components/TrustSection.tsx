@@ -42,10 +42,13 @@ const TrustSection = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto">
           {/* Left: Trust Badge & Stats */}
           <div className="text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/30 text-success mb-6">
-              <Shield className="w-4 h-4" />
-              <span className="text-sm font-medium">Built on Trust</span>
-            </div>
+            <TrustBadge
+              icon={Shield}
+              label="Built on Trust"
+              variant="pill"
+              color="success"
+              className="mb-6"
+            />
             
             <h2 className="text-4xl font-bold mb-6">
               Trade with Complete Confidence
