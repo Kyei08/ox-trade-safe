@@ -29,7 +29,7 @@ const iconSizeMap: Record<string, string> = {
 const containerSizeMap: Record<string, string> = {
   sm: "w-8 h-8",
   md: "w-12 h-12",
-  lg: "w-24 h-24 elegante-24",
+  lg: "w-24 h-24",
   xl: "w-48 h-48",
 };
 
