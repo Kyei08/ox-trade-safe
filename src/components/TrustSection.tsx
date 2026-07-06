@@ -1,5 +1,6 @@
 import { Shield, Lock, BadgeCheck, Users, Award, HeartHandshake } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import TrustBadge from "@/components/TrustBadge";
 
 const trustFeatures = [
   {
@@ -41,10 +42,13 @@ const TrustSection = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto">
           {/* Left: Trust Badge & Stats */}
           <div className="text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/30 text-success mb-6">
-              <Shield className="w-4 h-4" />
-              <span className="text-sm font-medium">Built on Trust</span>
-            </div>
+            <TrustBadge
+              icon={Shield}
+              label="Built on Trust"
+              variant="pill"
+              color="success"
+              className="mb-6"
+            />
             
             <h2 className="text-4xl font-bold mb-6">
               Trade with Complete Confidence
@@ -55,9 +59,12 @@ const TrustSection = () => {
             </p>
 
             <div className="flex justify-center lg:justify-start mb-8">
-              <div className="w-48 h-48 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
-                <Shield className="w-24 h-24 text-primary" strokeWidth={1.5} />
-              </div>
+              <TrustBadge
+                icon={Shield}
+                label=""
+                variant="icon"
+                color="primary"
+              />
             </div>
 
 
