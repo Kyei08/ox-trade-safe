@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Lock, BadgeCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import SearchFilters from "@/components/SearchFilters";
+import { TrustBadge } from "@/components/TrustBadge";
 
 const HERO_GRADIENT = `
   radial-gradient(circle at 50% 15%, #FFFFFF 0%, #F8FBFF 25%, rgba(255,255,255,0) 60%),
@@ -24,10 +25,7 @@ const Hero = () => {
       {/* Content */}
       <div className="container relative z-10 px-4 py-20">
         <div className="max-w-4xl mx-auto text-center animate-fade-in" style={{ willChange: "transform, opacity" }}>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 text-accent mb-6">
-            <Shield className="w-4 h-4" />
-            <span className="text-sm font-medium">South Africa's Most Trusted Marketplace</span>
-          </div>
+          <TrustBadge variant="pill" color="accent" icon={Shield} label="South Africa's Most Trusted Marketplace" className="mb-6" />
 
           <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-6 leading-tight">
             Buy. Bid. Sell. <br />
