@@ -1,6 +1,5 @@
 import { Shield, Lock, BadgeCheck, Users, Award, HeartHandshake } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import trustBadge from "@/assets/trust-badge.png";
 
 const trustFeatures = [
   {
