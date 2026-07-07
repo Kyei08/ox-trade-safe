@@ -9,6 +9,7 @@ import {
   Wrench,
   Boxes,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export type ItemCategory =
   | "Parcel"
@@ -48,19 +49,19 @@ const ItemCategoryGrid = ({ value, onChange }: Props) => {
         {CATEGORIES.map(({ key, icon: Icon }) => {
           const active = value === key;
           return (
-            <button
+            <Button
               key={key}
               type="button"
+              variant="secondary"
+              data-state={active ? "active" : undefined}
               onClick={() => onChange(key)}
-              className={`flex flex-col items-center justify-center gap-2 rounded-xl border p-4 text-center transition-colors ${
-                active
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-card hover:bg-muted border-border text-foreground"
-              }`}
+              className="h-auto flex-col gap-2 rounded-xl p-4 text-center"
             >
               <Icon className="w-5 h-5" />
-              <span className="text-xs sm:text-sm font-semibold leading-tight">{key}</span>
-            </button>
+              <span className="text-xs sm:text-sm font-semibold leading-tight whitespace-normal">
+                {key}
+              </span>
+            </Button>
           );
         })}
       </div>
