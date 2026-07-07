@@ -39,6 +39,7 @@ export default {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+          glow: "hsl(var(--accent-glow))",
         },
         success: {
           DEFAULT: "hsl(var(--success))",
@@ -117,6 +118,7 @@ export default {
       boxShadow: {
         glow: "var(--shadow-glow)",
         card: "var(--shadow-card)",
+        electric: "var(--shadow-electric)",
       },
     },
   },
