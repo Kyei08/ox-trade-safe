@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+
 export type SortKey = "recommended" | "price" | "rating" | "eta";
 
 const OPTIONS: { key: SortKey; label: string }[] = [
@@ -18,18 +20,17 @@ const SortTabs = ({ value, onChange }: Props) => {
       {OPTIONS.map((o) => {
         const active = value === o.key;
         return (
-          <button
+          <Button
             key={o.key}
             type="button"
+            size="sm"
+            variant="secondary"
+            data-state={active ? "active" : undefined}
             onClick={() => onChange(o.key)}
-            className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold border transition-colors ${
-              active
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-card text-foreground border-border hover:bg-muted"
-            }`}
+            className="shrink-0 rounded-full font-semibold"
           >
             {o.label}
-          </button>
+          </Button>
         );
       })}
     </div>
