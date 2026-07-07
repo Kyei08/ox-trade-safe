@@ -118,6 +118,7 @@ export default {
       boxShadow: {
         glow: "var(--shadow-glow)",
         card: "var(--shadow-card)",
+        electric: "var(--shadow-electric)",
       },
     },
   },
