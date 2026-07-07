@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
+import { Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -15,11 +16,14 @@ import { cn } from "@/lib/utils";
  *  - hero               → gradient-accent CTA with permanent soft glow
  *  - destructive / link → unchanged shadcn semantics
  *
- * Every interactive variant animates a shared `shadow-electric` glow so
- * hover / active / selected feels uniform across buttons, chips, and pills.
+ * Interaction states (uniform across the app):
+ *  - hover        → shared electric-blue glow
+ *  - active/on    → `data-state="active" | "on"` locks in the glow
+ *  - loading      → spinner replaces leading icon, button is disabled + aria-busy
+ *  - disabled     → 50% opacity, no pointer events, no glow
  */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed aria-busy:cursor-wait [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -60,12 +64,60 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  /** Show a spinner, disable interaction, and set aria-busy. */
+  loading?: boolean;
+  /** Optional label shown while `loading` is true. Falls back to children. */
+  loadingText?: React.ReactNode;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  (
+    {
+      className,
+      variant,
+      size,
+      asChild = false,
+      loading = false,
+      loadingText,
+      disabled,
+      children,
+      type,
+      ...props
+    },
+    ref,
+  ) => {
     const Comp = asChild ? Slot : "button";
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />;
+    const isDisabled = disabled || loading;
+
+    // With `asChild`, Radix Slot forwards to a single child element, so we
+    // must not inject a sibling spinner. Fall back to plain children.
+    const content = asChild ? (
+      children
+    ) : (
+      <>
+        {loading && <Loader2 className="animate-spin" aria-hidden />}
+        <span className={cn(loading && "opacity-90")}>
+          {loading && loadingText ? loadingText : children}
+        </span>
+      </>
+    );
+
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        // Native <button> needs an explicit type default of "button" only when
+        // used as one; keep undefined so consumers can still opt into "submit".
+        type={Comp === "button" ? type ?? "button" : type}
+        disabled={Comp === "button" ? isDisabled : undefined}
+        aria-disabled={isDisabled || undefined}
+        aria-busy={loading || undefined}
+        data-loading={loading ? "true" : undefined}
+        {...props}
+      >
+        {content}
+      </Comp>
+    );
   },
 );
 Button.displayName = "Button";
