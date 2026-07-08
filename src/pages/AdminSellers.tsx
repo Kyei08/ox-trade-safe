@@ -446,9 +446,9 @@ const AdminSellers = () => {
                       : null,
                 })
               }
-              disabled={acting || !notes.trim()}
+              loading={acting}
+              disabled={!notes.trim()}
             >
-              {acting && <Loader2 className="w-4 h-4 mr-1 animate-spin" />}
               Confirm
             </Button>
           </DialogFooter>
