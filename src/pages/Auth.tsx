@@ -370,16 +370,10 @@ const Auth = () => {
                     type="submit"
                     className="w-full"
                     variant="accent"
-                    disabled={loading}
+                    loading={loading}
+                    loadingText="Creating account..."
                   >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating account...
-                      </>
-                    ) : (
-                      "Create Account"
-                    )}
+                    Create Account
                   </Button>
                   <p className="text-xs text-center text-muted-foreground">
                     By signing up, you agree to our Terms of Service and Privacy Policy
