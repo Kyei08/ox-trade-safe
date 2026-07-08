@@ -124,15 +124,8 @@ const ResetPassword = () => {
                   Minimum 8 characters with uppercase, lowercase, and number
                 </p>
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Updating...
-                  </>
-                ) : (
-                  "Update Password"
-                )}
+              <Button type="submit" className="w-full" loading={loading} loadingText="Updating...">
+                Update Password
               </Button>
             </form>
           </CardContent>
