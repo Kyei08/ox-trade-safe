@@ -182,8 +182,7 @@ const ReviewSubmitDialog = ({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting || selectedRating === 0}>
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button type="submit" loading={isSubmitting} disabled={selectedRating === 0}>
                 Submit Review
               </Button>
             </div>
