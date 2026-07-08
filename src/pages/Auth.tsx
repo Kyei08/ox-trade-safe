@@ -238,16 +238,10 @@ const Auth = () => {
                     type="submit"
                     className="w-full"
                     variant="default"
-                    disabled={loading}
+                    loading={loading}
+                    loadingText="Signing in..."
                   >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Signing in...
-                      </>
-                    ) : (
-                      "Sign In"
-                    )}
+                    Sign In
                   </Button>
                   <Button
                     type="button"
