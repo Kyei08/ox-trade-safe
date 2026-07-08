@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, Flag, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Flag, CheckCircle, XCircle, Clock } from "lucide-react";
 import { format } from "date-fns";
 
 interface Report {
