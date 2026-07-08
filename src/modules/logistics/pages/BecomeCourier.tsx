@@ -284,8 +284,7 @@ const BecomeCourier = () => {
                     <Button asChild>
                       <Link to="/logistics/orders">View delivery requests</Link>
                     </Button>
-                    <Button variant="outline" onClick={deactivateCourier} disabled={submitting}>
-                      {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    <Button variant="outline" onClick={deactivateCourier} loading={submitting}>
                       Pause courier role
                     </Button>
                   </div>
