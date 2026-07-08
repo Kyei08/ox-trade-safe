@@ -418,12 +418,8 @@ const SellerVerification = () => {
                     <p className="text-sm text-muted-foreground">
                       Reviews usually take <span className="font-medium text-foreground">1–2 business days</span>. If you haven't heard back within 3 days, contact our support team.
                     </p>
-                    <Button variant="outline" size="sm" onClick={refreshStatus} disabled={refreshing}>
-                      {refreshing ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      ) : (
-                        <RefreshCw className="w-4 h-4 mr-2" />
-                      )}
+                    <Button variant="outline" size="sm" onClick={refreshStatus} loading={refreshing}>
+                      {!refreshing && <RefreshCw className="w-4 h-4 mr-2" />}
                       Check status
                     </Button>
                   </div>
