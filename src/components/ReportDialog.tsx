@@ -143,18 +143,15 @@ const ReportDialog = ({
           <Button variant="outline" onClick={() => setOpen(false)} disabled={submitting}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={handleSubmit} disabled={submitting || !reason}>
-            {submitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              <>
-                <Flag className="mr-2 h-4 w-4" />
-                Submit Report
-              </>
-            )}
+          <Button
+            variant="destructive"
+            onClick={handleSubmit}
+            loading={submitting}
+            loadingText="Submitting..."
+            disabled={!reason}
+          >
+            <Flag className="h-4 w-4" />
+            Submit Report
           </Button>
         </DialogFooter>
       </DialogContent>
