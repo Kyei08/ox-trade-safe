@@ -1,5 +1,5 @@
 import { useRef, useEffect } from "react";
-import { Loader2, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -253,9 +253,9 @@ export default function ListingPreviewDialog({
           <Button
             type="button"
             onClick={onConfirm}
-            disabled={submitting || conditionMatch.blocksSubmit}
+            loading={submitting}
+            disabled={conditionMatch.blocksSubmit}
           >
-            {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {confirmLabel}
           </Button>
         </DialogFooter>

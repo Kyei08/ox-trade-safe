@@ -1309,10 +1309,10 @@ const CreateListing = () => {
                         }
                         setPreviewOpen(true);
                       }}
-                      disabled={loading || conditionMatch.blocksSubmit}
+                      loading={loading}
+                      disabled={conditionMatch.blocksSubmit}
                       className="ml-auto"
                     >
-                      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Review & Publish
                     </Button>
                   </div>

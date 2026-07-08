@@ -462,24 +462,16 @@ export default function AdminKYC() {
                 <Button
                   variant="destructive"
                   onClick={() => handleReject(selectedSubmission.id, selectedSubmission.user_id)}
-                  disabled={processing}
+                  loading={processing}
                 >
-                  {processing ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <XCircle className="mr-2 h-4 w-4" />
-                  )}
+                  {!processing && <XCircle className="mr-2 h-4 w-4" />}
                   Reject
                 </Button>
                 <Button
                   onClick={() => handleApprove(selectedSubmission.id, selectedSubmission.user_id)}
-                  disabled={processing}
+                  loading={processing}
                 >
-                  {processing ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                  )}
+                  {!processing && <CheckCircle className="mr-2 h-4 w-4" />}
                   Approve
                 </Button>
               </>

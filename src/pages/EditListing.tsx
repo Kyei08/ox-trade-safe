@@ -1353,13 +1353,12 @@ const EditListing = () => {
                         }
                         setPreviewOpen(true);
                       }}
+                      loading={loading}
                       disabled={
-                        loading ||
                         !!conditionSyncError ||
                         conditionMatch.blocksSubmit
                       }
                     >
-                      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Review & Save
                     </Button>
                   </div>

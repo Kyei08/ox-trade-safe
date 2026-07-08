@@ -22,7 +22,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Star } from "lucide-react";
+import { Star } from "lucide-react";
 
 const reviewSchema = z.object({
   rating: z.number().min(1, "Please select a rating").max(5),
@@ -182,8 +182,7 @@ const ReviewSubmitDialog = ({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting || selectedRating === 0}>
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button type="submit" loading={isSubmitting} disabled={selectedRating === 0}>
                 Submit Review
               </Button>
             </div>

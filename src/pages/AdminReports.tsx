@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, Flag, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Flag, CheckCircle, XCircle, Clock } from "lucide-react";
 import { format } from "date-fns";
 
 interface Report {
@@ -232,16 +232,10 @@ const AdminReports = () => {
                             <Button
                               size="sm"
                               onClick={() => updateReport(report.id, "resolved")}
-                              disabled={updatingId === report.id}
+                              loading={updatingId === report.id}
                             >
-                              {updatingId === report.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <>
-                                  <CheckCircle className="h-4 w-4 mr-1" />
-                                  Resolve
-                                </>
-                              )}
+                              {updatingId !== report.id && <CheckCircle className="h-4 w-4 mr-1" />}
+                              Resolve
                             </Button>
                             <Button
                               size="sm"

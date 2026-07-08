@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Eye, CheckCircle2, XCircle, AlertCircle, FileText, Loader2, History, GitCompare } from "lucide-react";
+import { Eye, CheckCircle2, XCircle, AlertCircle, FileText, History, GitCompare } from "lucide-react";
 
 type Status = "pending_review" | "approved" | "rejected" | "requires_more_info";
 
@@ -401,8 +401,8 @@ const AdminSellers = () => {
                 <Button variant="destructive" onClick={() => setActionOpen("reject")} disabled={acting}>
                   <XCircle className="w-4 h-4 mr-1" /> Reject
                 </Button>
-                <Button onClick={() => updateStatus("approved")} disabled={acting}>
-                  {acting ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-1" />}
+                <Button onClick={() => updateStatus("approved")} loading={acting}>
+                  {!acting && <CheckCircle2 className="w-4 h-4 mr-1" />}
                   Approve
                 </Button>
               </DialogFooter>
@@ -446,9 +446,9 @@ const AdminSellers = () => {
                       : null,
                 })
               }
-              disabled={acting || !notes.trim()}
+              loading={acting}
+              disabled={!notes.trim()}
             >
-              {acting && <Loader2 className="w-4 h-4 mr-1 animate-spin" />}
               Confirm
             </Button>
           </DialogFooter>
