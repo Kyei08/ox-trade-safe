@@ -232,16 +232,10 @@ const AdminReports = () => {
                             <Button
                               size="sm"
                               onClick={() => updateReport(report.id, "resolved")}
-                              disabled={updatingId === report.id}
+                              loading={updatingId === report.id}
                             >
-                              {updatingId === report.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <>
-                                  <CheckCircle className="h-4 w-4 mr-1" />
-                                  Resolve
-                                </>
-                              )}
+                              {updatingId !== report.id && <CheckCircle className="h-4 w-4 mr-1" />}
+                              Resolve
                             </Button>
                             <Button
                               size="sm"
