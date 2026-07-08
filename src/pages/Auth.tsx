@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2, Shield } from "lucide-react";
+import { Shield } from "lucide-react";
 import { TrustBadge } from "@/components/TrustBadge";
 import { z } from "zod";
 import { lovable } from "@/integrations/lovable/index";
