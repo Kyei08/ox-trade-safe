@@ -332,8 +332,7 @@ const BecomeCourier = () => {
                   </div>
                 </div>
               ) : (
-                <Button onClick={activateCourier} disabled={submitting} className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                  {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                <Button variant="accent" onClick={activateCourier} loading={submitting}>
                   Activate courier role
                 </Button>
               )}
