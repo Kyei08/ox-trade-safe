@@ -275,15 +275,8 @@ const Auth = () => {
                           required
                         />
                       </div>
-                      <Button type="submit" className="w-full" disabled={forgotLoading}>
-                        {forgotLoading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Sending...
-                          </>
-                        ) : (
-                          "Send Reset Link"
-                        )}
+                      <Button type="submit" className="w-full" loading={forgotLoading} loadingText="Sending...">
+                        Send Reset Link
                       </Button>
                       <Button
                         type="button"
