@@ -866,32 +866,26 @@ export default function ListingDetail() {
                           required
                         />
                       </div>
-                      <Button type="submit" disabled={submitting} className="w-full">
-                        {submitting ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Placing bid...
-                          </>
-                        ) : (
-                          <>
-                            <Gavel className="mr-2 h-4 w-4" />
-                            Place Bid
-                          </>
-                        )}
+                      <Button
+                        type="submit"
+                        loading={submitting}
+                        loadingText="Placing bid..."
+                        className="w-full"
+                      >
+                        <Gavel className="h-4 w-4" />
+                        Place Bid
                       </Button>
                     </form>
                   )}
 
                   {!isAuction && !isOwner && listing.status === "active" && (
-                    <Button onClick={handleBuyNow} disabled={submitting} className="w-full">
-                      {submitting ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        "Buy Now"
-                      )}
+                    <Button
+                      onClick={handleBuyNow}
+                      loading={submitting}
+                      loadingText="Processing..."
+                      className="w-full"
+                    >
+                      Buy Now
                     </Button>
                   )}
 
