@@ -401,8 +401,8 @@ const AdminSellers = () => {
                 <Button variant="destructive" onClick={() => setActionOpen("reject")} disabled={acting}>
                   <XCircle className="w-4 h-4 mr-1" /> Reject
                 </Button>
-                <Button onClick={() => updateStatus("approved")} disabled={acting}>
-                  {acting ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-1" />}
+                <Button onClick={() => updateStatus("approved")} loading={acting}>
+                  {!acting && <CheckCircle2 className="w-4 h-4 mr-1" />}
                   Approve
                 </Button>
               </DialogFooter>
