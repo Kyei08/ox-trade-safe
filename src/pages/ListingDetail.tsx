@@ -879,15 +879,13 @@ export default function ListingDetail() {
                   )}
 
                   {!isAuction && !isOwner && listing.status === "active" && (
-                    <Button onClick={handleBuyNow} disabled={submitting} className="w-full">
-                      {submitting ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        "Buy Now"
-                      )}
+                    <Button
+                      onClick={handleBuyNow}
+                      loading={submitting}
+                      loadingText="Processing..."
+                      className="w-full"
+                    >
+                      Buy Now
                     </Button>
                   )}
 
