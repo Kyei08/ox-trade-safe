@@ -866,18 +866,14 @@ export default function ListingDetail() {
                           required
                         />
                       </div>
-                      <Button type="submit" disabled={submitting} className="w-full">
-                        {submitting ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Placing bid...
-                          </>
-                        ) : (
-                          <>
-                            <Gavel className="mr-2 h-4 w-4" />
-                            Place Bid
-                          </>
-                        )}
+                      <Button
+                        type="submit"
+                        loading={submitting}
+                        loadingText="Placing bid..."
+                        className="w-full"
+                      >
+                        <Gavel className="h-4 w-4" />
+                        Place Bid
                       </Button>
                     </form>
                   )}
