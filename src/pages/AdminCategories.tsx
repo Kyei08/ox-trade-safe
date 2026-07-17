@@ -1321,9 +1321,12 @@ const AdminCategories = () => {
                                                                 </AlertDialogDescription>
                                                               </AlertDialogHeader>
                                                               <AlertDialogFooter>
-                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                <AlertDialogCancel disabled={deletingId === o.id}>Cancel</AlertDialogCancel>
                                                                 <AlertDialogAction
                                                                   onClick={() => deleteConditionOption(o)}
+                                                                  loading={deletingId === o.id}
+                                                                  loadingText="Removing..."
+                                                                  disabled={deletingId === o.id}
                                                                 >
                                                                   Remove
                                                                 </AlertDialogAction>
