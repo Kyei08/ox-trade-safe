@@ -454,10 +454,12 @@ const AdminCategories = () => {
   };
 
   const deleteConditionOption = async (option: ConditionOption) => {
+    setDeletingId(option.id);
     const { error } = await supabase
       .from("category_condition_options" as any)
       .delete()
       .eq("id", option.id);
+    setDeletingId(null);
     if (error) return toast.error(error.message);
     setOptionsByGroup((p) => ({
       ...p,
