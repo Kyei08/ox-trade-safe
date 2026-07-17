@@ -408,7 +408,7 @@ export default function ListingDetail() {
     }
   };
 
-  const handlePlaceBid = async (e: React.FormEvent) => {
+  const openBidConfirmation = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
       toast({
@@ -421,8 +421,8 @@ export default function ListingDetail() {
     }
 
     const amount = parseFloat(bidAmount);
-    const minimumBid = listing?.current_bid 
-      ? listing.current_bid + 1 
+    const minimumBid = listing?.current_bid
+      ? listing.current_bid + 1
       : listing?.starting_price || 0;
 
     if (amount < minimumBid) {
@@ -440,6 +440,22 @@ export default function ListingDetail() {
         description: "You cannot bid on your own listing",
         variant: "destructive",
       });
+      return;
+    }
+
+    setBidConfirmOpen(true);
+  };
+
+  const handleConfirmBid = async () => {
+    if (!user || !listing || !id) return;
+
+    const amount = parseFloat(bidAmount);
+    const minimumBid = listing.current_bid
+      ? listing.current_bid + 1
+      : listing.starting_price || 0;
+
+    if (amount < minimumBid || user.id === listing.seller_id) {
+      setBidConfirmOpen(false);
       return;
     }
 
@@ -468,7 +484,7 @@ export default function ListingDetail() {
         .from("listings")
         .update({
           current_bid: amount,
-          bid_count: (listing?.bid_count || 0) + 1,
+          bid_count: (listing.bid_count || 0) + 1,
         })
         .eq("id", id);
 
@@ -480,6 +496,7 @@ export default function ListingDetail() {
       });
 
       setBidAmount("");
+      setBidConfirmOpen(false);
       fetchListing();
     } catch (error: any) {
       toast({
