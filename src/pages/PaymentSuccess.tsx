@@ -6,6 +6,7 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatZAR } from "@/lib/currency";
+import { clearPendingCheckout } from "@/lib/pendingCheckout";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
