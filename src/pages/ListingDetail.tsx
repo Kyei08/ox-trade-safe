@@ -24,6 +24,12 @@ import { Loader2, MapPin, Package, Gavel, User, Star, Trash2, Pencil, Truck, Che
 import { formatZAR } from "@/lib/currency";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
+  clearPendingCheckout,
+  loadPendingCheckout,
+  savePendingCheckout,
+  type PendingCheckout,
+} from "@/lib/pendingCheckout";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
