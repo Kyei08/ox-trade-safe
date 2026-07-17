@@ -232,6 +232,7 @@ export default function ListingDetail() {
   const [submitting, setSubmitting] = useState(false);
   const [bidConfirmOpen, setBidConfirmOpen] = useState(false);
   const [buyNowConfirmOpen, setBuyNowConfirmOpen] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [auctionEnded, setAuctionEnded] = useState(false);
   const [canReview, setCanReview] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
