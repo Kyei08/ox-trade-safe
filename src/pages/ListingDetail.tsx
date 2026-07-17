@@ -1026,12 +1026,40 @@ export default function ListingDetail() {
 
                   {!isAuction && !isOwner && listing.status === "active" && (
                     <>
+                      {pendingCheckout && (
+                        <Alert>
+                          <AlertDescription className="space-y-2">
+                            <p className="text-sm">
+                              You already started a secure checkout for this listing. Resume where you left off — we'll reuse the same payment session so you aren't charged twice.
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={resumePendingCheckout}
+                              >
+                                Resume checkout
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={discardPendingCheckout}
+                                disabled={submitting}
+                              >
+                                Start over
+                              </Button>
+                            </div>
+                          </AlertDescription>
+                        </Alert>
+                      )}
+
                       <Button
                         onClick={openBuyNowConfirmation}
                         disabled={submitting}
                         className="w-full"
                       >
-                        Buy Now
+                        {pendingCheckout ? "Resume Buy Now" : "Buy Now"}
                       </Button>
 
                       <AlertDialog
@@ -1044,7 +1072,9 @@ export default function ListingDetail() {
                       >
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Confirm secure purchase</AlertDialogTitle>
+                            <AlertDialogTitle>
+                              {pendingCheckout ? "Resume secure purchase" : "Confirm secure purchase"}
+                            </AlertDialogTitle>
                             <AlertDialogDescription>
                               You are about to purchase{" "}
                               <span className="font-semibold text-foreground">{listing.title}</span> for{" "}
@@ -1054,6 +1084,13 @@ export default function ListingDetail() {
                               . Payment is held in escrow and only released to the seller once you confirm delivery.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
+                          {pendingCheckout && !checkoutError && (
+                            <Alert>
+                              <AlertDescription>
+                                We'll reopen your existing checkout session instead of creating a new one, so you won't be charged twice.
+                              </AlertDescription>
+                            </Alert>
+                          )}
                           {checkoutError && (
                             <Alert variant="destructive" role="alert" aria-live="assertive">
                               <AlertDescription>
@@ -1072,7 +1109,11 @@ export default function ListingDetail() {
                               loadingText="Preparing checkout..."
                               disabled={submitting}
                             >
-                              {checkoutError ? "Retry secure checkout" : "Continue to secure checkout"}
+                              {checkoutError
+                                ? "Retry secure checkout"
+                                : pendingCheckout
+                                  ? "Reopen secure checkout"
+                                  : "Continue to secure checkout"}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
