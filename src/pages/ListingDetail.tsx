@@ -936,16 +936,44 @@ export default function ListingDetail() {
                   </AlertDialog>
 
                   {!isAuction && !isOwner && listing.status === "active" && (
-                    <Button
-                      onClick={handleBuyNow}
-                      loading={submitting}
-                      loadingText="Preparing checkout..."
-                      disabled={submitting}
-                      className="w-full"
-                    >
-                      Buy Now
-                    </Button>
+                    <>
+                      <Button
+                        onClick={openBuyNowConfirmation}
+                        disabled={submitting}
+                        className="w-full"
+                      >
+                        Buy Now
+                      </Button>
+
+                      <AlertDialog open={buyNowConfirmOpen} onOpenChange={(open) => !submitting && setBuyNowConfirmOpen(open)}>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirm secure purchase</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              You are about to purchase{" "}
+                              <span className="font-semibold text-foreground">{listing.title}</span> for{" "}
+                              <span className="font-semibold text-foreground">
+                                {formatZAR(listing.fixed_price || 0)}
+                              </span>
+                              . Payment is held in escrow and only released to the seller once you confirm delivery.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel disabled={submitting}>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={handleBuyNow}
+                              loading={submitting}
+                              loadingText="Preparing checkout..."
+                              disabled={submitting}
+                            >
+                              Continue to secure checkout
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </>
                   )}
+
 
                   {isOwner && (
                     <div className="space-y-3">
