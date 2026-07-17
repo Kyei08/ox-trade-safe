@@ -521,6 +521,7 @@ export default function ListingDetail() {
       navigate("/auth");
       return;
     }
+    setCheckoutError(null);
     setBuyNowConfirmOpen(true);
   };
 
@@ -531,6 +532,7 @@ export default function ListingDetail() {
     }
 
     setSubmitting(true);
+    setCheckoutError(null);
     try {
       const { data, error } = await supabase.functions.invoke("create-payment", {
         body: { listingId: id },
@@ -546,12 +548,18 @@ export default function ListingDetail() {
           description: "Opening escrow-protected payment in a new tab",
         });
         setBuyNowConfirmOpen(false);
+      } else {
+        throw new Error("Checkout could not be started. No payment URL was returned.");
       }
     } catch (error: any) {
       console.error("Payment error:", error);
+      const message =
+        error?.message ||
+        "We couldn't reach the secure checkout service. Please check your connection and try again.";
+      setCheckoutError(message);
       toast({
         title: "Payment failed",
-        description: error.message || "Failed to initiate payment",
+        description: message,
         variant: "destructive",
       });
     } finally {
