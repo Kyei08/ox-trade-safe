@@ -231,6 +231,7 @@ export default function ListingDetail() {
   const [bidAmount, setBidAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [bidConfirmOpen, setBidConfirmOpen] = useState(false);
+  const [buyNowConfirmOpen, setBuyNowConfirmOpen] = useState(false);
   const [auctionEnded, setAuctionEnded] = useState(false);
   const [canReview, setCanReview] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
