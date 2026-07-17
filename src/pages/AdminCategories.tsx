@@ -526,7 +526,9 @@ const AdminCategories = () => {
   };
 
   const deleteCat = async (id: string) => {
+    setDeletingId(id);
     const { error } = await supabase.from("categories").delete().eq("id", id);
+    setDeletingId(null);
     if (error) return toast.error(error.message);
     toast.success("Category deleted");
     loadAll();
