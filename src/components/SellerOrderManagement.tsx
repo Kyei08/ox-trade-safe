@@ -203,9 +203,9 @@ const SellerOrderManagement = ({ orders, onOrderUpdated }: Props) => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingOrder(null)}>Cancel</Button>
-            <Button onClick={handleUpdate} disabled={updating}>
-              {updating ? "Updating..." : "Update Order"}
+            <Button variant="outline" onClick={() => setEditingOrder(null)} disabled={updating}>Cancel</Button>
+            <Button onClick={handleUpdate} loading={updating} loadingText="Updating..." disabled={updating}>
+              Update Order
             </Button>
           </DialogFooter>
         </DialogContent>
