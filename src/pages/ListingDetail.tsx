@@ -898,6 +898,34 @@ export default function ListingDetail() {
                     </form>
                   )}
 
+                  {/* Bid Confirmation Modal */}
+                  <AlertDialog open={bidConfirmOpen} onOpenChange={setBidConfirmOpen}>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm your bid</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          You are about to place a bid of{" "}
+                          <span className="font-semibold text-foreground">
+                            {bidAmount ? formatZAR(parseFloat(bidAmount)) : "—"}
+                          </span>{" "}
+                          on <span className="font-semibold text-foreground">{listing.title}</span>.
+                          This cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel disabled={submitting}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleConfirmBid}
+                          loading={submitting}
+                          loadingText="Placing bid..."
+                          disabled={submitting}
+                        >
+                          Confirm Bid
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+
                   {!isAuction && !isOwner && listing.status === "active" && (
                     <Button
                       onClick={handleBuyNow}
