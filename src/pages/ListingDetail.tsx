@@ -556,11 +556,35 @@ export default function ListingDetail() {
       return;
     }
     setCheckoutError(null);
-    // Fresh idempotency key per confirmation session — the same key is reused
-    // across retries inside this session so Stripe returns the same Checkout
-    // Session instead of creating duplicates.
-    checkoutIdempotencyKeyRef.current = crypto.randomUUID();
+    // If we already have a live pending checkout for this listing, reuse its
+    // idempotency key so Stripe returns the same Checkout Session. Otherwise
+    // mint a fresh key for this confirmation session.
+    if (pendingCheckout?.idempotencyKey) {
+      checkoutIdempotencyKeyRef.current = pendingCheckout.idempotencyKey;
+    } else {
+      checkoutIdempotencyKeyRef.current = crypto.randomUUID();
+    }
     setBuyNowConfirmOpen(true);
+  };
+
+  const resumePendingCheckout = () => {
+    if (!pendingCheckout?.url) return;
+    window.open(pendingCheckout.url, "_blank");
+    toast({
+      title: "Resuming secure checkout",
+      description: "Reopening your existing payment session in a new tab",
+    });
+  };
+
+  const discardPendingCheckout = () => {
+    if (!id || !user?.id) return;
+    clearPendingCheckout(id, user.id);
+    setPendingCheckout(null);
+    checkoutIdempotencyKeyRef.current = null;
+    toast({
+      title: "Checkout cleared",
+      description: "You can start a fresh purchase now.",
+    });
   };
 
   const handleBuyNow = async () => {
@@ -587,6 +611,16 @@ export default function ListingDetail() {
       if (error) throw error;
 
       if (data?.url) {
+        // Persist so a refresh / return-visit can resume the same session.
+        if (id && user?.id) {
+          const record: PendingCheckout = {
+            idempotencyKey,
+            url: data.url,
+            createdAt: Date.now(),
+          };
+          savePendingCheckout(id, user.id, record);
+          setPendingCheckout(record);
+        }
         // Open Stripe checkout in new tab
         window.open(data.url, "_blank");
         toast({
@@ -594,8 +628,6 @@ export default function ListingDetail() {
           description: "Opening escrow-protected payment in a new tab",
         });
         setBuyNowConfirmOpen(false);
-        // Consume the key so the next purchase attempt gets a new one.
-        checkoutIdempotencyKeyRef.current = null;
       } else {
         throw new Error("Checkout could not be started. No payment URL was returned.");
       }
