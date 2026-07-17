@@ -421,10 +421,12 @@ const AdminCategories = () => {
   };
 
   const deleteConditionGroup = async (group: ConditionGroup) => {
+    setDeletingId(group.id);
     const { error } = await supabase
       .from("category_condition_groups" as any)
       .delete()
       .eq("id", group.id);
+    setDeletingId(null);
     if (error) return toast.error(error.message);
     setGroupsByCat((p) => ({
       ...p,
