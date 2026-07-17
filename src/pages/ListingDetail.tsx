@@ -884,7 +884,8 @@ export default function ListingDetail() {
                     <Button
                       onClick={handleBuyNow}
                       loading={submitting}
-                      loadingText="Processing..."
+                      loadingText="Preparing checkout..."
+                      disabled={submitting}
                       className="w-full"
                     >
                       Buy Now
