@@ -6,6 +6,7 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatZAR } from "@/lib/currency";
+import { clearPendingCheckout } from "@/lib/pendingCheckout";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -60,6 +61,8 @@ const PaymentSuccess = () => {
               .eq("id", listingId);
           }
 
+          // Payment completed — drop any resumable checkout for this listing.
+          clearPendingCheckout(listingId, user.id);
           setOrderCreated(true);
         }
       } catch (error) {

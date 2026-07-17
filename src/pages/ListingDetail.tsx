@@ -24,6 +24,12 @@ import { Loader2, MapPin, Package, Gavel, User, Star, Trash2, Pencil, Truck, Che
 import { formatZAR } from "@/lib/currency";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
+  clearPendingCheckout,
+  loadPendingCheckout,
+  savePendingCheckout,
+  type PendingCheckout,
+} from "@/lib/pendingCheckout";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -234,6 +240,7 @@ export default function ListingDetail() {
   const [buyNowConfirmOpen, setBuyNowConfirmOpen] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const checkoutIdempotencyKeyRef = useRef<string | null>(null);
+  const [pendingCheckout, setPendingCheckout] = useState<PendingCheckout | null>(null);
   const [auctionEnded, setAuctionEnded] = useState(false);
   const [canReview, setCanReview] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
@@ -310,6 +317,32 @@ export default function ListingDetail() {
     };
     findWinner();
   }, [listing?.status, id]);
+
+  // Resume any in-progress Stripe Checkout for this (listing, user).
+  useEffect(() => {
+    if (!id || !user?.id) {
+      setPendingCheckout(null);
+      checkoutIdempotencyKeyRef.current = null;
+      return;
+    }
+    // Only fixed-price active listings can be resumed via Buy Now.
+    if (!listing || listing.status !== "active" || listing.listing_type !== "fixed_price") {
+      clearPendingCheckout(id, user.id);
+      setPendingCheckout(null);
+      checkoutIdempotencyKeyRef.current = null;
+      return;
+    }
+    const existing = loadPendingCheckout(id, user.id);
+    if (existing) {
+      setPendingCheckout(existing);
+      // Reuse the same idempotency key so any retry hits the same Stripe session.
+      checkoutIdempotencyKeyRef.current = existing.idempotencyKey;
+    } else {
+      setPendingCheckout(null);
+      checkoutIdempotencyKeyRef.current = null;
+    }
+  }, [id, user?.id, listing?.status, listing?.listing_type, listing]);
+
 
   const fetchListing = async () => {
     try {
@@ -523,11 +556,35 @@ export default function ListingDetail() {
       return;
     }
     setCheckoutError(null);
-    // Fresh idempotency key per confirmation session — the same key is reused
-    // across retries inside this session so Stripe returns the same Checkout
-    // Session instead of creating duplicates.
-    checkoutIdempotencyKeyRef.current = crypto.randomUUID();
+    // If we already have a live pending checkout for this listing, reuse its
+    // idempotency key so Stripe returns the same Checkout Session. Otherwise
+    // mint a fresh key for this confirmation session.
+    if (pendingCheckout?.idempotencyKey) {
+      checkoutIdempotencyKeyRef.current = pendingCheckout.idempotencyKey;
+    } else {
+      checkoutIdempotencyKeyRef.current = crypto.randomUUID();
+    }
     setBuyNowConfirmOpen(true);
+  };
+
+  const resumePendingCheckout = () => {
+    if (!pendingCheckout?.url) return;
+    window.open(pendingCheckout.url, "_blank");
+    toast({
+      title: "Resuming secure checkout",
+      description: "Reopening your existing payment session in a new tab",
+    });
+  };
+
+  const discardPendingCheckout = () => {
+    if (!id || !user?.id) return;
+    clearPendingCheckout(id, user.id);
+    setPendingCheckout(null);
+    checkoutIdempotencyKeyRef.current = null;
+    toast({
+      title: "Checkout cleared",
+      description: "You can start a fresh purchase now.",
+    });
   };
 
   const handleBuyNow = async () => {
@@ -554,6 +611,16 @@ export default function ListingDetail() {
       if (error) throw error;
 
       if (data?.url) {
+        // Persist so a refresh / return-visit can resume the same session.
+        if (id && user?.id) {
+          const record: PendingCheckout = {
+            idempotencyKey,
+            url: data.url,
+            createdAt: Date.now(),
+          };
+          savePendingCheckout(id, user.id, record);
+          setPendingCheckout(record);
+        }
         // Open Stripe checkout in new tab
         window.open(data.url, "_blank");
         toast({
@@ -561,8 +628,6 @@ export default function ListingDetail() {
           description: "Opening escrow-protected payment in a new tab",
         });
         setBuyNowConfirmOpen(false);
-        // Consume the key so the next purchase attempt gets a new one.
-        checkoutIdempotencyKeyRef.current = null;
       } else {
         throw new Error("Checkout could not be started. No payment URL was returned.");
       }
@@ -961,12 +1026,40 @@ export default function ListingDetail() {
 
                   {!isAuction && !isOwner && listing.status === "active" && (
                     <>
+                      {pendingCheckout && (
+                        <Alert>
+                          <AlertDescription className="space-y-2">
+                            <p className="text-sm">
+                              You already started a secure checkout for this listing. Resume where you left off — we'll reuse the same payment session so you aren't charged twice.
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={resumePendingCheckout}
+                              >
+                                Resume checkout
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={discardPendingCheckout}
+                                disabled={submitting}
+                              >
+                                Start over
+                              </Button>
+                            </div>
+                          </AlertDescription>
+                        </Alert>
+                      )}
+
                       <Button
                         onClick={openBuyNowConfirmation}
                         disabled={submitting}
                         className="w-full"
                       >
-                        Buy Now
+                        {pendingCheckout ? "Resume Buy Now" : "Buy Now"}
                       </Button>
 
                       <AlertDialog
@@ -979,7 +1072,9 @@ export default function ListingDetail() {
                       >
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Confirm secure purchase</AlertDialogTitle>
+                            <AlertDialogTitle>
+                              {pendingCheckout ? "Resume secure purchase" : "Confirm secure purchase"}
+                            </AlertDialogTitle>
                             <AlertDialogDescription>
                               You are about to purchase{" "}
                               <span className="font-semibold text-foreground">{listing.title}</span> for{" "}
@@ -989,6 +1084,13 @@ export default function ListingDetail() {
                               . Payment is held in escrow and only released to the seller once you confirm delivery.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
+                          {pendingCheckout && !checkoutError && (
+                            <Alert>
+                              <AlertDescription>
+                                We'll reopen your existing checkout session instead of creating a new one, so you won't be charged twice.
+                              </AlertDescription>
+                            </Alert>
+                          )}
                           {checkoutError && (
                             <Alert variant="destructive" role="alert" aria-live="assertive">
                               <AlertDescription>
@@ -1007,7 +1109,11 @@ export default function ListingDetail() {
                               loadingText="Preparing checkout..."
                               disabled={submitting}
                             >
-                              {checkoutError ? "Retry secure checkout" : "Continue to secure checkout"}
+                              {checkoutError
+                                ? "Retry secure checkout"
+                                : pendingCheckout
+                                  ? "Reopen secure checkout"
+                                  : "Continue to secure checkout"}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
