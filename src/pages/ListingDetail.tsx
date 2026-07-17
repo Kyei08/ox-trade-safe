@@ -863,6 +863,7 @@ export default function ListingDetail() {
                           value={bidAmount}
                           onChange={(e) => setBidAmount(e.target.value)}
                           placeholder={`Min: ${formatZAR((listing.current_bid || listing.starting_price || 0) + 1)}`}
+                          disabled={submitting}
                           required
                         />
                       </div>
@@ -870,6 +871,7 @@ export default function ListingDetail() {
                         type="submit"
                         loading={submitting}
                         loadingText="Placing bid..."
+                        disabled={submitting}
                         className="w-full"
                       >
                         <Gavel className="h-4 w-4" />
@@ -882,7 +884,8 @@ export default function ListingDetail() {
                     <Button
                       onClick={handleBuyNow}
                       loading={submitting}
-                      loadingText="Processing..."
+                      loadingText="Preparing checkout..."
+                      disabled={submitting}
                       className="w-full"
                     >
                       Buy Now
