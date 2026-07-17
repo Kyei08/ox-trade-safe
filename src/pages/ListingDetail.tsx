@@ -887,8 +887,6 @@ export default function ListingDetail() {
                       </div>
                       <Button
                         type="submit"
-                        loading={submitting}
-                        loadingText="Placing bid..."
                         disabled={submitting}
                         className="w-full"
                       >
