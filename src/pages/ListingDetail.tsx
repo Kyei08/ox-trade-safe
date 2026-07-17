@@ -870,6 +870,7 @@ export default function ListingDetail() {
                         type="submit"
                         loading={submitting}
                         loadingText="Placing bid..."
+                        disabled={submitting}
                         className="w-full"
                       >
                         <Gavel className="h-4 w-4" />
