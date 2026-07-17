@@ -284,9 +284,12 @@ const ImageGalleryManager = ({ userId }: ImageGalleryManagerProps) => {
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogCancel disabled={deleting === `${userId}/${file.name}`}>Cancel</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={() => handleDelete("avatars", file.name)}
+                            loading={deleting === `${userId}/${file.name}`}
+                            loadingText="Deleting..."
+                            disabled={deleting === `${userId}/${file.name}`}
                           >
                             Delete
                           </AlertDialogAction>
