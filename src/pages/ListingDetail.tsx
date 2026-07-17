@@ -240,6 +240,7 @@ export default function ListingDetail() {
   const [buyNowConfirmOpen, setBuyNowConfirmOpen] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const checkoutIdempotencyKeyRef = useRef<string | null>(null);
+  const [pendingCheckout, setPendingCheckout] = useState<PendingCheckout | null>(null);
   const [auctionEnded, setAuctionEnded] = useState(false);
   const [canReview, setCanReview] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
