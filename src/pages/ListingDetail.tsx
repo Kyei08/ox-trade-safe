@@ -510,13 +510,21 @@ export default function ListingDetail() {
     }
   };
 
-  const handleBuyNow = async () => {
+  const openBuyNowConfirmation = () => {
     if (!user) {
       toast({
         title: "Authentication required",
         description: "Please sign in to make a purchase",
         variant: "destructive",
       });
+      navigate("/auth");
+      return;
+    }
+    setBuyNowConfirmOpen(true);
+  };
+
+  const handleBuyNow = async () => {
+    if (!user) {
       navigate("/auth");
       return;
     }
@@ -533,9 +541,10 @@ export default function ListingDetail() {
         // Open Stripe checkout in new tab
         window.open(data.url, "_blank");
         toast({
-          title: "Redirecting to payment",
-          description: "Opening Stripe checkout in a new tab",
+          title: "Redirecting to secure checkout",
+          description: "Opening escrow-protected payment in a new tab",
         });
+        setBuyNowConfirmOpen(false);
       }
     } catch (error: any) {
       console.error("Payment error:", error);
@@ -548,6 +557,7 @@ export default function ListingDetail() {
       setSubmitting(false);
     }
   };
+
 
   const handleContactSeller = async () => {
     if (!user || !listing) return;
