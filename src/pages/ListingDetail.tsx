@@ -232,6 +232,7 @@ export default function ListingDetail() {
   const [submitting, setSubmitting] = useState(false);
   const [bidConfirmOpen, setBidConfirmOpen] = useState(false);
   const [buyNowConfirmOpen, setBuyNowConfirmOpen] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [auctionEnded, setAuctionEnded] = useState(false);
   const [canReview, setCanReview] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
@@ -520,6 +521,7 @@ export default function ListingDetail() {
       navigate("/auth");
       return;
     }
+    setCheckoutError(null);
     setBuyNowConfirmOpen(true);
   };
 
@@ -530,6 +532,7 @@ export default function ListingDetail() {
     }
 
     setSubmitting(true);
+    setCheckoutError(null);
     try {
       const { data, error } = await supabase.functions.invoke("create-payment", {
         body: { listingId: id },
@@ -545,12 +548,18 @@ export default function ListingDetail() {
           description: "Opening escrow-protected payment in a new tab",
         });
         setBuyNowConfirmOpen(false);
+      } else {
+        throw new Error("Checkout could not be started. No payment URL was returned.");
       }
     } catch (error: any) {
       console.error("Payment error:", error);
+      const message =
+        error?.message ||
+        "We couldn't reach the secure checkout service. Please check your connection and try again.";
+      setCheckoutError(message);
       toast({
         title: "Payment failed",
-        description: error.message || "Failed to initiate payment",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -945,7 +954,14 @@ export default function ListingDetail() {
                         Buy Now
                       </Button>
 
-                      <AlertDialog open={buyNowConfirmOpen} onOpenChange={(open) => !submitting && setBuyNowConfirmOpen(open)}>
+                      <AlertDialog
+                        open={buyNowConfirmOpen}
+                        onOpenChange={(open) => {
+                          if (submitting) return;
+                          setBuyNowConfirmOpen(open);
+                          if (!open) setCheckoutError(null);
+                        }}
+                      >
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>Confirm secure purchase</AlertDialogTitle>
@@ -958,15 +974,25 @@ export default function ListingDetail() {
                               . Payment is held in escrow and only released to the seller once you confirm delivery.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
+                          {checkoutError && (
+                            <Alert variant="destructive" role="alert" aria-live="assertive">
+                              <AlertDescription>
+                                {checkoutError} You can try again below.
+                              </AlertDescription>
+                            </Alert>
+                          )}
                           <AlertDialogFooter>
                             <AlertDialogCancel disabled={submitting}>Cancel</AlertDialogCancel>
                             <AlertDialogAction
-                              onClick={handleBuyNow}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleBuyNow();
+                              }}
                               loading={submitting}
                               loadingText="Preparing checkout..."
                               disabled={submitting}
                             >
-                              Continue to secure checkout
+                              {checkoutError ? "Retry secure checkout" : "Continue to secure checkout"}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
