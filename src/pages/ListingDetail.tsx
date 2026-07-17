@@ -863,6 +863,7 @@ export default function ListingDetail() {
                           value={bidAmount}
                           onChange={(e) => setBidAmount(e.target.value)}
                           placeholder={`Min: ${formatZAR((listing.current_bid || listing.starting_price || 0) + 1)}`}
+                          disabled={submitting}
                           required
                         />
                       </div>
