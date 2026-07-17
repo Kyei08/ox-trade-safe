@@ -4,8 +4,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-idempotency-key",
 };
+
+// Basic UUID v4 validator to keep idempotency keys well-formed.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -18,13 +21,24 @@ serve(async (req) => {
   );
 
   try {
-    const { listingId } = await req.json();
-    
+    const body = await req.json();
+    const { listingId, idempotencyKey: bodyKey } = body ?? {};
+
     if (!listingId) {
       throw new Error("Listing ID is required");
     }
 
-    console.log("Processing payment for listing:", listingId);
+    // Prefer explicit header, fall back to body-provided key.
+    const rawKey = req.headers.get("x-idempotency-key") ?? bodyKey ?? "";
+    if (!rawKey || !UUID_RE.test(String(rawKey))) {
+      return new Response(
+        JSON.stringify({ error: "A valid idempotency key (UUID) is required" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
+    const idempotencyKey = `checkout:${listingId}:${rawKey}`;
+
+    console.log("Processing payment for listing:", listingId, "idempotencyKey:", idempotencyKey);
 
     // Get authenticated user (optional for guest checkout)
     const authHeader = req.headers.get("Authorization");
@@ -108,6 +122,8 @@ serve(async (req) => {
         seller_id: listing.seller_id,
         buyer_id: user?.id || "guest",
       },
+    }, {
+      idempotencyKey,
     });
 
     console.log("Checkout session created:", session.id);

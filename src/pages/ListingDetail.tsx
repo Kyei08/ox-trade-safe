@@ -233,6 +233,7 @@ export default function ListingDetail() {
   const [bidConfirmOpen, setBidConfirmOpen] = useState(false);
   const [buyNowConfirmOpen, setBuyNowConfirmOpen] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const checkoutIdempotencyKeyRef = useRef<string | null>(null);
   const [auctionEnded, setAuctionEnded] = useState(false);
   const [canReview, setCanReview] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
@@ -522,6 +523,10 @@ export default function ListingDetail() {
       return;
     }
     setCheckoutError(null);
+    // Fresh idempotency key per confirmation session — the same key is reused
+    // across retries inside this session so Stripe returns the same Checkout
+    // Session instead of creating duplicates.
+    checkoutIdempotencyKeyRef.current = crypto.randomUUID();
     setBuyNowConfirmOpen(true);
   };
 
@@ -531,11 +536,19 @@ export default function ListingDetail() {
       return;
     }
 
+    // Guarantee an idempotency key exists even if the dialog was opened
+    // through an unexpected code path.
+    if (!checkoutIdempotencyKeyRef.current) {
+      checkoutIdempotencyKeyRef.current = crypto.randomUUID();
+    }
+    const idempotencyKey = checkoutIdempotencyKeyRef.current;
+
     setSubmitting(true);
     setCheckoutError(null);
     try {
       const { data, error } = await supabase.functions.invoke("create-payment", {
-        body: { listingId: id },
+        body: { listingId: id, idempotencyKey },
+        headers: { "x-idempotency-key": idempotencyKey },
       });
 
       if (error) throw error;
@@ -548,6 +561,8 @@ export default function ListingDetail() {
           description: "Opening escrow-protected payment in a new tab",
         });
         setBuyNowConfirmOpen(false);
+        // Consume the key so the next purchase attempt gets a new one.
+        checkoutIdempotencyKeyRef.current = null;
       } else {
         throw new Error("Checkout could not be started. No payment URL was returned.");
       }
