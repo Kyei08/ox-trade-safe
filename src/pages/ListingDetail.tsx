@@ -230,6 +230,7 @@ export default function ListingDetail() {
   const [loading, setLoading] = useState(true);
   const [bidAmount, setBidAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [bidConfirmOpen, setBidConfirmOpen] = useState(false);
   const [auctionEnded, setAuctionEnded] = useState(false);
   const [canReview, setCanReview] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
@@ -407,7 +408,7 @@ export default function ListingDetail() {
     }
   };
 
-  const handlePlaceBid = async (e: React.FormEvent) => {
+  const openBidConfirmation = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
       toast({
@@ -420,8 +421,8 @@ export default function ListingDetail() {
     }
 
     const amount = parseFloat(bidAmount);
-    const minimumBid = listing?.current_bid 
-      ? listing.current_bid + 1 
+    const minimumBid = listing?.current_bid
+      ? listing.current_bid + 1
       : listing?.starting_price || 0;
 
     if (amount < minimumBid) {
@@ -439,6 +440,22 @@ export default function ListingDetail() {
         description: "You cannot bid on your own listing",
         variant: "destructive",
       });
+      return;
+    }
+
+    setBidConfirmOpen(true);
+  };
+
+  const handleConfirmBid = async () => {
+    if (!user || !listing || !id) return;
+
+    const amount = parseFloat(bidAmount);
+    const minimumBid = listing.current_bid
+      ? listing.current_bid + 1
+      : listing.starting_price || 0;
+
+    if (amount < minimumBid || user.id === listing.seller_id) {
+      setBidConfirmOpen(false);
       return;
     }
 
@@ -467,7 +484,7 @@ export default function ListingDetail() {
         .from("listings")
         .update({
           current_bid: amount,
-          bid_count: (listing?.bid_count || 0) + 1,
+          bid_count: (listing.bid_count || 0) + 1,
         })
         .eq("id", id);
 
@@ -479,6 +496,7 @@ export default function ListingDetail() {
       });
 
       setBidAmount("");
+      setBidConfirmOpen(false);
       fetchListing();
     } catch (error: any) {
       toast({
@@ -852,7 +870,7 @@ export default function ListingDetail() {
                   )}
 
                   {isAuction && !isOwner && listing.status === "active" && !auctionEnded && (
-                    <form onSubmit={handlePlaceBid} className="space-y-4">
+                    <form onSubmit={openBidConfirmation} className="space-y-4">
                       <div>
                         <Label htmlFor="bidAmount">Your bid</Label>
                         <Input
@@ -869,8 +887,6 @@ export default function ListingDetail() {
                       </div>
                       <Button
                         type="submit"
-                        loading={submitting}
-                        loadingText="Placing bid..."
                         disabled={submitting}
                         className="w-full"
                       >
@@ -879,6 +895,34 @@ export default function ListingDetail() {
                       </Button>
                     </form>
                   )}
+
+                  {/* Bid Confirmation Modal */}
+                  <AlertDialog open={bidConfirmOpen} onOpenChange={setBidConfirmOpen}>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm your bid</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          You are about to place a bid of{" "}
+                          <span className="font-semibold text-foreground">
+                            {bidAmount ? formatZAR(parseFloat(bidAmount)) : "—"}
+                          </span>{" "}
+                          on <span className="font-semibold text-foreground">{listing.title}</span>.
+                          This cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel disabled={submitting}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleConfirmBid}
+                          loading={submitting}
+                          loadingText="Placing bid..."
+                          disabled={submitting}
+                        >
+                          Confirm Bid
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
 
                   {!isAuction && !isOwner && listing.status === "active" && (
                     <Button
