@@ -318,6 +318,32 @@ export default function ListingDetail() {
     findWinner();
   }, [listing?.status, id]);
 
+  // Resume any in-progress Stripe Checkout for this (listing, user).
+  useEffect(() => {
+    if (!id || !user?.id) {
+      setPendingCheckout(null);
+      checkoutIdempotencyKeyRef.current = null;
+      return;
+    }
+    // Only fixed-price active listings can be resumed via Buy Now.
+    if (!listing || listing.status !== "active" || listing.listing_type !== "fixed_price") {
+      clearPendingCheckout(id, user.id);
+      setPendingCheckout(null);
+      checkoutIdempotencyKeyRef.current = null;
+      return;
+    }
+    const existing = loadPendingCheckout(id, user.id);
+    if (existing) {
+      setPendingCheckout(existing);
+      // Reuse the same idempotency key so any retry hits the same Stripe session.
+      checkoutIdempotencyKeyRef.current = existing.idempotencyKey;
+    } else {
+      setPendingCheckout(null);
+      checkoutIdempotencyKeyRef.current = null;
+    }
+  }, [id, user?.id, listing?.status, listing?.listing_type, listing]);
+
+
   const fetchListing = async () => {
     try {
       const { data, error } = await supabase
