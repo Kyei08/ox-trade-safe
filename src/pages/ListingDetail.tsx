@@ -923,8 +923,13 @@ export default function ListingDetail() {
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleRemoveListing}>
+                              <AlertDialogCancel disabled={submitting}>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={handleRemoveListing}
+                                loading={submitting}
+                                loadingText="Removing..."
+                                disabled={submitting}
+                              >
                                 Remove
                               </AlertDialogAction>
                             </AlertDialogFooter>
