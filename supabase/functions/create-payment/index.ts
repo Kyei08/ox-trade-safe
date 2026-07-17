@@ -122,6 +122,8 @@ serve(async (req) => {
         seller_id: listing.seller_id,
         buyer_id: user?.id || "guest",
       },
+    }, {
+      idempotencyKey,
     });
 
     console.log("Checkout session created:", session.id);
