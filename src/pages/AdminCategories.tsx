@@ -276,6 +276,7 @@ const AdminCategories = () => {
   const [subsByCat, setSubsByCat] = useState<Record<string, Subcategory[]>>({});
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [editingCatId, setEditingCatId] = useState<string | null>(null);
   const [catDraft, setCatDraft] = useState<{ name: string; slug: string; icon: string }>({
@@ -420,10 +421,12 @@ const AdminCategories = () => {
   };
 
   const deleteConditionGroup = async (group: ConditionGroup) => {
+    setDeletingId(group.id);
     const { error } = await supabase
       .from("category_condition_groups" as any)
       .delete()
       .eq("id", group.id);
+    setDeletingId(null);
     if (error) return toast.error(error.message);
     setGroupsByCat((p) => ({
       ...p,
@@ -451,10 +454,12 @@ const AdminCategories = () => {
   };
 
   const deleteConditionOption = async (option: ConditionOption) => {
+    setDeletingId(option.id);
     const { error } = await supabase
       .from("category_condition_options" as any)
       .delete()
       .eq("id", option.id);
+    setDeletingId(null);
     if (error) return toast.error(error.message);
     setOptionsByGroup((p) => ({
       ...p,
@@ -525,7 +530,9 @@ const AdminCategories = () => {
   };
 
   const deleteCat = async (id: string) => {
+    setDeletingId(id);
     const { error } = await supabase.from("categories").delete().eq("id", id);
+    setDeletingId(null);
     if (error) return toast.error(error.message);
     toast.success("Category deleted");
     loadAll();
@@ -622,7 +629,9 @@ const AdminCategories = () => {
   };
 
   const deleteSub = async (id: string) => {
+    setDeletingId(id);
     const { error } = await supabase.from("subcategories").delete().eq("id", id);
+    setDeletingId(null);
     if (error) return toast.error(error.message);
     toast.success("Subcategory deleted");
     loadAll();
@@ -835,8 +844,13 @@ const AdminCategories = () => {
                                             </AlertDialogDescription>
                                           </AlertDialogHeader>
                                           <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => deleteCat(cat.id)}>
+                                            <AlertDialogCancel disabled={deletingId === cat.id}>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction
+                                              onClick={() => deleteCat(cat.id)}
+                                              loading={deletingId === cat.id}
+                                              loadingText="Deleting..."
+                                              disabled={deletingId === cat.id}
+                                            >
                                               Delete
                                             </AlertDialogAction>
                                           </AlertDialogFooter>
@@ -960,11 +974,14 @@ const AdminCategories = () => {
                                                             </AlertDialogDescription>
                                                           </AlertDialogHeader>
                                                           <AlertDialogFooter>
-                                                            <AlertDialogCancel>
+                                                            <AlertDialogCancel disabled={deletingId === sub.id}>
                                                               Cancel
                                                             </AlertDialogCancel>
                                                             <AlertDialogAction
                                                               onClick={() => deleteSub(sub.id)}
+                                                              loading={deletingId === sub.id}
+                                                              loadingText="Deleting..."
+                                                              disabled={deletingId === sub.id}
                                                             >
                                                               Delete
                                                             </AlertDialogAction>
@@ -1222,9 +1239,12 @@ const AdminCategories = () => {
                                                     </AlertDialogDescription>
                                                   </AlertDialogHeader>
                                                   <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogCancel disabled={deletingId === group.id}>Cancel</AlertDialogCancel>
                                                     <AlertDialogAction
                                                       onClick={() => deleteConditionGroup(group)}
+                                                      loading={deletingId === group.id}
+                                                      loadingText="Deleting..."
+                                                      disabled={deletingId === group.id}
                                                     >
                                                       Delete
                                                     </AlertDialogAction>
@@ -1301,9 +1321,12 @@ const AdminCategories = () => {
                                                                 </AlertDialogDescription>
                                                               </AlertDialogHeader>
                                                               <AlertDialogFooter>
-                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                <AlertDialogCancel disabled={deletingId === o.id}>Cancel</AlertDialogCancel>
                                                                 <AlertDialogAction
                                                                   onClick={() => deleteConditionOption(o)}
+                                                                  loading={deletingId === o.id}
+                                                                  loadingText="Removing..."
+                                                                  disabled={deletingId === o.id}
                                                                 >
                                                                   Remove
                                                                 </AlertDialogAction>
