@@ -954,7 +954,14 @@ export default function ListingDetail() {
                         Buy Now
                       </Button>
 
-                      <AlertDialog open={buyNowConfirmOpen} onOpenChange={(open) => !submitting && setBuyNowConfirmOpen(open)}>
+                      <AlertDialog
+                        open={buyNowConfirmOpen}
+                        onOpenChange={(open) => {
+                          if (submitting) return;
+                          setBuyNowConfirmOpen(open);
+                          if (!open) setCheckoutError(null);
+                        }}
+                      >
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>Confirm secure purchase</AlertDialogTitle>
@@ -967,15 +974,25 @@ export default function ListingDetail() {
                               . Payment is held in escrow and only released to the seller once you confirm delivery.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
+                          {checkoutError && (
+                            <Alert variant="destructive" role="alert" aria-live="assertive">
+                              <AlertDescription>
+                                {checkoutError} You can try again below.
+                              </AlertDescription>
+                            </Alert>
+                          )}
                           <AlertDialogFooter>
                             <AlertDialogCancel disabled={submitting}>Cancel</AlertDialogCancel>
                             <AlertDialogAction
-                              onClick={handleBuyNow}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleBuyNow();
+                              }}
                               loading={submitting}
                               loadingText="Preparing checkout..."
                               disabled={submitting}
                             >
-                              Continue to secure checkout
+                              {checkoutError ? "Retry secure checkout" : "Continue to secure checkout"}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
