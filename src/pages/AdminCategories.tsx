@@ -844,8 +844,13 @@ const AdminCategories = () => {
                                             </AlertDialogDescription>
                                           </AlertDialogHeader>
                                           <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => deleteCat(cat.id)}>
+                                            <AlertDialogCancel disabled={deletingId === cat.id}>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction
+                                              onClick={() => deleteCat(cat.id)}
+                                              loading={deletingId === cat.id}
+                                              loadingText="Deleting..."
+                                              disabled={deletingId === cat.id}
+                                            >
                                               Delete
                                             </AlertDialogAction>
                                           </AlertDialogFooter>
