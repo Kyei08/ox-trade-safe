@@ -276,6 +276,7 @@ const AdminCategories = () => {
   const [subsByCat, setSubsByCat] = useState<Record<string, Subcategory[]>>({});
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [editingCatId, setEditingCatId] = useState<string | null>(null);
   const [catDraft, setCatDraft] = useState<{ name: string; slug: string; icon: string }>({
