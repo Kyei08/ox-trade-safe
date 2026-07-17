@@ -870,7 +870,7 @@ export default function ListingDetail() {
                   )}
 
                   {isAuction && !isOwner && listing.status === "active" && !auctionEnded && (
-                    <form onSubmit={handlePlaceBid} className="space-y-4">
+                    <form onSubmit={openBidConfirmation} className="space-y-4">
                       <div>
                         <Label htmlFor="bidAmount">Your bid</Label>
                         <Input
