@@ -61,6 +61,8 @@ const PaymentSuccess = () => {
               .eq("id", listingId);
           }
 
+          // Payment completed — drop any resumable checkout for this listing.
+          clearPendingCheckout(listingId, user.id);
           setOrderCreated(true);
         }
       } catch (error) {
