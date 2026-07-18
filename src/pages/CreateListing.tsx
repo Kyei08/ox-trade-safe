@@ -252,10 +252,20 @@ const CreateListing = () => {
       setSubcategories(data || []);
     };
     loadSubs();
-    // Reset condition when category changes (skip during URL hydration)
+    // Reset condition when category changes (skip during URL hydration).
+    // If a condition was previously selected, notify the user so the clear
+    // isn't silent — option ids are scoped per category.
     if (skipNextConditionResetRef.current) {
       skipNextConditionResetRef.current = false;
     } else {
+      if (selectedCondition) {
+        const newCatName = categories.find((c) => c.id === selectedCategoryId)?.name;
+        toast.info("Condition cleared", {
+          description: newCatName
+            ? `Pick a condition for ${newCatName}.`
+            : "Pick a condition for the new category.",
+        });
+      }
       setSelectedCondition(null);
       form.setValue("condition_option_id", undefined);
       form.setValue("condition", "");
