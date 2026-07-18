@@ -350,6 +350,16 @@ export default function ListingDetail() {
     }
   }, [id, user?.id, listing?.status, listing?.listing_type, listing]);
 
+  // Keep the expiry countdown fresh while a pending checkout is on screen.
+  useEffect(() => {
+    if (!pendingCheckout) return;
+    setCheckoutNow(Date.now());
+    const interval = setInterval(() => setCheckoutNow(Date.now()), 30_000);
+    return () => clearInterval(interval);
+  }, [pendingCheckout]);
+
+
+
 
   const fetchListing = async () => {
     try {
