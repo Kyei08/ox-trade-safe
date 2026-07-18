@@ -563,12 +563,16 @@ export default function ListingDetail() {
       return;
     }
     setCheckoutError(null);
-    // If we already have a live pending checkout for this listing, reuse its
-    // idempotency key so Stripe returns the same Checkout Session. Otherwise
-    // mint a fresh key for this confirmation session.
-    if (pendingCheckout?.idempotencyKey) {
+    // If we already have a live, non-expired pending checkout for this listing,
+    // reuse its idempotency key so Stripe returns the same Checkout Session.
+    // If it's expired, discard it and mint a fresh key so we start clean.
+    if (pendingCheckout?.idempotencyKey && !checkoutExpired) {
       checkoutIdempotencyKeyRef.current = pendingCheckout.idempotencyKey;
     } else {
+      if (checkoutExpired && id && user?.id) {
+        clearPendingCheckout(id, user.id);
+        setPendingCheckout(null);
+      }
       checkoutIdempotencyKeyRef.current = crypto.randomUUID();
     }
     setBuyNowConfirmOpen(true);
@@ -576,6 +580,17 @@ export default function ListingDetail() {
 
   const resumePendingCheckout = () => {
     if (!pendingCheckout?.url) return;
+    if (checkoutExpired) {
+      if (id && user?.id) clearPendingCheckout(id, user.id);
+      setPendingCheckout(null);
+      checkoutIdempotencyKeyRef.current = null;
+      toast({
+        title: "Checkout session expired",
+        description: "Start a new secure checkout to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
     window.open(pendingCheckout.url, "_blank");
     toast({
       title: "Resuming secure checkout",
