@@ -25,6 +25,8 @@ import { formatZAR } from "@/lib/currency";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   clearPendingCheckout,
+  formatCheckoutTimeRemaining,
+  getCheckoutExpiry,
   loadPendingCheckout,
   savePendingCheckout,
   type PendingCheckout,
@@ -241,6 +243,11 @@ export default function ListingDetail() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const checkoutIdempotencyKeyRef = useRef<string | null>(null);
   const [pendingCheckout, setPendingCheckout] = useState<PendingCheckout | null>(null);
+  const [checkoutNow, setCheckoutNow] = useState<number>(() => Date.now());
+  const checkoutExpiry = pendingCheckout
+    ? getCheckoutExpiry(pendingCheckout.createdAt, checkoutNow)
+    : null;
+  const checkoutExpired = checkoutExpiry?.status === "expired";
   const [auctionEnded, setAuctionEnded] = useState(false);
   const [canReview, setCanReview] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
@@ -342,6 +349,16 @@ export default function ListingDetail() {
       checkoutIdempotencyKeyRef.current = null;
     }
   }, [id, user?.id, listing?.status, listing?.listing_type, listing]);
+
+  // Keep the expiry countdown fresh while a pending checkout is on screen.
+  useEffect(() => {
+    if (!pendingCheckout) return;
+    setCheckoutNow(Date.now());
+    const interval = setInterval(() => setCheckoutNow(Date.now()), 30_000);
+    return () => clearInterval(interval);
+  }, [pendingCheckout]);
+
+
 
 
   const fetchListing = async () => {
@@ -556,12 +573,16 @@ export default function ListingDetail() {
       return;
     }
     setCheckoutError(null);
-    // If we already have a live pending checkout for this listing, reuse its
-    // idempotency key so Stripe returns the same Checkout Session. Otherwise
-    // mint a fresh key for this confirmation session.
-    if (pendingCheckout?.idempotencyKey) {
+    // If we already have a live, non-expired pending checkout for this listing,
+    // reuse its idempotency key so Stripe returns the same Checkout Session.
+    // If it's expired, discard it and mint a fresh key so we start clean.
+    if (pendingCheckout?.idempotencyKey && !checkoutExpired) {
       checkoutIdempotencyKeyRef.current = pendingCheckout.idempotencyKey;
     } else {
+      if (checkoutExpired && id && user?.id) {
+        clearPendingCheckout(id, user.id);
+        setPendingCheckout(null);
+      }
       checkoutIdempotencyKeyRef.current = crypto.randomUUID();
     }
     setBuyNowConfirmOpen(true);
@@ -569,6 +590,17 @@ export default function ListingDetail() {
 
   const resumePendingCheckout = () => {
     if (!pendingCheckout?.url) return;
+    if (checkoutExpired) {
+      if (id && user?.id) clearPendingCheckout(id, user.id);
+      setPendingCheckout(null);
+      checkoutIdempotencyKeyRef.current = null;
+      toast({
+        title: "Checkout session expired",
+        description: "Start a new secure checkout to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
     window.open(pendingCheckout.url, "_blank");
     toast({
       title: "Resuming secure checkout",
@@ -1026,28 +1058,58 @@ export default function ListingDetail() {
 
                   {!isAuction && !isOwner && listing.status === "active" && (
                     <>
-                      {pendingCheckout && (
-                        <Alert>
+                      {pendingCheckout && checkoutExpiry && (
+                        <Alert
+                          variant={checkoutExpired ? "destructive" : "default"}
+                          role={checkoutExpired ? "alert" : undefined}
+                          aria-live={checkoutExpired ? "assertive" : "polite"}
+                        >
                           <AlertDescription className="space-y-2">
-                            <p className="text-sm">
-                              You already started a secure checkout for this listing. Resume where you left off — we'll reuse the same payment session so you aren't charged twice.
-                            </p>
+                            {checkoutExpired ? (
+                              <p className="text-sm">
+                                Your previous secure checkout session has expired.
+                                For your safety, start a new checkout to continue
+                                — we'll issue a fresh payment session.
+                              </p>
+                            ) : checkoutExpiry.status === "expiring_soon" ? (
+                              <p className="text-sm">
+                                Your secure checkout expires in{" "}
+                                <span className="font-semibold">
+                                  {formatCheckoutTimeRemaining(checkoutExpiry.msRemaining)}
+                                </span>
+                                . Resume now to reuse the same payment session, or
+                                start over to mint a fresh one.
+                              </p>
+                            ) : (
+                              <p className="text-sm">
+                                You already started a secure checkout for this listing.
+                                Resume where you left off — we'll reuse the same payment
+                                session so you aren't charged twice.{" "}
+                                <span className="text-muted-foreground">
+                                  (Session valid for{" "}
+                                  {formatCheckoutTimeRemaining(checkoutExpiry.msRemaining)}
+                                  .)
+                                </span>
+                              </p>
+                            )}
                             <div className="flex flex-wrap gap-2">
+                              {!checkoutExpired && (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  onClick={resumePendingCheckout}
+                                >
+                                  Resume checkout
+                                </Button>
+                              )}
                               <Button
                                 type="button"
                                 size="sm"
-                                onClick={resumePendingCheckout}
-                              >
-                                Resume checkout
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="outline"
+                                variant={checkoutExpired ? "default" : "outline"}
                                 onClick={discardPendingCheckout}
                                 disabled={submitting}
                               >
-                                Start over
+                                {checkoutExpired ? "Start new checkout" : "Start over"}
                               </Button>
                             </div>
                           </AlertDescription>
@@ -1059,8 +1121,9 @@ export default function ListingDetail() {
                         disabled={submitting}
                         className="w-full"
                       >
-                        {pendingCheckout ? "Resume Buy Now" : "Buy Now"}
+                        {pendingCheckout && !checkoutExpired ? "Resume Buy Now" : "Buy Now"}
                       </Button>
+
 
                       <AlertDialog
                         open={buyNowConfirmOpen}
@@ -1073,7 +1136,9 @@ export default function ListingDetail() {
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>
-                              {pendingCheckout ? "Resume secure purchase" : "Confirm secure purchase"}
+                              {pendingCheckout && !checkoutExpired
+                                ? "Resume secure purchase"
+                                : "Confirm secure purchase"}
                             </AlertDialogTitle>
                             <AlertDialogDescription>
                               You are about to purchase{" "}
@@ -1084,10 +1149,21 @@ export default function ListingDetail() {
                               . Payment is held in escrow and only released to the seller once you confirm delivery.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
-                          {pendingCheckout && !checkoutError && (
-                            <Alert>
+                          {pendingCheckout && !checkoutError && checkoutExpiry && !checkoutExpired && (
+                            <Alert variant={checkoutExpiry.status === "expiring_soon" ? "destructive" : "default"}>
                               <AlertDescription>
-                                We'll reopen your existing checkout session instead of creating a new one, so you won't be charged twice.
+                                We'll reopen your existing checkout session instead of creating a new one, so you won't be charged twice. Session expires in{" "}
+                                <span className="font-semibold">
+                                  {formatCheckoutTimeRemaining(checkoutExpiry.msRemaining)}
+                                </span>
+                                .
+                              </AlertDescription>
+                            </Alert>
+                          )}
+                          {checkoutExpired && (
+                            <Alert variant="destructive" role="alert" aria-live="assertive">
+                              <AlertDescription>
+                                The previous checkout session has expired. We'll start a fresh, secure checkout when you continue.
                               </AlertDescription>
                             </Alert>
                           )}
@@ -1111,9 +1187,10 @@ export default function ListingDetail() {
                             >
                               {checkoutError
                                 ? "Retry secure checkout"
-                                : pendingCheckout
+                                : pendingCheckout && !checkoutExpired
                                   ? "Reopen secure checkout"
                                   : "Continue to secure checkout"}
+
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
