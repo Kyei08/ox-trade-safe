@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Settings } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 
 interface ConditionOption {
   id: string;
@@ -38,8 +41,24 @@ interface Props {
 }
 
 const ConditionSelector = ({ categoryId, value, onChange, onGroupsLoaded }: Props) => {
+  const { user } = useAuth();
   const [groups, setGroups] = useState<ConditionGroup[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    supabase
+      .rpc("has_role", { _user_id: user.id, _role: "admin" })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        setIsAdmin(!!data && !error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   useEffect(() => {
     if (!categoryId) {
@@ -99,8 +118,16 @@ const ConditionSelector = ({ categoryId, value, onChange, onGroupsLoaded }: Prop
 
   if (groups.length === 0 || groups.every((g) => g.options.length === 0)) {
     return (
-      <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-        No condition options have been configured for this category yet.
+      <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground space-y-3">
+        <p>No condition options have been configured for this category yet.</p>
+        {isAdmin && (
+          <Button asChild variant="outline" size="sm">
+            <Link to="/admin/categories" className="inline-flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Configure category conditions
+            </Link>
+          </Button>
+        )}
       </div>
     );
   }
