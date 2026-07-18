@@ -118,8 +118,16 @@ const ConditionSelector = ({ categoryId, value, onChange, onGroupsLoaded }: Prop
 
   if (groups.length === 0 || groups.every((g) => g.options.length === 0)) {
     return (
-      <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-        No condition options have been configured for this category yet.
+      <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground space-y-3">
+        <p>No condition options have been configured for this category yet.</p>
+        {isAdmin && (
+          <Button asChild variant="outline" size="sm">
+            <Link to="/admin/categories" className="inline-flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Configure category conditions
+            </Link>
+          </Button>
+        )}
       </div>
     );
   }
