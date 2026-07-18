@@ -243,6 +243,11 @@ export default function ListingDetail() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const checkoutIdempotencyKeyRef = useRef<string | null>(null);
   const [pendingCheckout, setPendingCheckout] = useState<PendingCheckout | null>(null);
+  const [checkoutNow, setCheckoutNow] = useState<number>(() => Date.now());
+  const checkoutExpiry = pendingCheckout
+    ? getCheckoutExpiry(pendingCheckout.createdAt, checkoutNow)
+    : null;
+  const checkoutExpired = checkoutExpiry?.status === "expired";
   const [auctionEnded, setAuctionEnded] = useState(false);
   const [canReview, setCanReview] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
