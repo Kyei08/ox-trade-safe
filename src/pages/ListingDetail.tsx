@@ -1136,7 +1136,9 @@ export default function ListingDetail() {
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>
-                              {pendingCheckout ? "Resume secure purchase" : "Confirm secure purchase"}
+                              {pendingCheckout && !checkoutExpired
+                                ? "Resume secure purchase"
+                                : "Confirm secure purchase"}
                             </AlertDialogTitle>
                             <AlertDialogDescription>
                               You are about to purchase{" "}
@@ -1147,10 +1149,21 @@ export default function ListingDetail() {
                               . Payment is held in escrow and only released to the seller once you confirm delivery.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
-                          {pendingCheckout && !checkoutError && (
-                            <Alert>
+                          {pendingCheckout && !checkoutError && checkoutExpiry && !checkoutExpired && (
+                            <Alert variant={checkoutExpiry.status === "expiring_soon" ? "destructive" : "default"}>
                               <AlertDescription>
-                                We'll reopen your existing checkout session instead of creating a new one, so you won't be charged twice.
+                                We'll reopen your existing checkout session instead of creating a new one, so you won't be charged twice. Session expires in{" "}
+                                <span className="font-semibold">
+                                  {formatCheckoutTimeRemaining(checkoutExpiry.msRemaining)}
+                                </span>
+                                .
+                              </AlertDescription>
+                            </Alert>
+                          )}
+                          {checkoutExpired && (
+                            <Alert variant="destructive" role="alert" aria-live="assertive">
+                              <AlertDescription>
+                                The previous checkout session has expired. We'll start a fresh, secure checkout when you continue.
                               </AlertDescription>
                             </Alert>
                           )}
@@ -1174,9 +1187,10 @@ export default function ListingDetail() {
                             >
                               {checkoutError
                                 ? "Retry secure checkout"
-                                : pendingCheckout
+                                : pendingCheckout && !checkoutExpired
                                   ? "Reopen secure checkout"
                                   : "Continue to secure checkout"}
+
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
