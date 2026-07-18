@@ -1058,28 +1058,58 @@ export default function ListingDetail() {
 
                   {!isAuction && !isOwner && listing.status === "active" && (
                     <>
-                      {pendingCheckout && (
-                        <Alert>
+                      {pendingCheckout && checkoutExpiry && (
+                        <Alert
+                          variant={checkoutExpired ? "destructive" : "default"}
+                          role={checkoutExpired ? "alert" : undefined}
+                          aria-live={checkoutExpired ? "assertive" : "polite"}
+                        >
                           <AlertDescription className="space-y-2">
-                            <p className="text-sm">
-                              You already started a secure checkout for this listing. Resume where you left off — we'll reuse the same payment session so you aren't charged twice.
-                            </p>
+                            {checkoutExpired ? (
+                              <p className="text-sm">
+                                Your previous secure checkout session has expired.
+                                For your safety, start a new checkout to continue
+                                — we'll issue a fresh payment session.
+                              </p>
+                            ) : checkoutExpiry.status === "expiring_soon" ? (
+                              <p className="text-sm">
+                                Your secure checkout expires in{" "}
+                                <span className="font-semibold">
+                                  {formatCheckoutTimeRemaining(checkoutExpiry.msRemaining)}
+                                </span>
+                                . Resume now to reuse the same payment session, or
+                                start over to mint a fresh one.
+                              </p>
+                            ) : (
+                              <p className="text-sm">
+                                You already started a secure checkout for this listing.
+                                Resume where you left off — we'll reuse the same payment
+                                session so you aren't charged twice.{" "}
+                                <span className="text-muted-foreground">
+                                  (Session valid for{" "}
+                                  {formatCheckoutTimeRemaining(checkoutExpiry.msRemaining)}
+                                  .)
+                                </span>
+                              </p>
+                            )}
                             <div className="flex flex-wrap gap-2">
+                              {!checkoutExpired && (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  onClick={resumePendingCheckout}
+                                >
+                                  Resume checkout
+                                </Button>
+                              )}
                               <Button
                                 type="button"
                                 size="sm"
-                                onClick={resumePendingCheckout}
-                              >
-                                Resume checkout
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="outline"
+                                variant={checkoutExpired ? "default" : "outline"}
                                 onClick={discardPendingCheckout}
                                 disabled={submitting}
                               >
-                                Start over
+                                {checkoutExpired ? "Start new checkout" : "Start over"}
                               </Button>
                             </div>
                           </AlertDescription>
@@ -1091,8 +1121,9 @@ export default function ListingDetail() {
                         disabled={submitting}
                         className="w-full"
                       >
-                        {pendingCheckout ? "Resume Buy Now" : "Buy Now"}
+                        {pendingCheckout && !checkoutExpired ? "Resume Buy Now" : "Buy Now"}
                       </Button>
+
 
                       <AlertDialog
                         open={buyNowConfirmOpen}
