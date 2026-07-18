@@ -41,8 +41,10 @@ interface Props {
 }
 
 const ConditionSelector = ({ categoryId, value, onChange, onGroupsLoaded }: Props) => {
+  const { user } = useAuth();
   const [groups, setGroups] = useState<ConditionGroup[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (!categoryId) {
