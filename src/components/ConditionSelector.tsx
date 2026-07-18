@@ -47,6 +47,20 @@ const ConditionSelector = ({ categoryId, value, onChange, onGroupsLoaded }: Prop
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    supabase
+      .rpc("has_role", { _user_id: user.id, _role: "admin" })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        setIsAdmin(!!data && !error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  useEffect(() => {
     if (!categoryId) {
       setGroups([]);
       onGroupsLoaded?.(false);
