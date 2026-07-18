@@ -272,6 +272,12 @@ const EditListing = () => {
       selectedCategoryId !== originalCategoryIdRef.current &&
       selectedCondition
     ) {
+      const newCatName = categories.find((c) => c.id === selectedCategoryId)?.name;
+      toast.info("Condition cleared", {
+        description: newCatName
+          ? `Pick a condition for ${newCatName}.`
+          : "Pick a condition for the new category.",
+      });
       setSelectedCondition(null);
       form.setValue("condition_option_id", undefined);
       form.setValue("condition", "");
