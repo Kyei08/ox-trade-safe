@@ -25,6 +25,8 @@ import { formatZAR } from "@/lib/currency";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   clearPendingCheckout,
+  formatCheckoutTimeRemaining,
+  getCheckoutExpiry,
   loadPendingCheckout,
   savePendingCheckout,
   type PendingCheckout,
