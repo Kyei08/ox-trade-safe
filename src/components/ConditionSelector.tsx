@@ -6,6 +6,7 @@ import { Loader2, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import ConditionOptionHelp from "@/components/ConditionOptionHelp";
 
 interface ConditionOption {
   id: string;
@@ -13,6 +14,8 @@ interface ConditionOption {
   name: string;
   slug: string;
   sort_order: number;
+  description?: string | null;
+  examples?: string | null;
 }
 
 interface ConditionGroup {
