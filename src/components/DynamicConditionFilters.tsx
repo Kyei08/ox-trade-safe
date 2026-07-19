@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import ConditionOptionHelp from "@/components/ConditionOptionHelp";
 
 interface ConditionOption {
   id: string;
@@ -9,6 +10,8 @@ interface ConditionOption {
   name: string;
   slug: string;
   sort_order: number;
+  description?: string | null;
+  examples?: string | null;
 }
 
 interface ConditionGroup {
