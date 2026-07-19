@@ -53,7 +53,7 @@ const DynamicConditionFilters = ({ categoryId, selectedOptionIds, onToggle }: Pr
       if (groupIds.length) {
         const { data: o } = await supabase
           .from("category_condition_options")
-          .select("id, group_id, name, slug, sort_order")
+          .select("id, group_id, name, slug, sort_order, description, examples")
           .in("group_id", groupIds)
           .order("sort_order", { ascending: true });
         opts = o || [];
