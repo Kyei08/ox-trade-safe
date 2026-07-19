@@ -346,7 +346,7 @@ const AdminCategories = () => {
         .order("sort_order", { ascending: true }),
       supabase
         .from("category_condition_options" as any)
-        .select("id, group_id, name, sort_order")
+        .select("id, group_id, name, sort_order, description, examples")
         .order("sort_order", { ascending: true }),
     ]);
 
