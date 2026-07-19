@@ -6,6 +6,7 @@ import { Loader2, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import ConditionOptionHelp from "@/components/ConditionOptionHelp";
 
 interface ConditionOption {
   id: string;
@@ -13,6 +14,8 @@ interface ConditionOption {
   name: string;
   slug: string;
   sort_order: number;
+  description?: string | null;
+  examples?: string | null;
 }
 
 interface ConditionGroup {
@@ -80,7 +83,7 @@ const ConditionSelector = ({ categoryId, value, onChange, onGroupsLoaded }: Prop
       if (groupIds.length) {
         const { data: o } = await supabase
           .from("category_condition_options")
-          .select("id, group_id, name, slug, sort_order")
+          .select("id, group_id, name, slug, sort_order, description, examples")
           .in("group_id", groupIds)
           .order("sort_order", { ascending: true });
         opts = o || [];
@@ -149,33 +152,45 @@ const ConditionSelector = ({ categoryId, value, onChange, onGroupsLoaded }: Prop
             <div role="radiogroup" className="flex flex-wrap gap-2">
               {group.options.map((opt) => {
                 const active = value === opt.id;
+                const hasHelp = !!(opt.description?.trim() || opt.examples?.trim());
                 return (
-                  <button
+                  <div
                     key={opt.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={active}
-                    onClick={() =>
-                      onChange(
-                        active
-                          ? null
-                          : {
-                              optionId: opt.id,
-                              optionName: opt.name,
-                              optionSlug: opt.slug,
-                              groupId: group.id,
-                              groupCategoryId: group.category_id,
-                            }
-                      )
-                    }
-                    className={`px-3.5 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                    className={`inline-flex items-center gap-1 rounded-full border transition-colors ${
                       active
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-background text-foreground border-border hover:bg-muted"
-                    }`}
+                    } ${hasHelp ? "pr-2" : ""}`}
                   >
-                    {opt.name}
-                  </button>
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() =>
+                        onChange(
+                          active
+                            ? null
+                            : {
+                                optionId: opt.id,
+                                optionName: opt.name,
+                                optionSlug: opt.slug,
+                                groupId: group.id,
+                                groupCategoryId: group.category_id,
+                              }
+                        )
+                      }
+                      className="px-3.5 py-1.5 rounded-full text-sm font-medium bg-transparent"
+                    >
+                      {opt.name}
+                    </button>
+                    {hasHelp && (
+                      <ConditionOptionHelp
+                        name={opt.name}
+                        description={opt.description}
+                        examples={opt.examples}
+                      />
+                    )}
+                  </div>
                 );
               })}
             </div>

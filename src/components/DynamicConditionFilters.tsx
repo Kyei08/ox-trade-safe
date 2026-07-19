@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import ConditionOptionHelp from "@/components/ConditionOptionHelp";
 
 interface ConditionOption {
   id: string;
@@ -9,6 +10,8 @@ interface ConditionOption {
   name: string;
   slug: string;
   sort_order: number;
+  description?: string | null;
+  examples?: string | null;
 }
 
 interface ConditionGroup {
@@ -50,7 +53,7 @@ const DynamicConditionFilters = ({ categoryId, selectedOptionIds, onToggle }: Pr
       if (groupIds.length) {
         const { data: o } = await supabase
           .from("category_condition_options")
-          .select("id, group_id, name, slug, sort_order")
+          .select("id, group_id, name, slug, sort_order, description, examples")
           .in("group_id", groupIds)
           .order("sort_order", { ascending: true });
         opts = o || [];
@@ -86,24 +89,37 @@ const DynamicConditionFilters = ({ categoryId, selectedOptionIds, onToggle }: Pr
               {group.options.map((opt) => {
                 const active = selectedOptionIds.includes(opt.id);
                 const siblingIds = group.options.map((o) => o.id);
+                const hasHelp = !!(opt.description?.trim() || opt.examples?.trim());
                 return (
-                  <button
+                  <div
                     key={opt.id}
-                    type="button"
-                    onClick={() =>
-                      onToggle(opt.id, {
-                        isMultiSelect: group.is_multi_select,
-                        siblingIds,
-                      })
-                    }
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                    className={`inline-flex items-center gap-1 rounded-full border transition-colors ${
                       active
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-card text-foreground border-border hover:bg-muted"
-                    }`}
+                    } ${hasHelp ? "pr-1.5" : ""}`}
                   >
-                    {opt.name}
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onToggle(opt.id, {
+                          isMultiSelect: group.is_multi_select,
+                          siblingIds,
+                        })
+                      }
+                      className="px-3 py-1.5 rounded-full text-xs font-medium bg-transparent"
+                    >
+                      {opt.name}
+                    </button>
+                    {hasHelp && (
+                      <ConditionOptionHelp
+                        name={opt.name}
+                        description={opt.description}
+                        examples={opt.examples}
+                        size="sm"
+                      />
+                    )}
+                  </div>
                 );
               })}
             </div>

@@ -36,6 +36,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   DndContext,
@@ -85,6 +86,8 @@ interface ConditionOption {
   group_id: string;
   name: string;
   sort_order: number;
+  description?: string | null;
+  examples?: string | null;
 }
 
 const slugify = (s: string) =>
@@ -343,7 +346,7 @@ const AdminCategories = () => {
         .order("sort_order", { ascending: true }),
       supabase
         .from("category_condition_options" as any)
-        .select("id, group_id, name, sort_order")
+        .select("id, group_id, name, sort_order, description, examples")
         .order("sort_order", { ascending: true }),
     ]);
 
@@ -465,6 +468,23 @@ const AdminCategories = () => {
       ...p,
       [option.group_id]: (p[option.group_id] || []).filter((o) => o.id !== option.id),
     }));
+  };
+
+  const updateConditionOption = async (
+    option: ConditionOption,
+    patch: Partial<Pick<ConditionOption, "description" | "examples">>,
+  ) => {
+    setOptionsByGroup((p) => ({
+      ...p,
+      [option.group_id]: (p[option.group_id] || []).map((o) =>
+        o.id === option.id ? { ...o, ...patch } : o,
+      ),
+    }));
+    const { error } = await supabase
+      .from("category_condition_options" as any)
+      .update(patch)
+      .eq("id", option.id);
+    if (error) toast.error(error.message);
   };
 
   const persistOptionOrder = async (groupId: string, ordered: ConditionOption[]) => {
@@ -1299,6 +1319,10 @@ const AdminCategories = () => {
                                                             <GripVertical className="w-3 h-3" />
                                                           </button>
                                                           {o.name}
+                                                          <OptionHelpEditor
+                                                            option={o}
+                                                            onSave={(patch) => updateConditionOption(o, patch)}
+                                                          />
                                                           <AlertDialog>
                                                             <AlertDialogTrigger asChild>
                                                               <button
@@ -1452,6 +1476,94 @@ const SortableOptionChip = ({
     <div ref={setNodeRef} style={style} className="inline-flex">
       {children({ attributes, listeners })}
     </div>
+  );
+};
+
+const OptionHelpEditor = ({
+  option,
+  onSave,
+}: {
+  option: ConditionOption;
+  onSave: (patch: { description: string | null; examples: string | null }) => Promise<void> | void;
+}) => {
+  const [open, setOpen] = useState(false);
+  const [description, setDescription] = useState(option.description ?? "");
+  const [examples, setExamples] = useState(option.examples ?? "");
+  const [saving, setSaving] = useState(false);
+  const hasHelp = !!((option.description ?? "").trim() || (option.examples ?? "").trim());
+
+  useEffect(() => {
+    if (open) {
+      setDescription(option.description ?? "");
+      setExamples(option.examples ?? "");
+    }
+  }, [open, option.description, option.examples]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    await onSave({
+      description: description.trim() ? description.trim() : null,
+      examples: examples.trim() ? examples.trim() : null,
+    });
+    setSaving(false);
+    setOpen(false);
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={`rounded-full hover:bg-background/60 p-0.5 ${hasHelp ? "text-primary" : "text-muted-foreground"}`}
+          aria-label={`Edit help text for ${option.name}`}
+          title={hasHelp ? "Edit help text" : "Add help text"}
+        >
+          <HelpCircle className="w-3 h-3" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent side="top" align="start" className="w-80 space-y-3">
+        <div>
+          <div className="text-sm font-semibold">Help text for "{option.name}"</div>
+          <p className="text-xs text-muted-foreground">
+            Shown to buyers and sellers as a tooltip beside this option.
+          </p>
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor={`desc-${option.id}`} className="text-xs">
+            Description
+          </Label>
+          <Textarea
+            id={`desc-${option.id}`}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Short explanation of what this option means."
+            rows={3}
+            maxLength={300}
+          />
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor={`ex-${option.id}`} className="text-xs">
+            Examples
+          </Label>
+          <Textarea
+            id={`ex-${option.id}`}
+            value={examples}
+            onChange={(e) => setExamples(e.target.value)}
+            placeholder="e.g. iPhone 14 with box and charger, no scratches"
+            rows={2}
+            maxLength={300}
+          />
+        </div>
+        <div className="flex justify-end gap-2 pt-1">
+          <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)} disabled={saving}>
+            Cancel
+          </Button>
+          <Button type="button" size="sm" onClick={handleSave} loading={saving} loadingText="Saving...">
+            Save
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 };
 

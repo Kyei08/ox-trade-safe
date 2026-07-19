@@ -140,6 +140,8 @@ export type Database = {
       category_condition_options: {
         Row: {
           created_at: string
+          description: string | null
+          examples: string | null
           group_id: string
           id: string
           name: string
@@ -148,6 +150,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          description?: string | null
+          examples?: string | null
           group_id: string
           id?: string
           name: string
@@ -156,6 +160,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          description?: string | null
+          examples?: string | null
           group_id?: string
           id?: string
           name?: string
