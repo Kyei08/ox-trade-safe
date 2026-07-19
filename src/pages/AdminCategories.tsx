@@ -470,6 +470,23 @@ const AdminCategories = () => {
     }));
   };
 
+  const updateConditionOption = async (
+    option: ConditionOption,
+    patch: Partial<Pick<ConditionOption, "description" | "examples">>,
+  ) => {
+    setOptionsByGroup((p) => ({
+      ...p,
+      [option.group_id]: (p[option.group_id] || []).map((o) =>
+        o.id === option.id ? { ...o, ...patch } : o,
+      ),
+    }));
+    const { error } = await supabase
+      .from("category_condition_options" as any)
+      .update(patch)
+      .eq("id", option.id);
+    if (error) toast.error(error.message);
+  };
+
   const persistOptionOrder = async (groupId: string, ordered: ConditionOption[]) => {
     const prev = optionsByGroup[groupId] || [];
     const updated = ordered.map((o, i) => ({ ...o, sort_order: i + 1 }));
