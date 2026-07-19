@@ -86,6 +86,8 @@ interface ConditionOption {
   group_id: string;
   name: string;
   sort_order: number;
+  description?: string | null;
+  examples?: string | null;
 }
 
 const slugify = (s: string) =>
