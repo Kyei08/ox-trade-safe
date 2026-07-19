@@ -1319,6 +1319,10 @@ const AdminCategories = () => {
                                                             <GripVertical className="w-3 h-3" />
                                                           </button>
                                                           {o.name}
+                                                          <OptionHelpEditor
+                                                            option={o}
+                                                            onSave={(patch) => updateConditionOption(o, patch)}
+                                                          />
                                                           <AlertDialog>
                                                             <AlertDialogTrigger asChild>
                                                               <button
