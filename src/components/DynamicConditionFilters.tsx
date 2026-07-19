@@ -89,24 +89,37 @@ const DynamicConditionFilters = ({ categoryId, selectedOptionIds, onToggle }: Pr
               {group.options.map((opt) => {
                 const active = selectedOptionIds.includes(opt.id);
                 const siblingIds = group.options.map((o) => o.id);
+                const hasHelp = !!(opt.description?.trim() || opt.examples?.trim());
                 return (
-                  <button
+                  <div
                     key={opt.id}
-                    type="button"
-                    onClick={() =>
-                      onToggle(opt.id, {
-                        isMultiSelect: group.is_multi_select,
-                        siblingIds,
-                      })
-                    }
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                    className={`inline-flex items-center gap-1 rounded-full border transition-colors ${
                       active
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-card text-foreground border-border hover:bg-muted"
-                    }`}
+                    } ${hasHelp ? "pr-1.5" : ""}`}
                   >
-                    {opt.name}
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onToggle(opt.id, {
+                          isMultiSelect: group.is_multi_select,
+                          siblingIds,
+                        })
+                      }
+                      className="px-3 py-1.5 rounded-full text-xs font-medium bg-transparent"
+                    >
+                      {opt.name}
+                    </button>
+                    {hasHelp && (
+                      <ConditionOptionHelp
+                        name={opt.name}
+                        description={opt.description}
+                        examples={opt.examples}
+                        size="sm"
+                      />
+                    )}
+                  </div>
                 );
               })}
             </div>
