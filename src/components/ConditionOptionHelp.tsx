@@ -1,5 +1,5 @@
 import { HelpCircle } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Drawer,
@@ -12,6 +12,10 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  trackConditionHelpClosed,
+  trackConditionHelpOpened,
+} from "@/lib/conditionHelpAnalytics";
 
 interface Props {
   name: string;
@@ -19,6 +23,12 @@ interface Props {
   examples?: string | null;
   /** Visual size — matches the pill size in the surrounding chip. */
   size?: "sm" | "md";
+  /** Analytics context. */
+  surface?: string;
+  optionId?: string;
+  groupId?: string | null;
+  groupName?: string | null;
+  categoryId?: string | null;
 }
 
 /**
@@ -35,12 +45,41 @@ export default function ConditionOptionHelp({
   description,
   examples,
   size = "md",
+  surface = "unknown",
+  optionId,
+  groupId,
+  groupName,
+  categoryId,
 }: Props) {
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
+  const openedAtRef = useRef<number | null>(null);
 
   const desc = description?.trim();
   const ex = examples?.trim();
+
+  const analyticsCtx = {
+    surface,
+    optionId: optionId || name,
+    optionName: name,
+    groupId,
+    groupName,
+    categoryId,
+    presentation: (isMobile ? "drawer" : "popover") as "drawer" | "popover",
+  };
+
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (next) {
+      openedAtRef.current = Date.now();
+      trackConditionHelpOpened(analyticsCtx);
+    } else {
+      const startedAt = openedAtRef.current;
+      openedAtRef.current = null;
+      trackConditionHelpClosed(analyticsCtx, startedAt ? Date.now() - startedAt : 0);
+    }
+  };
+
   if (!desc && !ex) return null;
 
   const iconSize = size === "sm" ? "w-3 h-3" : "w-3.5 h-3.5";
@@ -52,7 +91,7 @@ export default function ConditionOptionHelp({
       type="button"
       onClick={(e) => {
         e.stopPropagation();
-        if (isMobile) setOpen(true);
+        if (isMobile) handleOpenChange(true);
       }}
       onPointerDown={stop}
       aria-label={`What does "${name}" mean?`}
@@ -88,7 +127,7 @@ export default function ConditionOptionHelp({
     return (
       <>
         {trigger}
-        <Drawer open={open} onOpenChange={setOpen}>
+        <Drawer open={open} onOpenChange={handleOpenChange}>
           <DrawerContent onClick={stop}>
             <DrawerHeader className="text-left">
               <DrawerTitle>{name}</DrawerTitle>
@@ -111,7 +150,7 @@ export default function ConditionOptionHelp({
   }
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
       <PopoverContent
         side="top"
