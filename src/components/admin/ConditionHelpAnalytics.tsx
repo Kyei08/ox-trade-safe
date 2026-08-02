@@ -17,8 +17,11 @@ import {
 } from "@/lib/analytics";
 
 interface Row {
+  key: string;
   optionId: string;
   optionName: string;
+  variant: string;
+  inExperiment: boolean;
   opens: number;
   totalReadMs: number;
   proceeded: number;
@@ -31,7 +34,7 @@ function fmtMs(ms: number) {
   return s < 60 ? `${s.toFixed(1)}s` : `${Math.floor(s / 60)}m ${Math.round(s % 60)}s`;
 }
 
-/** Summarizes condition help engagement (opens, read time, proceed rate) per option. */
+/** Summarizes condition help engagement (opens, read time, proceed rate) per option and A/B variant. */
 export default function ConditionHelpAnalytics() {
   const [events, setEvents] = useState<AnalyticsEvent[]>([]);
   const refresh = () => setEvents(getStoredEvents());
@@ -44,20 +47,26 @@ export default function ConditionHelpAnalytics() {
     const map = new Map<string, Row & { sessionIds: Set<string> }>();
     const get = (e: AnalyticsEvent) => {
       const id = String(e.properties.option_id ?? "unknown");
-      let row = map.get(id);
+      const variant = String(e.properties.variant ?? "A");
+      const key = `${id}::${variant}`;
+      let row = map.get(key);
       if (!row) {
         row = {
+          key,
           optionId: id,
           optionName: String(e.properties.option_name ?? id),
+          variant,
+          inExperiment: !!e.properties.in_experiment,
           opens: 0,
           totalReadMs: 0,
           proceeded: 0,
           sessions: 0,
           sessionIds: new Set<string>(),
         };
-        map.set(id, row);
+        map.set(key, row);
       }
       if (e.properties.option_name) row.optionName = String(e.properties.option_name);
+      if (e.properties.in_experiment) row.inExperiment = true;
       const sid = e.properties.help_session_id;
       if (sid) row.sessionIds.add(String(sid));
       return row;
@@ -72,8 +81,13 @@ export default function ConditionHelpAnalytics() {
 
     return Array.from(map.values())
       .map(({ sessionIds, ...r }) => ({ ...r, sessions: sessionIds.size }))
-      .sort((a, b) => b.opens - a.opens);
+      .sort((a, b) =>
+        a.optionName === b.optionName
+          ? a.variant.localeCompare(b.variant)
+          : b.opens - a.opens
+      );
   }, [events]);
+
 
   const totals = rows.reduce(
     (acc, r) => ({
