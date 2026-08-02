@@ -207,14 +207,17 @@ const ConditionSelector = ({ categoryId, value, onChange, onGroupsLoaded }: Prop
                     {hasHelp && (
                       <ConditionOptionHelp
                         name={opt.name}
-                        description={opt.description}
-                        examples={opt.examples}
+                        description={help.description}
+                        examples={help.examples}
+                        variant={help.variant}
+                        inExperiment={help.inExperiment}
                         surface="create_listing"
                         optionId={opt.id}
                         groupId={group.id}
                         groupName={group.name}
                         categoryId={categoryId}
                       />
+
                     )}
                   </div>
                 );
