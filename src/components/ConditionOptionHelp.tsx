@@ -16,6 +16,7 @@ import {
   trackConditionHelpClosed,
   trackConditionHelpOpened,
 } from "@/lib/conditionHelpAnalytics";
+import type { ConditionHelpVariant } from "@/lib/conditionHelpExperiment";
 
 interface Props {
   name: string;
@@ -29,7 +30,11 @@ interface Props {
   groupId?: string | null;
   groupName?: string | null;
   categoryId?: string | null;
+  /** A/B copy variant currently rendered. */
+  variant?: ConditionHelpVariant;
+  inExperiment?: boolean;
 }
+
 
 /**
  * Small "?" affordance shown beside a condition option.
