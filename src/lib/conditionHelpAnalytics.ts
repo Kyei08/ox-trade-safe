@@ -1,9 +1,11 @@
 import { trackEvent } from "@/lib/analytics";
+import type { ConditionHelpVariant } from "@/lib/conditionHelpExperiment";
 
 /**
  * Tracks engagement with the condition option help popovers/drawers so we can
- * see (a) which options users need explained and (b) whether reading the help
- * leads them to actually pick (or filter by) that option.
+ * see (a) which options users need explained, (b) whether reading the help
+ * leads them to actually pick (or filter by) that option, and (c) how the
+ * A/B variants of the help copy compare.
  */
 
 interface HelpSession {
@@ -17,6 +19,10 @@ interface HelpSession {
   surface: string;
   /** Whether a proceed event has already been emitted for this session. */
   proceeded: boolean;
+  /** Copy variant the user was shown. */
+  variant: ConditionHelpVariant;
+  /** Whether the option is actively A/B testing its copy. */
+  inExperiment: boolean;
 }
 
 const sessions = new Map<string, HelpSession>();
@@ -37,19 +43,32 @@ export interface ConditionHelpContext {
   categoryId?: string | null;
   /** Presentation used: drawer on mobile, popover on desktop. */
   presentation?: "drawer" | "popover";
+  /** A/B copy variant shown to this visitor. */
+  variant?: ConditionHelpVariant;
+  inExperiment?: boolean;
 }
 
 /** Call when the help popover/drawer opens. Returns the session id. */
 export function trackConditionHelpOpened(ctx: ConditionHelpContext): string {
+  const variant = ctx.variant ?? "A";
+  const inExperiment = ctx.inExperiment ?? false;
   const existing = sessions.get(ctx.optionId);
   const session: HelpSession = existing
-    ? { ...existing, openCount: existing.openCount + 1, surface: ctx.surface }
+    ? {
+        ...existing,
+        openCount: existing.openCount + 1,
+        surface: ctx.surface,
+        variant,
+        inExperiment,
+      }
     : {
         helpSessionId: newId(),
         openCount: 1,
         totalReadMs: 0,
         surface: ctx.surface,
         proceeded: false,
+        variant,
+        inExperiment,
       };
   sessions.set(ctx.optionId, session);
 
@@ -63,6 +82,8 @@ export function trackConditionHelpOpened(ctx: ConditionHelpContext): string {
     group_id: ctx.groupId ?? null,
     group_name: ctx.groupName ?? null,
     category_id: ctx.categoryId ?? null,
+    variant,
+    in_experiment: inExperiment,
   });
 
   return session.helpSessionId;
@@ -87,13 +108,15 @@ export function trackConditionHelpClosed(
     read_ms: Math.max(0, Math.round(readMs)),
     total_read_ms: session.totalReadMs,
     open_count: session.openCount,
+    variant: session.variant,
+    in_experiment: session.inExperiment,
   });
 }
 
 /**
  * Call when a user selects / applies a condition option. Emits a "proceeded"
  * event only when that option's help was read first (once per session), so we
- * can measure help → action conversion.
+ * can measure help → action conversion per variant.
  */
 export function trackConditionHelpProceeded(params: {
   surface: string;
@@ -116,6 +139,8 @@ export function trackConditionHelpProceeded(params: {
     category_id: params.categoryId ?? null,
     open_count: session.openCount,
     total_read_ms: session.totalReadMs,
+    variant: session.variant,
+    in_experiment: session.inExperiment,
   });
 }
 
