@@ -55,6 +55,8 @@ export default function ConditionOptionHelp({
   groupId,
   groupName,
   categoryId,
+  variant = "A",
+  inExperiment = false,
 }: Props) {
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
@@ -71,7 +73,10 @@ export default function ConditionOptionHelp({
     groupName,
     categoryId,
     presentation: (isMobile ? "drawer" : "popover") as "drawer" | "popover",
+    variant,
+    inExperiment,
   };
+
 
   const handleOpenChange = (next: boolean) => {
     setOpen(next);
