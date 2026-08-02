@@ -7,6 +7,8 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import ConditionOptionHelp from "@/components/ConditionOptionHelp";
+import { resolveConditionHelp } from "@/lib/conditionHelpExperiment";
+
 import { trackConditionHelpProceeded } from "@/lib/conditionHelpAnalytics";
 
 interface ConditionOption {
@@ -17,6 +19,10 @@ interface ConditionOption {
   sort_order: number;
   description?: string | null;
   examples?: string | null;
+  description_b?: string | null;
+  examples_b?: string | null;
+  help_experiment_enabled?: boolean | null;
+
 }
 
 interface ConditionGroup {
@@ -84,7 +90,10 @@ const ConditionSelector = ({ categoryId, value, onChange, onGroupsLoaded }: Prop
       if (groupIds.length) {
         const { data: o } = await supabase
           .from("category_condition_options")
-          .select("id, group_id, name, slug, sort_order, description, examples")
+          .select(
+            "id, group_id, name, slug, sort_order, description, examples, description_b, examples_b, help_experiment_enabled"
+          )
+
           .in("group_id", groupIds)
           .order("sort_order", { ascending: true });
         opts = o || [];
@@ -153,7 +162,9 @@ const ConditionSelector = ({ categoryId, value, onChange, onGroupsLoaded }: Prop
             <div role="radiogroup" className="flex flex-wrap gap-2">
               {group.options.map((opt) => {
                 const active = value === opt.id;
-                const hasHelp = !!(opt.description?.trim() || opt.examples?.trim());
+                const help = resolveConditionHelp(opt);
+                const hasHelp = help.hasHelp;
+
                 return (
                   <div
                     key={opt.id}
@@ -196,14 +207,17 @@ const ConditionSelector = ({ categoryId, value, onChange, onGroupsLoaded }: Prop
                     {hasHelp && (
                       <ConditionOptionHelp
                         name={opt.name}
-                        description={opt.description}
-                        examples={opt.examples}
+                        description={help.description}
+                        examples={help.examples}
+                        variant={help.variant}
+                        inExperiment={help.inExperiment}
                         surface="create_listing"
                         optionId={opt.id}
                         groupId={group.id}
                         groupName={group.name}
                         categoryId={categoryId}
                       />
+
                     )}
                   </div>
                 );

@@ -4,6 +4,7 @@ import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import ConditionOptionHelp from "@/components/ConditionOptionHelp";
 import { trackConditionHelpProceeded } from "@/lib/conditionHelpAnalytics";
+import { resolveConditionHelp } from "@/lib/conditionHelpExperiment";
 
 interface ConditionOption {
   id: string;
@@ -13,7 +14,11 @@ interface ConditionOption {
   sort_order: number;
   description?: string | null;
   examples?: string | null;
+  description_b?: string | null;
+  examples_b?: string | null;
+  help_experiment_enabled?: boolean | null;
 }
+
 
 interface ConditionGroup {
   id: string;
@@ -54,7 +59,10 @@ const DynamicConditionFilters = ({ categoryId, selectedOptionIds, onToggle }: Pr
       if (groupIds.length) {
         const { data: o } = await supabase
           .from("category_condition_options")
-          .select("id, group_id, name, slug, sort_order, description, examples")
+          .select(
+            "id, group_id, name, slug, sort_order, description, examples, description_b, examples_b, help_experiment_enabled"
+          )
+
           .in("group_id", groupIds)
           .order("sort_order", { ascending: true });
         opts = o || [];
@@ -90,7 +98,9 @@ const DynamicConditionFilters = ({ categoryId, selectedOptionIds, onToggle }: Pr
               {group.options.map((opt) => {
                 const active = selectedOptionIds.includes(opt.id);
                 const siblingIds = group.options.map((o) => o.id);
-                const hasHelp = !!(opt.description?.trim() || opt.examples?.trim());
+                const help = resolveConditionHelp(opt);
+                const hasHelp = help.hasHelp;
+
                 return (
                   <div
                     key={opt.id}
@@ -124,9 +134,12 @@ const DynamicConditionFilters = ({ categoryId, selectedOptionIds, onToggle }: Pr
                     {hasHelp && (
                       <ConditionOptionHelp
                         name={opt.name}
-                        description={opt.description}
-                        examples={opt.examples}
+                        description={help.description}
+                        examples={help.examples}
+                        variant={help.variant}
+                        inExperiment={help.inExperiment}
                         size="sm"
+
                         surface="browse_filters"
                         optionId={opt.id}
                         groupId={group.id}

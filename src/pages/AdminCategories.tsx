@@ -90,6 +90,10 @@ interface ConditionOption {
   sort_order: number;
   description?: string | null;
   examples?: string | null;
+  description_b?: string | null;
+  examples_b?: string | null;
+  help_experiment_enabled?: boolean | null;
+
 }
 
 const slugify = (s: string) =>
@@ -348,7 +352,10 @@ const AdminCategories = () => {
         .order("sort_order", { ascending: true }),
       supabase
         .from("category_condition_options" as any)
-        .select("id, group_id, name, sort_order, description, examples")
+        .select(
+          "id, group_id, name, sort_order, description, examples, description_b, examples_b, help_experiment_enabled",
+        )
+
         .order("sort_order", { ascending: true }),
     ]);
 
@@ -474,7 +481,13 @@ const AdminCategories = () => {
 
   const updateConditionOption = async (
     option: ConditionOption,
-    patch: Partial<Pick<ConditionOption, "description" | "examples">>,
+    patch: Partial<
+      Pick<
+        ConditionOption,
+        "description" | "examples" | "description_b" | "examples_b" | "help_experiment_enabled"
+      >
+    >,
+
   ) => {
     setOptionsByGroup((p) => ({
       ...p,
@@ -1489,11 +1502,20 @@ const OptionHelpEditor = ({
   onSave,
 }: {
   option: ConditionOption;
-  onSave: (patch: { description: string | null; examples: string | null }) => Promise<void> | void;
+  onSave: (patch: {
+    description: string | null;
+    examples: string | null;
+    description_b: string | null;
+    examples_b: string | null;
+    help_experiment_enabled: boolean;
+  }) => Promise<void> | void;
 }) => {
   const [open, setOpen] = useState(false);
   const [description, setDescription] = useState(option.description ?? "");
   const [examples, setExamples] = useState(option.examples ?? "");
+  const [descriptionB, setDescriptionB] = useState(option.description_b ?? "");
+  const [examplesB, setExamplesB] = useState(option.examples_b ?? "");
+  const [abEnabled, setAbEnabled] = useState(!!option.help_experiment_enabled);
   const [saving, setSaving] = useState(false);
   const hasHelp = !!((option.description ?? "").trim() || (option.examples ?? "").trim());
 
@@ -1501,14 +1523,27 @@ const OptionHelpEditor = ({
     if (open) {
       setDescription(option.description ?? "");
       setExamples(option.examples ?? "");
+      setDescriptionB(option.description_b ?? "");
+      setExamplesB(option.examples_b ?? "");
+      setAbEnabled(!!option.help_experiment_enabled);
     }
-  }, [open, option.description, option.examples]);
+  }, [
+    open,
+    option.description,
+    option.examples,
+    option.description_b,
+    option.examples_b,
+    option.help_experiment_enabled,
+  ]);
 
   const handleSave = async () => {
     setSaving(true);
     await onSave({
       description: description.trim() ? description.trim() : null,
       examples: examples.trim() ? examples.trim() : null,
+      description_b: descriptionB.trim() ? descriptionB.trim() : null,
+      examples_b: examplesB.trim() ? examplesB.trim() : null,
+      help_experiment_enabled: abEnabled && !!(descriptionB.trim() || examplesB.trim()),
     });
     setSaving(false);
     setOpen(false);
@@ -1526,7 +1561,7 @@ const OptionHelpEditor = ({
           <HelpCircle className="w-3 h-3" />
         </button>
       </PopoverTrigger>
-      <PopoverContent side="top" align="start" className="w-80 space-y-3">
+      <PopoverContent side="top" align="start" className="w-80 space-y-3 max-h-[70vh] overflow-y-auto">
         <div>
           <div className="text-sm font-semibold">Help text for "{option.name}"</div>
           <p className="text-xs text-muted-foreground">
@@ -1535,7 +1570,7 @@ const OptionHelpEditor = ({
         </div>
         <div className="space-y-1">
           <Label htmlFor={`desc-${option.id}`} className="text-xs">
-            Description
+            Description {option.help_experiment_enabled ? "(variant A)" : ""}
           </Label>
           <Textarea
             id={`desc-${option.id}`}
@@ -1548,7 +1583,7 @@ const OptionHelpEditor = ({
         </div>
         <div className="space-y-1">
           <Label htmlFor={`ex-${option.id}`} className="text-xs">
-            Examples
+            Examples {option.help_experiment_enabled ? "(variant A)" : ""}
           </Label>
           <Textarea
             id={`ex-${option.id}`}
@@ -1559,6 +1594,52 @@ const OptionHelpEditor = ({
             maxLength={300}
           />
         </div>
+
+        <div className="pt-2 border-t border-border space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <Label htmlFor={`ab-${option.id}`} className="text-xs font-semibold">
+                A/B test this help copy
+              </Label>
+              <p className="text-[11px] text-muted-foreground">
+                Half of visitors see variant B. Results appear in Condition Help Analytics.
+              </p>
+            </div>
+            <Switch id={`ab-${option.id}`} checked={abEnabled} onCheckedChange={setAbEnabled} />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor={`desc-b-${option.id}`} className="text-xs">
+              Description (variant B)
+            </Label>
+            <Textarea
+              id={`desc-b-${option.id}`}
+              value={descriptionB}
+              onChange={(e) => setDescriptionB(e.target.value)}
+              placeholder="Alternative wording to test against variant A."
+              rows={3}
+              maxLength={300}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor={`ex-b-${option.id}`} className="text-xs">
+              Examples (variant B)
+            </Label>
+            <Textarea
+              id={`ex-b-${option.id}`}
+              value={examplesB}
+              onChange={(e) => setExamplesB(e.target.value)}
+              placeholder="Alternative examples to test."
+              rows={2}
+              maxLength={300}
+            />
+          </div>
+          {abEnabled && !descriptionB.trim() && !examplesB.trim() && (
+            <p className="text-[11px] text-destructive">
+              Add variant B copy to start the test.
+            </p>
+          )}
+        </div>
+
         <div className="flex justify-end gap-2 pt-1">
           <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)} disabled={saving}>
             Cancel
@@ -1571,5 +1652,6 @@ const OptionHelpEditor = ({
     </Popover>
   );
 };
+
 
 export default AdminCategories;

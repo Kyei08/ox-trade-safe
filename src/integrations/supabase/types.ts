@@ -141,8 +141,11 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          description_b: string | null
           examples: string | null
+          examples_b: string | null
           group_id: string
+          help_experiment_enabled: boolean
           id: string
           name: string
           slug: string
@@ -151,8 +154,11 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          description_b?: string | null
           examples?: string | null
+          examples_b?: string | null
           group_id: string
+          help_experiment_enabled?: boolean
           id?: string
           name: string
           slug: string
@@ -161,8 +167,11 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          description_b?: string | null
           examples?: string | null
+          examples_b?: string | null
           group_id?: string
+          help_experiment_enabled?: boolean
           id?: string
           name?: string
           slug?: string

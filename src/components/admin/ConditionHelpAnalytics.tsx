@@ -17,8 +17,11 @@ import {
 } from "@/lib/analytics";
 
 interface Row {
+  key: string;
   optionId: string;
   optionName: string;
+  variant: string;
+  inExperiment: boolean;
   opens: number;
   totalReadMs: number;
   proceeded: number;
@@ -31,7 +34,7 @@ function fmtMs(ms: number) {
   return s < 60 ? `${s.toFixed(1)}s` : `${Math.floor(s / 60)}m ${Math.round(s % 60)}s`;
 }
 
-/** Summarizes condition help engagement (opens, read time, proceed rate) per option. */
+/** Summarizes condition help engagement (opens, read time, proceed rate) per option and A/B variant. */
 export default function ConditionHelpAnalytics() {
   const [events, setEvents] = useState<AnalyticsEvent[]>([]);
   const refresh = () => setEvents(getStoredEvents());
@@ -44,20 +47,26 @@ export default function ConditionHelpAnalytics() {
     const map = new Map<string, Row & { sessionIds: Set<string> }>();
     const get = (e: AnalyticsEvent) => {
       const id = String(e.properties.option_id ?? "unknown");
-      let row = map.get(id);
+      const variant = String(e.properties.variant ?? "A");
+      const key = `${id}::${variant}`;
+      let row = map.get(key);
       if (!row) {
         row = {
+          key,
           optionId: id,
           optionName: String(e.properties.option_name ?? id),
+          variant,
+          inExperiment: !!e.properties.in_experiment,
           opens: 0,
           totalReadMs: 0,
           proceeded: 0,
           sessions: 0,
           sessionIds: new Set<string>(),
         };
-        map.set(id, row);
+        map.set(key, row);
       }
       if (e.properties.option_name) row.optionName = String(e.properties.option_name);
+      if (e.properties.in_experiment) row.inExperiment = true;
       const sid = e.properties.help_session_id;
       if (sid) row.sessionIds.add(String(sid));
       return row;
@@ -72,8 +81,13 @@ export default function ConditionHelpAnalytics() {
 
     return Array.from(map.values())
       .map(({ sessionIds, ...r }) => ({ ...r, sessions: sessionIds.size }))
-      .sort((a, b) => b.opens - a.opens);
+      .sort((a, b) =>
+        a.optionName === b.optionName
+          ? a.variant.localeCompare(b.variant)
+          : b.opens - a.opens
+      );
   }, [events]);
+
 
   const totals = rows.reduce(
     (acc, r) => ({
@@ -127,6 +141,7 @@ export default function ConditionHelpAnalytics() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Option</TableHead>
+                  <TableHead>Variant</TableHead>
                   <TableHead className="text-right">Opens</TableHead>
                   <TableHead className="text-right">Avg read</TableHead>
                   <TableHead className="text-right">Total read</TableHead>
@@ -135,23 +150,42 @@ export default function ConditionHelpAnalytics() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.optionId}>
-                    <TableCell className="font-medium">{r.optionName}</TableCell>
-                    <TableCell className="text-right">{r.opens}</TableCell>
-                    <TableCell className="text-right">
-                      {fmtMs(r.opens ? r.totalReadMs / r.opens : 0)}
-                    </TableCell>
-                    <TableCell className="text-right">{fmtMs(r.totalReadMs)}</TableCell>
-                    <TableCell className="text-right">{r.proceeded}</TableCell>
-                    <TableCell className="text-right">
-                      {r.opens > 0
-                        ? `${Math.round((r.proceeded / r.opens) * 100)}%`
-                        : "—"}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {rows.map((r) => {
+                  const rate = r.opens > 0 ? r.proceeded / r.opens : 0;
+                  const rival = rows.find(
+                    (o) => o.optionId === r.optionId && o.variant !== r.variant
+                  );
+                  const rivalRate = rival && rival.opens > 0 ? rival.proceeded / rival.opens : -1;
+                  const leading = !!rival && r.opens > 0 && rate > rivalRate;
+                  return (
+                    <TableRow key={r.key}>
+                      <TableCell className="font-medium">{r.optionName}</TableCell>
+                      <TableCell>
+                        {r.inExperiment || rival ? (
+                          <span className="text-xs font-semibold px-1.5 py-0.5 rounded bg-muted">
+                            {r.variant}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">{r.opens}</TableCell>
+                      <TableCell className="text-right">
+                        {fmtMs(r.opens ? r.totalReadMs / r.opens : 0)}
+                      </TableCell>
+                      <TableCell className="text-right">{fmtMs(r.totalReadMs)}</TableCell>
+                      <TableCell className="text-right">{r.proceeded}</TableCell>
+                      <TableCell
+                        className={`text-right ${leading ? "font-semibold text-primary" : ""}`}
+                      >
+                        {r.opens > 0 ? `${Math.round(rate * 100)}%` : "—"}
+                        {leading ? " ★" : ""}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
+
             </Table>
           </div>
         )}
