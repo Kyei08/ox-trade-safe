@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import ConditionOptionHelp from "@/components/ConditionOptionHelp";
+import { trackConditionHelpProceeded } from "@/lib/conditionHelpAnalytics";
 
 interface ConditionOption {
   id: string;
