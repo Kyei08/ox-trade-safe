@@ -7,6 +7,8 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import ConditionOptionHelp from "@/components/ConditionOptionHelp";
+import { resolveConditionHelp } from "@/lib/conditionHelpExperiment";
+
 import { trackConditionHelpProceeded } from "@/lib/conditionHelpAnalytics";
 
 interface ConditionOption {
@@ -17,6 +19,10 @@ interface ConditionOption {
   sort_order: number;
   description?: string | null;
   examples?: string | null;
+  description_b?: string | null;
+  examples_b?: string | null;
+  help_experiment_enabled?: boolean | null;
+
 }
 
 interface ConditionGroup {
@@ -84,7 +90,10 @@ const ConditionSelector = ({ categoryId, value, onChange, onGroupsLoaded }: Prop
       if (groupIds.length) {
         const { data: o } = await supabase
           .from("category_condition_options")
-          .select("id, group_id, name, slug, sort_order, description, examples")
+          .select(
+            "id, group_id, name, slug, sort_order, description, examples, description_b, examples_b, help_experiment_enabled"
+          )
+
           .in("group_id", groupIds)
           .order("sort_order", { ascending: true });
         opts = o || [];
