@@ -371,61 +371,123 @@ const CreateListing = () => {
   }, [selectedCategoryId, selectedCondition?.optionId]);
 
   // Persist draft on changes (debounced).
-  // `form.watch()` returns a new object every render, so we key the effect on a
-  // stable serialized snapshot and skip saving when nothing actually changed —
-  // otherwise each save re-renders and re-triggers the effect in a loop.
-  const watchedValues = form.watch();
+  // Typing fires a form change per keystroke, so we subscribe to the form
+  // instead of calling `form.watch()` during render (which re-serializes on
+  // every render) and debounce both the serialization and the network push:
+  //  - local cache: 400ms idle
+  //  - remote sync: 1500ms idle, forced at most every 10s while typing
+  const LOCAL_DEBOUNCE_MS = 400;
+  const REMOTE_DEBOUNCE_MS = 1500;
+  const REMOTE_MAX_WAIT_MS = 10_000;
+
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [savedTick, setSavedTick] = useState(0);
-  const lastSavedSnapshotRef = useRef<string | null>(null);
 
-  const draftPayload = useMemo(
-    () => ({
+  const lastLocalSnapshotRef = useRef<string | null>(null);
+  const lastRemoteSnapshotRef = useRef<string | null>(null);
+  const localTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const remoteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const remoteDeadlineRef = useRef<number | null>(null);
+  const uploadedImagesRef = useRef(uploadedImages);
+  const selectedConditionRef = useRef(selectedCondition);
+  uploadedImagesRef.current = uploadedImages;
+  selectedConditionRef.current = selectedCondition;
+
+  const buildDraftPayload = useRef(() => {
+    const v = form.getValues();
+    return {
       values: {
-        title: watchedValues.title,
-        description: watchedValues.description,
-        category_id: watchedValues.category_id,
-        subcategory_id: watchedValues.subcategory_id,
-        listing_type: watchedValues.listing_type,
-        condition: watchedValues.condition,
-        condition_option_id: watchedValues.condition_option_id,
-        location: watchedValues.location,
-        delivery_options: watchedValues.delivery_options,
-        fixed_price: watchedValues.fixed_price,
-        starting_price: watchedValues.starting_price,
-        reserve_price: watchedValues.reserve_price,
-        auction_ends_at: watchedValues.auction_ends_at,
+        title: v.title,
+        description: v.description,
+        category_id: v.category_id,
+        subcategory_id: v.subcategory_id,
+        listing_type: v.listing_type,
+        condition: v.condition,
+        condition_option_id: v.condition_option_id,
+        location: v.location,
+        delivery_options: v.delivery_options,
+        fixed_price: v.fixed_price,
+        starting_price: v.starting_price,
+        reserve_price: v.reserve_price,
+        auction_ends_at: v.auction_ends_at,
       },
-      uploadedImages,
-      selectedCondition,
-    }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [JSON.stringify(watchedValues), uploadedImages, selectedCondition],
-  );
-  const draftSnapshot = JSON.stringify(draftPayload);
+      uploadedImages: uploadedImagesRef.current,
+      selectedCondition: selectedConditionRef.current,
+    };
+  }).current;
 
+  const mountedRef = useRef(true);
   useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const pushRemoteRef = useRef<(snapshot: string) => Promise<void>>();
+  pushRemoteRef.current = async (snapshot: string) => {
+    if (!user || lastRemoteSnapshotRef.current === snapshot) return;
+    remoteDeadlineRef.current = null;
+    if (mountedRef.current) setSaveStatus("saving");
+    try {
+      await pushRemoteDraft(user.id, JSON.parse(snapshot));
+      lastRemoteSnapshotRef.current = snapshot;
+      if (!mountedRef.current) return;
+      setLastSavedAt(new Date());
+      setSaveStatus("saved");
+    } catch {
+      if (mountedRef.current) setSaveStatus("error");
+    }
+  };
+
+
+  const scheduleDraftSave = useRef(() => {
     if (!user || !didHydrateFromUrlRef.current) return;
-    // Nothing changed since the last successful save — don't re-save.
-    if (lastSavedSnapshotRef.current === draftSnapshot) return;
-    const t = setTimeout(async () => {
-      const payload = JSON.parse(draftSnapshot) as typeof draftPayload;
-      // Fast local cache
-      saveDraft(user.id, payload);
-      // Cross-device sync
-      setSaveStatus("saving");
-      try {
-        await pushRemoteDraft(user.id, payload);
-        lastSavedSnapshotRef.current = draftSnapshot;
-        setLastSavedAt(new Date());
-        setSaveStatus("saved");
-      } catch {
-        setSaveStatus("error");
-      }
-    }, 600);
-    return () => clearTimeout(t);
-  }, [user, draftSnapshot]);
+
+    if (localTimerRef.current) clearTimeout(localTimerRef.current);
+    localTimerRef.current = setTimeout(() => {
+      const snapshot = JSON.stringify(buildDraftPayload());
+      if (snapshot === lastLocalSnapshotRef.current) return;
+      lastLocalSnapshotRef.current = snapshot;
+      saveDraft(user.id, JSON.parse(snapshot));
+    }, LOCAL_DEBOUNCE_MS);
+
+    // Remote: trailing debounce with a max wait so long typing bursts still sync.
+    const now = Date.now();
+    if (remoteDeadlineRef.current === null) {
+      remoteDeadlineRef.current = now + REMOTE_MAX_WAIT_MS;
+    }
+    const wait = Math.max(0, Math.min(REMOTE_DEBOUNCE_MS, remoteDeadlineRef.current - now));
+    if (remoteTimerRef.current) clearTimeout(remoteTimerRef.current);
+    remoteTimerRef.current = setTimeout(() => {
+      void pushRemoteRef.current?.(JSON.stringify(buildDraftPayload()));
+    }, wait);
+  }).current;
+
+  // Subscribe to form changes (no re-render per keystroke).
+  useEffect(() => {
+    const sub = form.watch(() => scheduleDraftSave());
+    return () => sub.unsubscribe();
+  }, [form, scheduleDraftSave]);
+
+  // Non-form state that belongs in the draft.
+  useEffect(() => {
+    scheduleDraftSave();
+  }, [uploadedImages, selectedCondition, user, scheduleDraftSave]);
+
+  // Flush pending work on unmount so nothing is lost when navigating away.
+  useEffect(() => {
+    return () => {
+      if (localTimerRef.current) clearTimeout(localTimerRef.current);
+      if (remoteTimerRef.current) clearTimeout(remoteTimerRef.current);
+      if (!user || !didHydrateFromUrlRef.current) return;
+      const snapshot = JSON.stringify(buildDraftPayload());
+      if (snapshot !== lastLocalSnapshotRef.current) saveDraft(user.id, JSON.parse(snapshot));
+      void pushRemoteRef.current?.(snapshot);
+    };
+  }, [user, buildDraftPayload]);
+
 
 
   // Re-render the "x seconds ago" label periodically
