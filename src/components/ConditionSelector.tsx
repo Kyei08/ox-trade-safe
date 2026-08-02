@@ -162,7 +162,9 @@ const ConditionSelector = ({ categoryId, value, onChange, onGroupsLoaded }: Prop
             <div role="radiogroup" className="flex flex-wrap gap-2">
               {group.options.map((opt) => {
                 const active = value === opt.id;
-                const hasHelp = !!(opt.description?.trim() || opt.examples?.trim());
+                const help = resolveConditionHelp(opt);
+                const hasHelp = help.hasHelp;
+
                 return (
                   <div
                     key={opt.id}
