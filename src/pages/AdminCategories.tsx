@@ -1398,7 +1398,10 @@ const AdminCategories = () => {
               </SortableContext>
             </DndContext>
           )}
+
+          <ConditionHelpAnalytics />
       </div>
+
     </AdminLayout>
   );
 };
