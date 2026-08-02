@@ -370,39 +370,54 @@ const CreateListing = () => {
     }
   }, [selectedCategoryId, selectedCondition?.optionId]);
 
-  // Persist draft on changes (debounced)
+  // Persist draft on changes (debounced).
+  // `form.watch()` returns a new object every render, so we key the effect on a
+  // stable serialized snapshot and skip saving when nothing actually changed —
+  // otherwise each save re-renders and re-triggers the effect in a loop.
   const watchedValues = form.watch();
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [savedTick, setSavedTick] = useState(0);
+  const lastSavedSnapshotRef = useRef<string | null>(null);
+
+  const draftPayload = useMemo(
+    () => ({
+      values: {
+        title: watchedValues.title,
+        description: watchedValues.description,
+        category_id: watchedValues.category_id,
+        subcategory_id: watchedValues.subcategory_id,
+        listing_type: watchedValues.listing_type,
+        condition: watchedValues.condition,
+        condition_option_id: watchedValues.condition_option_id,
+        location: watchedValues.location,
+        delivery_options: watchedValues.delivery_options,
+        fixed_price: watchedValues.fixed_price,
+        starting_price: watchedValues.starting_price,
+        reserve_price: watchedValues.reserve_price,
+        auction_ends_at: watchedValues.auction_ends_at,
+      },
+      uploadedImages,
+      selectedCondition,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [JSON.stringify(watchedValues), uploadedImages, selectedCondition],
+  );
+  const draftSnapshot = JSON.stringify(draftPayload);
+
   useEffect(() => {
     if (!user || !didHydrateFromUrlRef.current) return;
+    // Nothing changed since the last successful save — don't re-save.
+    if (lastSavedSnapshotRef.current === draftSnapshot) return;
     const t = setTimeout(async () => {
-      const payload = {
-        values: {
-          title: watchedValues.title,
-          description: watchedValues.description,
-          category_id: watchedValues.category_id,
-          subcategory_id: watchedValues.subcategory_id,
-          listing_type: watchedValues.listing_type,
-          condition: watchedValues.condition,
-          condition_option_id: watchedValues.condition_option_id,
-          location: watchedValues.location,
-          delivery_options: watchedValues.delivery_options,
-          fixed_price: watchedValues.fixed_price,
-          starting_price: watchedValues.starting_price,
-          reserve_price: watchedValues.reserve_price,
-          auction_ends_at: watchedValues.auction_ends_at,
-        },
-        uploadedImages,
-        selectedCondition,
-      };
+      const payload = JSON.parse(draftSnapshot) as typeof draftPayload;
       // Fast local cache
       saveDraft(user.id, payload);
       // Cross-device sync
       setSaveStatus("saving");
       try {
         await pushRemoteDraft(user.id, payload);
+        lastSavedSnapshotRef.current = draftSnapshot;
         setLastSavedAt(new Date());
         setSaveStatus("saved");
       } catch {
@@ -410,7 +425,8 @@ const CreateListing = () => {
       }
     }, 600);
     return () => clearTimeout(t);
-  }, [user, watchedValues, uploadedImages, selectedCondition]);
+  }, [user, draftSnapshot]);
+
 
   // Re-render the "x seconds ago" label periodically
   useEffect(() => {
