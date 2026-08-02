@@ -481,7 +481,13 @@ const AdminCategories = () => {
 
   const updateConditionOption = async (
     option: ConditionOption,
-    patch: Partial<Pick<ConditionOption, "description" | "examples">>,
+    patch: Partial<
+      Pick<
+        ConditionOption,
+        "description" | "examples" | "description_b" | "examples_b" | "help_experiment_enabled"
+      >
+    >,
+
   ) => {
     setOptionsByGroup((p) => ({
       ...p,
