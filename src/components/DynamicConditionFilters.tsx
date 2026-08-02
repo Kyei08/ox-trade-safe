@@ -134,9 +134,12 @@ const DynamicConditionFilters = ({ categoryId, selectedOptionIds, onToggle }: Pr
                     {hasHelp && (
                       <ConditionOptionHelp
                         name={opt.name}
-                        description={opt.description}
-                        examples={opt.examples}
+                        description={help.description}
+                        examples={help.examples}
+                        variant={help.variant}
+                        inExperiment={help.inExperiment}
                         size="sm"
+
                         surface="browse_filters"
                         optionId={opt.id}
                         groupId={group.id}
