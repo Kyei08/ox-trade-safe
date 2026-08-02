@@ -166,7 +166,16 @@ const ConditionSelector = ({ categoryId, value, onChange, onGroupsLoaded }: Prop
                       type="button"
                       role="radio"
                       aria-checked={active}
-                      onClick={() =>
+                      onClick={() => {
+                        if (!active) {
+                          trackConditionHelpProceeded({
+                            surface: "create_listing",
+                            optionId: opt.id,
+                            optionName: opt.name,
+                            categoryId,
+                            action: "selected",
+                          });
+                        }
                         onChange(
                           active
                             ? null
@@ -177,8 +186,8 @@ const ConditionSelector = ({ categoryId, value, onChange, onGroupsLoaded }: Prop
                                 groupId: group.id,
                                 groupCategoryId: group.category_id,
                               }
-                        )
-                      }
+                        );
+                      }}
                       className="px-3.5 py-1.5 rounded-full text-sm font-medium bg-transparent"
                     >
                       {opt.name}
@@ -188,6 +197,11 @@ const ConditionSelector = ({ categoryId, value, onChange, onGroupsLoaded }: Prop
                         name={opt.name}
                         description={opt.description}
                         examples={opt.examples}
+                        surface="create_listing"
+                        optionId={opt.id}
+                        groupId={group.id}
+                        groupName={group.name}
+                        categoryId={categoryId}
                       />
                     )}
                   </div>
