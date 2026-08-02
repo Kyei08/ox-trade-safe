@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import ConditionOptionHelp from "@/components/ConditionOptionHelp";
+import { trackConditionHelpProceeded } from "@/lib/conditionHelpAnalytics";
 
 interface ConditionOption {
   id: string;
@@ -101,12 +102,21 @@ const DynamicConditionFilters = ({ categoryId, selectedOptionIds, onToggle }: Pr
                   >
                     <button
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
+                        if (!active) {
+                          trackConditionHelpProceeded({
+                            surface: "browse_filters",
+                            optionId: opt.id,
+                            optionName: opt.name,
+                            categoryId,
+                            action: "filter_applied",
+                          });
+                        }
                         onToggle(opt.id, {
                           isMultiSelect: group.is_multi_select,
                           siblingIds,
-                        })
-                      }
+                        });
+                      }}
                       className="px-3 py-1.5 rounded-full text-xs font-medium bg-transparent"
                     >
                       {opt.name}
@@ -117,6 +127,11 @@ const DynamicConditionFilters = ({ categoryId, selectedOptionIds, onToggle }: Pr
                         description={opt.description}
                         examples={opt.examples}
                         size="sm"
+                        surface="browse_filters"
+                        optionId={opt.id}
+                        groupId={group.id}
+                        groupName={group.name}
+                        categoryId={categoryId}
                       />
                     )}
                   </div>
