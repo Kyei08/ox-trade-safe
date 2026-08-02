@@ -417,20 +417,30 @@ const CreateListing = () => {
     };
   }).current;
 
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   const pushRemoteRef = useRef<(snapshot: string) => Promise<void>>();
   pushRemoteRef.current = async (snapshot: string) => {
     if (!user || lastRemoteSnapshotRef.current === snapshot) return;
     remoteDeadlineRef.current = null;
-    setSaveStatus("saving");
+    if (mountedRef.current) setSaveStatus("saving");
     try {
       await pushRemoteDraft(user.id, JSON.parse(snapshot));
       lastRemoteSnapshotRef.current = snapshot;
+      if (!mountedRef.current) return;
       setLastSavedAt(new Date());
       setSaveStatus("saved");
     } catch {
-      setSaveStatus("error");
+      if (mountedRef.current) setSaveStatus("error");
     }
   };
+
 
   const scheduleDraftSave = useRef(() => {
     if (!user || !didHydrateFromUrlRef.current) return;
