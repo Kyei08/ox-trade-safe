@@ -141,6 +141,7 @@ export default function ConditionHelpAnalytics() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Option</TableHead>
+                  <TableHead>Variant</TableHead>
                   <TableHead className="text-right">Opens</TableHead>
                   <TableHead className="text-right">Avg read</TableHead>
                   <TableHead className="text-right">Total read</TableHead>
@@ -149,23 +150,42 @@ export default function ConditionHelpAnalytics() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.optionId}>
-                    <TableCell className="font-medium">{r.optionName}</TableCell>
-                    <TableCell className="text-right">{r.opens}</TableCell>
-                    <TableCell className="text-right">
-                      {fmtMs(r.opens ? r.totalReadMs / r.opens : 0)}
-                    </TableCell>
-                    <TableCell className="text-right">{fmtMs(r.totalReadMs)}</TableCell>
-                    <TableCell className="text-right">{r.proceeded}</TableCell>
-                    <TableCell className="text-right">
-                      {r.opens > 0
-                        ? `${Math.round((r.proceeded / r.opens) * 100)}%`
-                        : "—"}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {rows.map((r) => {
+                  const rate = r.opens > 0 ? r.proceeded / r.opens : 0;
+                  const rival = rows.find(
+                    (o) => o.optionId === r.optionId && o.variant !== r.variant
+                  );
+                  const rivalRate = rival && rival.opens > 0 ? rival.proceeded / rival.opens : -1;
+                  const leading = !!rival && r.opens > 0 && rate > rivalRate;
+                  return (
+                    <TableRow key={r.key}>
+                      <TableCell className="font-medium">{r.optionName}</TableCell>
+                      <TableCell>
+                        {r.inExperiment || rival ? (
+                          <span className="text-xs font-semibold px-1.5 py-0.5 rounded bg-muted">
+                            {r.variant}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">{r.opens}</TableCell>
+                      <TableCell className="text-right">
+                        {fmtMs(r.opens ? r.totalReadMs / r.opens : 0)}
+                      </TableCell>
+                      <TableCell className="text-right">{fmtMs(r.totalReadMs)}</TableCell>
+                      <TableCell className="text-right">{r.proceeded}</TableCell>
+                      <TableCell
+                        className={`text-right ${leading ? "font-semibold text-primary" : ""}`}
+                      >
+                        {r.opens > 0 ? `${Math.round(rate * 100)}%` : "—"}
+                        {leading ? " ★" : ""}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
+
             </Table>
           </div>
         )}
