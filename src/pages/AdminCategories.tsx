@@ -90,6 +90,10 @@ interface ConditionOption {
   sort_order: number;
   description?: string | null;
   examples?: string | null;
+  description_b?: string | null;
+  examples_b?: string | null;
+  help_experiment_enabled?: boolean | null;
+
 }
 
 const slugify = (s: string) =>
@@ -348,7 +352,10 @@ const AdminCategories = () => {
         .order("sort_order", { ascending: true }),
       supabase
         .from("category_condition_options" as any)
-        .select("id, group_id, name, sort_order, description, examples")
+        .select(
+          "id, group_id, name, sort_order, description, examples, description_b, examples_b, help_experiment_enabled",
+        )
+
         .order("sort_order", { ascending: true }),
     ]);
 
