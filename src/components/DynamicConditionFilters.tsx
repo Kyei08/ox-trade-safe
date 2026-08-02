@@ -98,7 +98,9 @@ const DynamicConditionFilters = ({ categoryId, selectedOptionIds, onToggle }: Pr
               {group.options.map((opt) => {
                 const active = selectedOptionIds.includes(opt.id);
                 const siblingIds = group.options.map((o) => o.id);
-                const hasHelp = !!(opt.description?.trim() || opt.examples?.trim());
+                const help = resolveConditionHelp(opt);
+                const hasHelp = help.hasHelp;
+
                 return (
                   <div
                     key={opt.id}
