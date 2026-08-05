@@ -29,10 +29,11 @@ import {
   loadDraft,
   saveDraft,
   clearDraft,
-  resolveDraft,
+  fetchRemoteDraft,
   pushRemoteDraft,
   clearRemoteDraft,
   hasMeaningfulDraft,
+  type CreateListingDraft,
 } from "@/lib/createListingDraft";
 
 const DELIVERY_OPTIONS = [
