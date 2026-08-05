@@ -362,7 +362,10 @@ const CreateListing = () => {
 
     // Instant restore from local cache (no await, no network).
     const local = loadDraft(user.id);
-    void applyDraft(local);
+    void applyDraft(local).then(() => {
+      // Programmatic restore shouldn't count as a user edit.
+      userTouchedRef.current = false;
+    });
 
     // Then reconcile with the backend copy if it's newer and untouched.
     (async () => {
@@ -371,6 +374,7 @@ const CreateListing = () => {
       if (userTouchedRef.current) return;
       if ((remote.savedAt ?? 0) <= appliedDraftSavedAtRef.current) return;
       await applyDraft(remote);
+      userTouchedRef.current = false;
       try {
         saveDraft(user.id, {
           values: remote.values,
