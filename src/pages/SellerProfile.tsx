@@ -149,12 +149,6 @@ const SellerProfile = () => {
                     <h1 className="text-2xl font-bold text-foreground">
                       {profile.full_name || "Anonymous Seller"}
                     </h1>
-                    {profile.kyc_status === "verified" && (
-                      <Badge variant="secondary" className="w-fit mx-auto sm:mx-0">
-                        <ShieldCheck className="h-3 w-3 mr-1" />
-                        KYC Verified
-                      </Badge>
-                    )}
                     {user && user.id !== sellerId && (
                       <ReportDialog
                         reportType="user"
