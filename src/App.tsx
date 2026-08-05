@@ -10,7 +10,6 @@ import CreateListing from "./pages/CreateListing";
 import EditListing from "./pages/EditListing";
 import Listings from "./pages/Listings";
 import ListingDetail from "./pages/ListingDetail";
-import KYCSubmission from "./pages/KYCSubmission";
 import AdminKYC from "./pages/AdminKYC";
 import AdminReports from "./pages/AdminReports";
 import AdminCategories from "./pages/AdminCategories";
