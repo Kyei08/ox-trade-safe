@@ -57,7 +57,7 @@ function DraftSaveIndicator({
   lastSavedAt,
   tick,
 }: {
-  status: "idle" | "saving" | "saved" | "error";
+  status: "idle" | "saving" | "syncing" | "saved" | "error";
   lastSavedAt: Date | null;
   tick: number;
 }) {
@@ -65,17 +65,21 @@ function DraftSaveIndicator({
   void tick;
   if (status === "idle" && !lastSavedAt) return null;
 
-  if (status === "saving") {
+  if (status === "saving" || status === "syncing") {
     return (
-      <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+      <div
+        className="inline-flex items-center gap-2 text-xs text-muted-foreground"
+        role="status"
+        aria-live="polite"
+      >
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        <span>Saving draft…</span>
+        <span>{status === "saving" ? "Saving…" : "Syncing…"}</span>
       </div>
     );
   }
   if (status === "error") {
     return (
-      <div className="inline-flex items-center gap-2 text-xs text-destructive">
+      <div className="inline-flex items-center gap-2 text-xs text-destructive" role="status" aria-live="polite">
         <CloudOff className="h-3.5 w-3.5" />
         <span>
           Couldn't sync draft.
@@ -86,14 +90,17 @@ function DraftSaveIndicator({
   }
   // saved
   return (
-    <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+    <div
+      className="inline-flex items-center gap-2 text-xs text-muted-foreground"
+      role="status"
+      aria-live="polite"
+    >
       <Check className="h-3.5 w-3.5 text-green-600" />
-      <span>
-        Draft saved{lastSavedAt ? ` · ${formatRelativeTime(lastSavedAt)}` : ""}
-      </span>
+      <span>Saved{lastSavedAt ? ` · ${formatRelativeTime(lastSavedAt)}` : ""}</span>
     </div>
   );
 }
+
 
 
 const listingSchema = z.object({
