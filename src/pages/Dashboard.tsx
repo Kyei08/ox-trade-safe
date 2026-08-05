@@ -417,8 +417,8 @@ const Dashboard = () => {
               </h1>
               <p className="text-sm sm:text-base text-muted-foreground truncate">{user.email}</p>
               <div className="flex items-center justify-center sm:justify-start gap-2 mt-2 flex-wrap">
-                <Badge variant={profile?.kyc_status === "verified" ? "default" : "secondary"}>
-                  {profile?.kyc_status || "pending"}
+                <Badge variant={profile?.seller_verification_status === "approved" ? "default" : "secondary"}>
+                  {VERIFICATION_LABEL[profile?.seller_verification_status || "not_started"]}
                 </Badge>
                 {profile && profile.total_reviews > 0 && (
                   <div className="flex items-center gap-1 text-sm">
