@@ -495,7 +495,10 @@ const CreateListing = () => {
 
   // Subscribe to form changes (no re-render per keystroke).
   useEffect(() => {
-    const sub = form.watch(() => scheduleDraftSave());
+    const sub = form.watch(() => {
+      userTouchedRef.current = true;
+      scheduleDraftSave();
+    });
     return () => sub.unsubscribe();
   }, [form, scheduleDraftSave]);
 
