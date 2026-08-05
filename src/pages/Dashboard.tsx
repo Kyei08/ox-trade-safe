@@ -81,7 +81,19 @@ interface Profile {
   kyc_status: string;
   kyc_verified_at: string | null;
   avatar_url: string | null;
+  seller_type: "individual" | "business" | null;
+  seller_verification_status: string | null;
+  phone_verified_at: string | null;
+  address_verified_at: string | null;
 }
+
+const VERIFICATION_LABEL: Record<string, string> = {
+  not_started: "Not verified",
+  pending_review: "Pending review",
+  approved: "Verified seller",
+  rejected: "Rejected",
+  requires_more_info: "More info needed",
+};
 
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
