@@ -809,29 +809,41 @@ const Dashboard = () => {
 
               <Card className="mt-6">
                 <CardHeader>
-                  <CardTitle>KYC Verification</CardTitle>
-                  <CardDescription>Verify your identity to unlock full platform features</CardDescription>
+                  <CardTitle>Seller Verification</CardTitle>
+                  <CardDescription>
+                    Verify your identity (and business details) to unlock selling on OX
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <label className="text-sm font-medium">Verification Status</label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant={profile?.kyc_status === "verified" ? "default" : "secondary"}>
-                          {profile?.kyc_status || "pending"}
-                        </Badge>
-                        {profile?.kyc_status === "verified" && profile.kyc_verified_at && (
-                          <span className="text-sm text-muted-foreground">
-                            Verified on {new Date(profile.kyc_verified_at).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
+                  <div>
+                    <label className="text-sm font-medium">Verification Status</label>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <Badge variant={profile?.seller_verification_status === "approved" ? "default" : "secondary"}>
+                        {VERIFICATION_LABEL[profile?.seller_verification_status || "not_started"]}
+                      </Badge>
+                      {profile && (
+                        <TrustBadges
+                          profile={{
+                            seller_type: profile.seller_type,
+                            seller_verification_status: profile.seller_verification_status,
+                            phone_verified_at: profile.phone_verified_at,
+                            address_verified_at: profile.address_verified_at,
+                          }}
+                          size="sm"
+                        />
+                      )}
                     </div>
                   </div>
-                  {profile?.kyc_status !== "verified" && (
-                    <Link to="/kyc">
+                  {profile?.seller_verification_status !== "approved" && (
+                    <Link to="/seller-verification">
                       <Button className="w-full">
-                        {profile?.kyc_status === "rejected" ? "Resubmit KYC" : "Start Verification"}
+                        {profile?.seller_verification_status === "rejected"
+                          ? "Resubmit verification"
+                          : profile?.seller_verification_status === "requires_more_info"
+                          ? "Provide more information"
+                          : profile?.seller_verification_status === "pending_review"
+                          ? "View verification status"
+                          : "Start verification"}
                       </Button>
                     </Link>
                   )}
