@@ -273,8 +273,14 @@ const CreateListing = () => {
   }, [selectedCategoryId]);
 
   // Hydrate from saved draft + URL params on first mount.
-  // URL params take precedence over draft values for category + condition.
+  // The LOCAL cache is applied synchronously first so a refresh never loses
+  // work while the remote sync is still in flight; the remote draft is then
+  // fetched and only applied if it is strictly newer AND the user hasn't
+  // started editing yet.
   const [draftRestored, setDraftRestored] = useState(false);
+  const userTouchedRef = useRef(false);
+  const appliedDraftSavedAtRef = useRef(0);
+
   useEffect(() => {
     if (didHydrateFromUrlRef.current) return;
     if (!user) return;
@@ -283,10 +289,7 @@ const CreateListing = () => {
     const urlCategory = searchParams.get("category");
     const urlOption = searchParams.get("option");
 
-    (async () => {
-      // Pick the freshest draft between local cache and the backend
-      const draft = await resolveDraft(user.id);
-
+    const applyDraft = async (draft: CreateListingDraft | null) => {
       // 1) Restore non-category/option fields from draft
       if (draft && hasMeaningfulDraft(draft)) {
         const v = draft.values;
@@ -311,6 +314,7 @@ const CreateListing = () => {
         if (draft.uploadedImages?.length) {
           setUploadedImages(draft.uploadedImages);
         }
+        appliedDraftSavedAtRef.current = draft.savedAt ?? 0;
         setDraftRestored(true);
       }
 
@@ -353,9 +357,32 @@ const CreateListing = () => {
           }
         }
       }
+    };
+
+    // Instant restore from local cache (no await, no network).
+    const local = loadDraft(user.id);
+    void applyDraft(local);
+
+    // Then reconcile with the backend copy if it's newer and untouched.
+    (async () => {
+      const remote = await fetchRemoteDraft(user.id);
+      if (!remote || !hasMeaningfulDraft(remote)) return;
+      if (userTouchedRef.current) return;
+      if ((remote.savedAt ?? 0) <= appliedDraftSavedAtRef.current) return;
+      await applyDraft(remote);
+      try {
+        saveDraft(user.id, {
+          values: remote.values,
+          uploadedImages: remote.uploadedImages,
+          selectedCondition: remote.selectedCondition,
+        });
+      } catch {
+        // ignore
+      }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
 
   // Keep URL in sync with category + condition selection
   useEffect(() => {
