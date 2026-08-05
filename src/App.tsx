@@ -69,8 +69,9 @@ const App = () => (
               </AdminRoute>
             }
           />
+          <Route path="/admin/kyc" element={<Navigate to="/admin/sellers" replace />} />
           <Route
-            path="/admin/kyc"
+            path="/admin/kyc/legacy"
             element={
               <AdminRoute>
                 <AdminKYC />
