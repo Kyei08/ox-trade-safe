@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { Package, Gavel, User, Star, MapPin, Phone, MessageSquare, Image, BarChart3, Heart, Pencil, ShoppingBag, Truck } from "lucide-react";
 import { formatZAR } from "@/lib/currency";
 import { Skeleton } from "@/components/ui/skeleton";
+import TrustBadges from "@/components/TrustBadges";
 
 interface Listing {
   id: string;
@@ -81,7 +82,19 @@ interface Profile {
   kyc_status: string;
   kyc_verified_at: string | null;
   avatar_url: string | null;
+  seller_type: "individual" | "business" | null;
+  seller_verification_status: string | null;
+  phone_verified_at: string | null;
+  address_verified_at: string | null;
 }
+
+const VERIFICATION_LABEL: Record<string, string> = {
+  not_started: "Not verified",
+  pending_review: "Pending review",
+  approved: "Verified seller",
+  rejected: "Rejected",
+  requires_more_info: "More info needed",
+};
 
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
@@ -405,8 +418,8 @@ const Dashboard = () => {
               </h1>
               <p className="text-sm sm:text-base text-muted-foreground truncate">{user.email}</p>
               <div className="flex items-center justify-center sm:justify-start gap-2 mt-2 flex-wrap">
-                <Badge variant={profile?.kyc_status === "verified" ? "default" : "secondary"}>
-                  {profile?.kyc_status || "pending"}
+                <Badge variant={profile?.seller_verification_status === "approved" ? "default" : "secondary"}>
+                  {VERIFICATION_LABEL[profile?.seller_verification_status || "not_started"]}
                 </Badge>
                 {profile && profile.total_reviews > 0 && (
                   <div className="flex items-center gap-1 text-sm">
@@ -797,29 +810,41 @@ const Dashboard = () => {
 
               <Card className="mt-6">
                 <CardHeader>
-                  <CardTitle>KYC Verification</CardTitle>
-                  <CardDescription>Verify your identity to unlock full platform features</CardDescription>
+                  <CardTitle>Seller Verification</CardTitle>
+                  <CardDescription>
+                    Verify your identity (and business details) to unlock selling on OX
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <label className="text-sm font-medium">Verification Status</label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant={profile?.kyc_status === "verified" ? "default" : "secondary"}>
-                          {profile?.kyc_status || "pending"}
-                        </Badge>
-                        {profile?.kyc_status === "verified" && profile.kyc_verified_at && (
-                          <span className="text-sm text-muted-foreground">
-                            Verified on {new Date(profile.kyc_verified_at).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
+                  <div>
+                    <label className="text-sm font-medium">Verification Status</label>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <Badge variant={profile?.seller_verification_status === "approved" ? "default" : "secondary"}>
+                        {VERIFICATION_LABEL[profile?.seller_verification_status || "not_started"]}
+                      </Badge>
+                      {profile && (
+                        <TrustBadges
+                          profile={{
+                            seller_type: profile.seller_type,
+                            seller_verification_status: profile.seller_verification_status,
+                            phone_verified_at: profile.phone_verified_at,
+                            address_verified_at: profile.address_verified_at,
+                          }}
+                          size="sm"
+                        />
+                      )}
                     </div>
                   </div>
-                  {profile?.kyc_status !== "verified" && (
-                    <Link to="/kyc">
+                  {profile?.seller_verification_status !== "approved" && (
+                    <Link to="/seller-verification">
                       <Button className="w-full">
-                        {profile?.kyc_status === "rejected" ? "Resubmit KYC" : "Start Verification"}
+                        {profile?.seller_verification_status === "rejected"
+                          ? "Resubmit verification"
+                          : profile?.seller_verification_status === "requires_more_info"
+                          ? "Provide more information"
+                          : profile?.seller_verification_status === "pending_review"
+                          ? "View verification status"
+                          : "Start verification"}
                       </Button>
                     </Link>
                   )}

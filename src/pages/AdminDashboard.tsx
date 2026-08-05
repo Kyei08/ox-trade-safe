@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ShieldCheck, Flag, FolderTree, Users, Package } from "lucide-react";
 
 interface Stats {
-  pendingKyc: number;
+  pendingVerifications: number;
   pendingReports: number;
   categories: number;
   listings: number;
@@ -41,8 +41,8 @@ const AdminDashboard = () => {
         return;
       }
 
-      const [kyc, reports, cats, listings, profiles] = await Promise.all([
-        supabase.from("kyc_submissions").select("*", { count: "exact", head: true }).eq("status", "pending"),
+      const [verifications, reports, cats, listings, profiles] = await Promise.all([
+        supabase.from("seller_verifications").select("*", { count: "exact", head: true }).eq("status", "pending_review"),
         supabase.from("reports").select("*", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("categories").select("*", { count: "exact", head: true }),
         supabase.from("listings").select("*", { count: "exact", head: true }),
@@ -50,7 +50,7 @@ const AdminDashboard = () => {
       ]);
 
       setStats({
-        pendingKyc: kyc.count ?? 0,
+        pendingVerifications: verifications.count ?? 0,
         pendingReports: reports.count ?? 0,
         categories: cats.count ?? 0,
         listings: listings.count ?? 0,
@@ -85,7 +85,7 @@ const AdminDashboard = () => {
   }
 
   const cards = [
-    { label: "Pending KYC", value: stats?.pendingKyc ?? 0, icon: ShieldCheck, to: "/admin/kyc" },
+    { label: "Pending Verifications", value: stats?.pendingVerifications ?? 0, icon: ShieldCheck, to: "/admin/sellers" },
     { label: "Pending Reports", value: stats?.pendingReports ?? 0, icon: Flag, to: "/admin/reports" },
     { label: "Categories", value: stats?.categories ?? 0, icon: FolderTree, to: "/admin/categories" },
     { label: "Listings", value: stats?.listings ?? 0, icon: Package, to: "/listings" },

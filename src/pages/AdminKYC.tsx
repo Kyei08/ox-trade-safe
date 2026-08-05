@@ -365,7 +365,7 @@ export default function AdminKYC() {
   const rejectedSubmissions = submissions.filter(s => s.status === "rejected");
 
   return (
-    <AdminLayout title="KYC Review" description="Approve or reject identity verification submissions">
+    <AdminLayout title="Legacy KYC Archive" description="Historical identity submissions. New verifications are handled under Verifications.">
       <Tabs defaultValue="pending" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="pending">

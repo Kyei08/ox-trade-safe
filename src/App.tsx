@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -10,7 +10,6 @@ import CreateListing from "./pages/CreateListing";
 import EditListing from "./pages/EditListing";
 import Listings from "./pages/Listings";
 import ListingDetail from "./pages/ListingDetail";
-import KYCSubmission from "./pages/KYCSubmission";
 import AdminKYC from "./pages/AdminKYC";
 import AdminReports from "./pages/AdminReports";
 import AdminCategories from "./pages/AdminCategories";
@@ -50,7 +49,8 @@ const App = () => (
           <Route path="/listings/:id" element={<ListingDetail />} />
           <Route path="/listing/:id" element={<ListingDetail />} />
           <Route path="/seller/:sellerId" element={<SellerProfile />} />
-          <Route path="/kyc" element={<KYCSubmission />} />
+          {/* KYC is merged into Seller Verification */}
+          <Route path="/kyc" element={<Navigate to="/seller-verification" replace />} />
           <Route path="/seller-verification" element={<SellerVerification />} />
           <Route
             path="/admin/sellers"
@@ -68,8 +68,9 @@ const App = () => (
               </AdminRoute>
             }
           />
+          <Route path="/admin/kyc" element={<Navigate to="/admin/sellers" replace />} />
           <Route
-            path="/admin/kyc"
+            path="/admin/kyc/legacy"
             element={
               <AdminRoute>
                 <AdminKYC />

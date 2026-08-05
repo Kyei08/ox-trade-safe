@@ -214,9 +214,9 @@ const Header = () => {
                       <MessageSquare className="mr-2 h-4 w-4" />
                       Messages
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/kyc")}>
+                    <DropdownMenuItem onClick={() => navigate("/seller-verification")}>
                       <Shield className="mr-2 h-4 w-4" />
-                      KYC Verification
+                      Seller Verification
                     </DropdownMenuItem>
                     {isAdmin && (
                       <>
@@ -327,12 +327,12 @@ const Header = () => {
                       </Link>
                       
                       <Link 
-                        to="/kyc" 
-                        className={`flex items-center gap-3 px-4 py-3 min-h-11 rounded-lg hover:bg-muted transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname === "/kyc" ? "font-bold" : ""}`}
+                        to="/seller-verification" 
+                        className={`flex items-center gap-3 px-4 py-3 min-h-11 rounded-lg hover:bg-muted transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring ${location.pathname === "/seller-verification" ? "font-bold" : ""}`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <Shield className="w-5 h-5" aria-hidden="true" />
-                        <span className="font-medium">KYC Verification</span>
+                        <span className="font-medium">Seller Verification</span>
                       </Link>
 
                       {isAdmin && (

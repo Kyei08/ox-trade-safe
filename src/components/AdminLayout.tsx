@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard, end: true },
-  { to: "/admin/kyc", label: "KYC", icon: ShieldCheck },
+  { to: "/admin/sellers", label: "Verifications", icon: ShieldCheck },
   { to: "/admin/reports", label: "Reports", icon: Flag },
   { to: "/admin/categories", label: "Categories", icon: FolderTree },
   { to: "/admin/analytics", label: "Sort Analytics", icon: BarChart3 },
