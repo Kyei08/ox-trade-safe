@@ -33,6 +33,10 @@ import {
   pushRemoteDraft,
   clearRemoteDraft,
   hasMeaningfulDraft,
+  flushPendingDraft,
+  hasPendingSync,
+  isOffline,
+  OfflineDraftError,
   type CreateListingDraft,
 } from "@/lib/createListingDraft";
 
@@ -57,7 +61,7 @@ function DraftSaveIndicator({
   lastSavedAt,
   tick,
 }: {
-  status: "idle" | "saving" | "syncing" | "saved" | "error";
+  status: "idle" | "saving" | "syncing" | "saved" | "offline" | "error";
   lastSavedAt: Date | null;
   tick: number;
 }) {
@@ -74,6 +78,17 @@ function DraftSaveIndicator({
       >
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
         <span>{status === "saving" ? "Saving…" : "Syncing…"}</span>
+      </div>
+    );
+  }
+  if (status === "offline") {
+    return (
+      <div className="inline-flex items-center gap-2 text-xs text-amber-600" role="status" aria-live="polite">
+        <CloudOff className="h-3.5 w-3.5" />
+        <span>
+          Offline — saved on this device.
+          {lastSavedAt ? ` Last synced ${formatRelativeTime(lastSavedAt)}.` : ""} We'll sync when you're back online.
+        </span>
       </div>
     );
   }
@@ -419,7 +434,7 @@ const CreateListing = () => {
   const REMOTE_DEBOUNCE_MS = 1500;
   const REMOTE_MAX_WAIT_MS = 10_000;
 
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "syncing" | "saved" | "error">("idle");
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "syncing" | "saved" | "offline" | "error">("idle");
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [savedTick, setSavedTick] = useState(0);
 
@@ -479,8 +494,9 @@ const CreateListing = () => {
       if (!mountedRef.current) return;
       setLastSavedAt(new Date());
       setSaveStatus("saved");
-    } catch {
-      if (mountedRef.current) setSaveStatus("error");
+    } catch (err) {
+      if (!mountedRef.current) return;
+      setSaveStatus(err instanceof OfflineDraftError || isOffline() ? "offline" : "error");
     }
   };
 
@@ -509,6 +525,34 @@ const CreateListing = () => {
       void pushRemoteRef.current?.(JSON.stringify(buildDraftPayload()));
     }, wait);
   }).current;
+
+  // Retry the backend sync as soon as connectivity returns.
+  useEffect(() => {
+    if (!user) return;
+    if (isOffline()) setSaveStatus("offline");
+    const onOnline = async () => {
+      if (!hasPendingSync(user.id)) return;
+      if (mountedRef.current) setSaveStatus("syncing");
+      const ok = await flushPendingDraft(user.id);
+      if (!mountedRef.current) return;
+      if (ok) {
+        lastRemoteSnapshotRef.current = null;
+        setLastSavedAt(new Date());
+        setSaveStatus("saved");
+      } else {
+        setSaveStatus("error");
+      }
+    };
+    const onOffline = () => {
+      if (mountedRef.current) setSaveStatus("offline");
+    };
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+    return () => {
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
+    };
+  }, [user]);
 
   // Subscribe to form changes (no re-render per keystroke).
   useEffect(() => {
