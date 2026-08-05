@@ -50,7 +50,8 @@ const App = () => (
           <Route path="/listings/:id" element={<ListingDetail />} />
           <Route path="/listing/:id" element={<ListingDetail />} />
           <Route path="/seller/:sellerId" element={<SellerProfile />} />
-          <Route path="/kyc" element={<KYCSubmission />} />
+          {/* KYC is merged into Seller Verification */}
+          <Route path="/kyc" element={<Navigate to="/seller-verification" replace />} />
           <Route path="/seller-verification" element={<SellerVerification />} />
           <Route
             path="/admin/sellers"
