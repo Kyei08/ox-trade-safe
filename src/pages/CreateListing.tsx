@@ -419,7 +419,7 @@ const CreateListing = () => {
   const REMOTE_DEBOUNCE_MS = 1500;
   const REMOTE_MAX_WAIT_MS = 10_000;
 
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "syncing" | "saved" | "error">("idle");
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [savedTick, setSavedTick] = useState(0);
 
@@ -468,7 +468,7 @@ const CreateListing = () => {
   pushRemoteRef.current = async (snapshot: string) => {
     if (!user || lastRemoteSnapshotRef.current === snapshot) return;
     remoteDeadlineRef.current = null;
-    if (mountedRef.current) setSaveStatus("saving");
+    if (mountedRef.current) setSaveStatus("syncing");
     try {
       await pushRemoteDraft(user.id, JSON.parse(snapshot));
       lastRemoteSnapshotRef.current = snapshot;
@@ -483,6 +483,8 @@ const CreateListing = () => {
 
   const scheduleDraftSave = useRef(() => {
     if (!user || !didHydrateFromUrlRef.current) return;
+
+    if (mountedRef.current) setSaveStatus("saving");
 
     if (localTimerRef.current) clearTimeout(localTimerRef.current);
     localTimerRef.current = setTimeout(() => {
