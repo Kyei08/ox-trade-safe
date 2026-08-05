@@ -214,9 +214,9 @@ const Header = () => {
                       <MessageSquare className="mr-2 h-4 w-4" />
                       Messages
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/kyc")}>
+                    <DropdownMenuItem onClick={() => navigate("/seller-verification")}>
                       <Shield className="mr-2 h-4 w-4" />
-                      KYC Verification
+                      Seller Verification
                     </DropdownMenuItem>
                     {isAdmin && (
                       <>
