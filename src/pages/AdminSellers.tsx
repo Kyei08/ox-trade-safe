@@ -181,15 +181,23 @@ const AdminSellers = () => {
     : [];
 
   return (
-    <AdminLayout title="Seller Verification" description="Review and approve seller verification submissions">
-      <Tabs value={tab} onValueChange={(v) => setTab(v as Status)} className="mb-4">
-        <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full">
-          <TabsTrigger value="pending_review">Pending</TabsTrigger>
-          <TabsTrigger value="requires_more_info">More Info</TabsTrigger>
-          <TabsTrigger value="approved">Approved</TabsTrigger>
-          <TabsTrigger value="rejected">Rejected</TabsTrigger>
-        </TabsList>
-      </Tabs>
+    <AdminLayout title="Seller Verification" description="Review and approve seller verification submissions (identity + business KYC)">
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <Tabs value={tab} onValueChange={(v) => setTab(v as Status)} className="flex-1">
+          <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full">
+            <TabsTrigger value="pending_review">Pending</TabsTrigger>
+            <TabsTrigger value="requires_more_info">More Info</TabsTrigger>
+            <TabsTrigger value="approved">Approved</TabsTrigger>
+            <TabsTrigger value="rejected">Rejected</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <Button variant="outline" size="sm" asChild className="shrink-0">
+          <Link to="/admin/kyc/legacy">
+            <FileText className="w-4 h-4" />
+            Legacy KYC archive
+          </Link>
+        </Button>
+      </div>
 
       {loading ? (
         <div className="space-y-3">
