@@ -57,7 +57,7 @@ function DraftSaveIndicator({
   lastSavedAt,
   tick,
 }: {
-  status: "idle" | "saving" | "saved" | "error";
+  status: "idle" | "saving" | "syncing" | "saved" | "error";
   lastSavedAt: Date | null;
   tick: number;
 }) {
@@ -65,17 +65,21 @@ function DraftSaveIndicator({
   void tick;
   if (status === "idle" && !lastSavedAt) return null;
 
-  if (status === "saving") {
+  if (status === "saving" || status === "syncing") {
     return (
-      <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+      <div
+        className="inline-flex items-center gap-2 text-xs text-muted-foreground"
+        role="status"
+        aria-live="polite"
+      >
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        <span>Saving draft…</span>
+        <span>{status === "saving" ? "Saving…" : "Syncing…"}</span>
       </div>
     );
   }
   if (status === "error") {
     return (
-      <div className="inline-flex items-center gap-2 text-xs text-destructive">
+      <div className="inline-flex items-center gap-2 text-xs text-destructive" role="status" aria-live="polite">
         <CloudOff className="h-3.5 w-3.5" />
         <span>
           Couldn't sync draft.
@@ -86,14 +90,17 @@ function DraftSaveIndicator({
   }
   // saved
   return (
-    <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+    <div
+      className="inline-flex items-center gap-2 text-xs text-muted-foreground"
+      role="status"
+      aria-live="polite"
+    >
       <Check className="h-3.5 w-3.5 text-green-600" />
-      <span>
-        Draft saved{lastSavedAt ? ` · ${formatRelativeTime(lastSavedAt)}` : ""}
-      </span>
+      <span>Saved{lastSavedAt ? ` · ${formatRelativeTime(lastSavedAt)}` : ""}</span>
     </div>
   );
 }
+
 
 
 const listingSchema = z.object({
@@ -412,7 +419,7 @@ const CreateListing = () => {
   const REMOTE_DEBOUNCE_MS = 1500;
   const REMOTE_MAX_WAIT_MS = 10_000;
 
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "syncing" | "saved" | "error">("idle");
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [savedTick, setSavedTick] = useState(0);
 
@@ -459,9 +466,13 @@ const CreateListing = () => {
 
   const pushRemoteRef = useRef<(snapshot: string) => Promise<void>>();
   pushRemoteRef.current = async (snapshot: string) => {
-    if (!user || lastRemoteSnapshotRef.current === snapshot) return;
+    if (!user) return;
+    if (lastRemoteSnapshotRef.current === snapshot) {
+      if (mountedRef.current) setSaveStatus("saved");
+      return;
+    }
     remoteDeadlineRef.current = null;
-    if (mountedRef.current) setSaveStatus("saving");
+    if (mountedRef.current) setSaveStatus("syncing");
     try {
       await pushRemoteDraft(user.id, JSON.parse(snapshot));
       lastRemoteSnapshotRef.current = snapshot;
@@ -476,6 +487,8 @@ const CreateListing = () => {
 
   const scheduleDraftSave = useRef(() => {
     if (!user || !didHydrateFromUrlRef.current) return;
+
+    if (mountedRef.current) setSaveStatus("saving");
 
     if (localTimerRef.current) clearTimeout(localTimerRef.current);
     localTimerRef.current = setTimeout(() => {
