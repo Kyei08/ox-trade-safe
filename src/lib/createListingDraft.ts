@@ -99,19 +99,88 @@ export async function fetchRemoteDraft(userId: string): Promise<CreateListingDra
   }
 }
 
+const pendingKeyFor = (userId: string) => `ox.createListingDraft.pendingSync.${userId}`;
+
+export class OfflineDraftError extends Error {
+  constructor() {
+    super("Offline: draft saved on this device and will sync when you're back online.");
+    this.name = "OfflineDraftError";
+  }
+}
+
+export function isOffline(): boolean {
+  return typeof navigator !== "undefined" && navigator.onLine === false;
+}
+
+export function hasPendingSync(userId: string): boolean {
+  try {
+    return localStorage.getItem(pendingKeyFor(userId)) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function setPendingSync(userId: string, pending: boolean) {
+  try {
+    if (pending) localStorage.setItem(pendingKeyFor(userId), "1");
+    else localStorage.removeItem(pendingKeyFor(userId));
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * Pushes the draft to the backend. Always mirrors to localStorage first so the
+ * draft survives refreshes while offline. Throws on failure (including offline)
+ * so callers can surface an accurate status and retry when connectivity returns.
+ */
 export async function pushRemoteDraft(
   userId: string,
   draft: Omit<CreateListingDraft, "v" | "savedAt">,
 ): Promise<void> {
+  const payload: CreateListingDraft = { v: 1, savedAt: Date.now(), ...draft };
   try {
-    const payload: CreateListingDraft = { v: 1, savedAt: Date.now(), ...draft };
-    await supabase
-      .from("listing_drafts")
-      .upsert({ user_id: userId, data: payload as any }, { onConflict: "user_id" });
+    localStorage.setItem(keyFor(userId), JSON.stringify(payload));
   } catch {
-    // ignore network errors; localStorage still has the draft
+    // ignore quota errors
+  }
+
+  if (isOffline()) {
+    setPendingSync(userId, true);
+    throw new OfflineDraftError();
+  }
+
+  const { error } = await supabase
+    .from("listing_drafts")
+    .upsert({ user_id: userId, data: payload as any }, { onConflict: "user_id" });
+
+  if (error) {
+    setPendingSync(userId, true);
+    throw error;
+  }
+  setPendingSync(userId, false);
+}
+
+/** Re-sends the locally cached draft once connectivity returns. */
+export async function flushPendingDraft(userId: string): Promise<boolean> {
+  if (isOffline()) return false;
+  const local = loadDraft(userId);
+  if (!hasMeaningfulDraft(local)) {
+    setPendingSync(userId, false);
+    return true;
+  }
+  try {
+    const { error } = await supabase
+      .from("listing_drafts")
+      .upsert({ user_id: userId, data: local as any }, { onConflict: "user_id" });
+    if (error) return false;
+    setPendingSync(userId, false);
+    return true;
+  } catch {
+    return false;
   }
 }
+
 
 export async function clearRemoteDraft(userId: string): Promise<void> {
   try {
