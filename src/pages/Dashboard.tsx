@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { Package, Gavel, User, Star, MapPin, Phone, MessageSquare, Image, BarChart3, Heart, Pencil, ShoppingBag, Truck } from "lucide-react";
 import { formatZAR } from "@/lib/currency";
 import { Skeleton } from "@/components/ui/skeleton";
+import TrustBadges from "@/components/TrustBadges";
 
 interface Listing {
   id: string;
