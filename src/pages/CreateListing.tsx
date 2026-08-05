@@ -466,7 +466,11 @@ const CreateListing = () => {
 
   const pushRemoteRef = useRef<(snapshot: string) => Promise<void>>();
   pushRemoteRef.current = async (snapshot: string) => {
-    if (!user || lastRemoteSnapshotRef.current === snapshot) return;
+    if (!user) return;
+    if (lastRemoteSnapshotRef.current === snapshot) {
+      if (mountedRef.current) setSaveStatus("saved");
+      return;
+    }
     remoteDeadlineRef.current = null;
     if (mountedRef.current) setSaveStatus("syncing");
     try {
