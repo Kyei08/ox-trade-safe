@@ -100,7 +100,7 @@ const SellerVerificationPanel = ({ userId }: Props) => {
         const fields = data.seller_type === "business" ? BUSINESS_DOCS : INDIVIDUAL_DOCS;
         const urls: Record<string, string> = {};
         await Promise.all(
-          fields.map(async ([key]) => {
+          (fields as ReadonlyArray<readonly [string, string]>).map(async ([key]) => {
             const path = (data as any)[key];
             if (!path) return;
             const { data: signed } = await supabase.storage
