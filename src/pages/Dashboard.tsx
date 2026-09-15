@@ -468,6 +468,10 @@ const Dashboard = () => {
                 <Image className="w-4 h-4" />
                 <span className="hidden sm:inline">Images</span>
               </TabsTrigger>
+              <TabsTrigger value="verification" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
+                <ShieldCheck className="w-4 h-4" />
+                <span className="hidden sm:inline">Verification</span>
+              </TabsTrigger>
               <TabsTrigger value="profile" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
                 <User className="w-4 h-4" />
                 <span className="hidden sm:inline">Profile</span>
@@ -480,6 +484,12 @@ const Dashboard = () => {
             <TabsContent value="analytics" className="mt-6">
               <h2 className="text-2xl font-semibold mb-4">Seller Analytics</h2>
               <SellerAnalytics userId={user.id} />
+            </TabsContent>
+
+            {/* Verification Tab */}
+            <TabsContent value="verification" className="mt-6">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-4">Verification</h2>
+              <SellerVerificationPanel userId={user.id} />
             </TabsContent>
 
             {/* Listings Tab */}
