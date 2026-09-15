@@ -1238,6 +1238,15 @@ export type Database = {
         Returns: Record<string, unknown>[]
       }
       dblink_is_busy: { Args: { "": string }; Returns: number }
+      get_seller_verification_proof: {
+        Args: { _seller_id: string }
+        Returns: {
+          company_name: string
+          document_keys: string[]
+          seller_type: Database["public"]["Enums"]["seller_type"]
+          verified_at: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
