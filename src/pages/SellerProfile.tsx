@@ -291,6 +291,8 @@ const SellerProfile = () => {
             </CardContent>
           </Card>
 
+          {sellerId && <SellerVerificationProof sellerId={sellerId} />}
+
           {/* Active Listings */}
           <Card>
             <CardHeader>
