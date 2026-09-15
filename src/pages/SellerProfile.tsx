@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Star, ShieldCheck, Calendar, Package, Facebook, Instagram, Twitter, Linkedin, MessageCircle, Video, Youtube, Globe } from "lucide-react";
 import TrustBadges from "@/components/TrustBadges";
+import SellerVerificationProof from "@/components/SellerVerificationProof";
 import { format } from "date-fns";
 
 interface PublicProfile {
