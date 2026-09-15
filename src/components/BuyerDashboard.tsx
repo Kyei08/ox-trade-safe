@@ -320,7 +320,7 @@ const BuyerDashboard = ({ userId }: BuyerDashboardProps) => {
                       Your bid {formatZAR(bid.amount)} · Current {formatZAR(bid.listing!.current_bid ?? bid.amount)}
                     </p>
                   </div>
-                  <Badge variant={bid.is_winning ? "accent" : "secondary"} className="flex-shrink-0">
+                  <Badge variant={bid.is_winning ? "default" : "secondary"} className="flex-shrink-0">
                     {bid.is_winning ? "Winning" : "Outbid"}
                   </Badge>
                 </div>
