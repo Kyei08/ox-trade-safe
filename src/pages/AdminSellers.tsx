@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/AdminLayout";
@@ -11,8 +11,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Eye, CheckCircle2, XCircle, AlertCircle, FileText, History, GitCompare } from "lucide-react";
+import { Eye, CheckCircle2, XCircle, AlertCircle, FileText, History, GitCompare, Search, X } from "lucide-react";
 
 type Status = "pending_review" | "approved" | "rejected" | "requires_more_info";
 
@@ -53,6 +55,19 @@ const AdminSellers = () => {
   const [compareLeft, setCompareLeft] = useState<number | null>(null);
   const [compareRight, setCompareRight] = useState<number | null>(null);
 
+  // Search / filters
+  const [query, setQuery] = useState("");
+  const [locationFilter, setLocationFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+
+  // Bulk selection
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkAction, setBulkAction] = useState<"approved" | "rejected" | "requires_more_info" | null>(null);
+  const [bulkNotes, setBulkNotes] = useState("");
+  const [bulkDocs, setBulkDocs] = useState("");
+
   const openCompare = (key: string, label: string) => {
     const versions = docVersions[key] || [];
     if (versions.length < 1) return;
@@ -71,16 +86,17 @@ const AdminSellers = () => {
       .order("created_at", { ascending: false });
 
     const userIds = (verifications || []).map((v) => v.user_id);
-    let profilesMap: Record<string, { email: string | null; full_name: string | null }> = {};
+    let profilesMap: Record<string, { email: string | null; full_name: string | null; location: string | null }> = {};
     if (userIds.length > 0) {
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("id, email, full_name")
+        .select("id, email, full_name, location")
         .in("id", userIds);
-      profilesMap = Object.fromEntries((profiles || []).map((p) => [p.id, { email: p.email, full_name: p.full_name }]));
+      profilesMap = Object.fromEntries((profiles || []).map((p) => [p.id, { email: p.email, full_name: p.full_name, location: p.location }]));
     }
     const merged = (verifications || []).map((v) => ({ ...v, profiles: profilesMap[v.user_id] || null }));
     setItems(merged);
+    setSelectedIds([]);
     setLoading(false);
   };
 
@@ -177,6 +193,102 @@ const AdminSellers = () => {
     }
   };
 
+  const bulkUpdate = async () => {
+    if (!bulkAction || selectedIds.length === 0) return;
+    setActing(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error } = await supabase
+        .from("seller_verifications")
+        .update({
+          status: bulkAction,
+          review_notes: bulkAction === "approved" ? (bulkNotes || null) : bulkNotes,
+          requested_documents:
+            bulkAction === "requires_more_info" && bulkDocs
+              ? bulkDocs.split(",").map((s) => s.trim()).filter(Boolean)
+              : null,
+          reviewed_by: user?.id ?? null,
+          reviewed_at: new Date().toISOString(),
+        })
+        .in("id", selectedIds);
+      if (error) throw error;
+      toast.success(`${selectedIds.length} case${selectedIds.length === 1 ? "" : "s"} marked as ${bulkAction.replace(/_/g, " ")}`);
+      setBulkAction(null);
+      setBulkNotes("");
+      setBulkDocs("");
+      setSelectedIds([]);
+      load();
+    } catch (err: any) {
+      toast.error(err.message || "Bulk update failed");
+    } finally {
+      setActing(false);
+    }
+  };
+
+  const locationOf = (item: any) =>
+    (item.seller_type === "business" ? item.business_address : item.physical_address) ||
+    item.profiles?.location ||
+    "";
+
+  const locationOptions = useMemo(() => {
+    const set = new Set<string>();
+    items.forEach((i) => {
+      const loc = locationOf(i).trim();
+      if (loc) set.add(loc);
+    });
+    return Array.from(set).sort();
+  }, [items]);
+
+  const filteredItems = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const from = dateFrom ? new Date(`${dateFrom}T00:00:00`).getTime() : null;
+    const to = dateTo ? new Date(`${dateTo}T23:59:59`).getTime() : null;
+    return items.filter((item) => {
+      if (categoryFilter !== "all" && item.seller_type !== categoryFilter) return false;
+      if (locationFilter !== "all" && locationOf(item).trim() !== locationFilter) return false;
+      const created = new Date(item.created_at).getTime();
+      if (from !== null && created < from) return false;
+      if (to !== null && created > to) return false;
+      if (q) {
+        const haystack = [
+          item.full_name,
+          item.company_name,
+          item.representative_name,
+          item.profiles?.full_name,
+          item.profiles?.email,
+          locationOf(item),
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [items, query, categoryFilter, locationFilter, dateFrom, dateTo]);
+
+  const filtersActive =
+    !!query || categoryFilter !== "all" || locationFilter !== "all" || !!dateFrom || !!dateTo;
+
+  const clearFilters = () => {
+    setQuery("");
+    setCategoryFilter("all");
+    setLocationFilter("all");
+    setDateFrom("");
+    setDateTo("");
+  };
+
+  const allVisibleSelected =
+    filteredItems.length > 0 && filteredItems.every((i) => selectedIds.includes(i.id));
+
+  const toggleAllVisible = () => {
+    setSelectedIds(allVisibleSelected ? [] : filteredItems.map((i) => i.id));
+  };
+
+  const toggleOne = (id: string) => {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
   const keys = selected
     ? (selected.seller_type === "business" ? DOC_KEYS_BUSINESS : DOC_KEYS_INDIVIDUAL)
     : [];
@@ -200,19 +312,110 @@ const AdminSellers = () => {
         </Button>
       </div>
 
+      {/* Search & filters */}
+      <Card className="mb-4">
+        <CardContent className="p-4 space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by seller name, company, representative, email or location..."
+              className="pl-9"
+            />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div>
+              <Label className="text-xs text-muted-foreground">Category</Label>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All categories</SelectItem>
+                  <SelectItem value="individual">Individual seller</SelectItem>
+                  <SelectItem value="business">Registered business</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Location</Label>
+              <Select value={locationFilter} onValueChange={setLocationFilter}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All locations</SelectItem>
+                  {locationOptions.map((loc) => (
+                    <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Submitted from</Label>
+              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Submitted to</Label>
+              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-muted-foreground">
+              Showing {filteredItems.length} of {items.length} case{items.length === 1 ? "" : "s"}
+            </p>
+            {filtersActive && (
+              <Button variant="ghost" size="sm" onClick={clearFilters}>
+                <X className="w-4 h-4 mr-1" /> Clear filters
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Bulk action bar */}
+      {!loading && filteredItems.length > 0 && (
+        <div className="mb-3 flex flex-col sm:flex-row sm:items-center gap-3 rounded-lg border bg-muted/40 px-4 py-3">
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <Checkbox checked={allVisibleSelected} onCheckedChange={toggleAllVisible} />
+            Select all shown
+          </label>
+          <span className="text-sm text-muted-foreground">
+            {selectedIds.length} selected
+          </span>
+          <div className="flex flex-wrap gap-2 sm:ml-auto">
+            <Button size="sm" disabled={selectedIds.length === 0 || acting} onClick={() => setBulkAction("approved")}>
+              <CheckCircle2 className="w-4 h-4 mr-1" /> Approve
+            </Button>
+            <Button size="sm" variant="destructive" disabled={selectedIds.length === 0 || acting} onClick={() => setBulkAction("rejected")}>
+              <XCircle className="w-4 h-4 mr-1" /> Reject
+            </Button>
+            <Button size="sm" variant="outline" disabled={selectedIds.length === 0 || acting} onClick={() => setBulkAction("requires_more_info")}>
+              <AlertCircle className="w-4 h-4 mr-1" /> Request info
+            </Button>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
         </div>
-      ) : items.length === 0 ? (
-        <Card><CardContent className="py-10 text-center text-muted-foreground">No submissions in this status.</CardContent></Card>
+      ) : filteredItems.length === 0 ? (
+        <Card><CardContent className="py-10 text-center text-muted-foreground">
+          {items.length === 0 ? "No submissions in this status." : "No cases match your search or filters."}
+        </CardContent></Card>
       ) : (
         <div className="space-y-3">
-          {items.map((item) => {
+          {filteredItems.map((item) => {
             const name = item.seller_type === "business" ? item.company_name : item.full_name;
+            const loc = locationOf(item);
             return (
               <Card key={item.id}>
                 <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                  <Checkbox
+                    checked={selectedIds.includes(item.id)}
+                    onCheckedChange={() => toggleOne(item.id)}
+                    aria-label={`Select ${name || "case"}`}
+                    className="mt-1 sm:mt-0"
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium truncate">{name || "Unnamed"}</span>
@@ -223,6 +426,7 @@ const AdminSellers = () => {
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
                       {item.profiles?.email} · Submitted {new Date(item.created_at).toLocaleDateString()}
+                      {loc ? ` · ${loc}` : ""}
                     </p>
                   </div>
                   <Button size="sm" variant="outline" onClick={() => openDetail(item)}>
@@ -234,6 +438,47 @@ const AdminSellers = () => {
           })}
         </div>
       )}
+
+      {/* Bulk confirm dialog */}
+      <Dialog open={!!bulkAction} onOpenChange={(o) => { if (!o) { setBulkAction(null); setBulkNotes(""); setBulkDocs(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {bulkAction === "approved" ? "Approve" : bulkAction === "rejected" ? "Reject" : "Request more information for"}{" "}
+              {selectedIds.length} case{selectedIds.length === 1 ? "" : "s"}
+            </DialogTitle>
+            <DialogDescription>
+              This applies the same decision and notes to every selected applicant.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Notes for applicants {bulkAction === "approved" ? "(optional)" : ""}</Label>
+              <Textarea
+                value={bulkNotes}
+                onChange={(e) => setBulkNotes(e.target.value)}
+                placeholder="Explain the decision or what's needed..."
+              />
+            </div>
+            {bulkAction === "requires_more_info" && (
+              <div>
+                <Label>Requested documents (comma separated)</Label>
+                <Input value={bulkDocs} onChange={(e) => setBulkDocs(e.target.value)} placeholder="Proof of residence, Selfie" />
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkAction(null)} disabled={acting}>Cancel</Button>
+            <Button
+              onClick={bulkUpdate}
+              loading={acting}
+              disabled={bulkAction !== "approved" && !bulkNotes.trim()}
+            >
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Detail dialog */}
       <Dialog open={!!selected} onOpenChange={(o) => { if (!o) { setSelected(null); setDocUrls({}); setAuditLog([]); setDocVersions({}); } }}>
