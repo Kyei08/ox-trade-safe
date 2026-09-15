@@ -217,7 +217,7 @@ const BuyerDashboard = ({ userId }: BuyerDashboardProps) => {
             <CardTitle className="text-2xl">
               {conversations.length}
               {unreadTotal > 0 && (
-                <Badge variant="accent" className="ml-2 align-middle">{unreadTotal} unread</Badge>
+                <Badge variant="default" className="ml-2 align-middle">{unreadTotal} unread</Badge>
               )}
             </CardTitle>
           </CardHeader>
@@ -363,7 +363,7 @@ const BuyerDashboard = ({ userId }: BuyerDashboardProps) => {
                   <div className="flex items-center gap-2">
                     <p className="font-medium text-sm truncate">{conv.otherName}</p>
                     {conv.unreadCount > 0 && (
-                      <Badge variant="accent" className="text-xs">{conv.unreadCount}</Badge>
+                      <Badge variant="default" className="text-xs">{conv.unreadCount}</Badge>
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground truncate">
