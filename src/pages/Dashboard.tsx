@@ -12,6 +12,7 @@ import FavoritesTab from "@/components/FavoritesTab";
 import InvoiceDialog from "@/components/InvoiceDialog";
 import SellerOrderManagement from "@/components/SellerOrderManagement";
 import SellerVerificationPanel from "@/components/SellerVerificationPanel";
+import BuyerDashboard from "@/components/BuyerDashboard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -111,7 +112,7 @@ const Dashboard = () => {
   const [retrying, setRetrying] = useState(false);
 
 
-  const TAB_ORDER = ["analytics", "listings", "favorites", "purchases", "sales", "bids", "reviews", "images", "profile"];
+  const TAB_ORDER = ["buying", "analytics", "listings", "favorites", "purchases", "sales", "bids", "reviews", "images", "verification", "profile"];
   const [activeTab, setActiveTab] = useState<string>(() => {
     const saved = localStorage.getItem("dashboard_active_tab");
     return saved && TAB_ORDER.includes(saved) ? saved : "analytics";
@@ -437,6 +438,10 @@ const Dashboard = () => {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList ref={tabsListRef} className="flex w-full overflow-x-auto no-scrollbar h-auto flex-nowrap justify-start md:justify-center gap-1 p-1">
 
+              <TabsTrigger value="buying" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
+                <ShoppingBag className="w-4 h-4" />
+                <span className="hidden sm:inline">Buying</span>
+              </TabsTrigger>
               <TabsTrigger value="analytics" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
                 <BarChart3 className="w-4 h-4" />
                 <span className="hidden sm:inline">Analytics</span>
@@ -486,6 +491,13 @@ const Dashboard = () => {
               <h2 className="text-2xl font-semibold mb-4">Seller Analytics</h2>
               <SellerAnalytics userId={user.id} />
             </TabsContent>
+
+            {/* Buying Tab */}
+            <TabsContent value="buying" className="mt-6">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-4">Buyer Dashboard</h2>
+              <BuyerDashboard userId={user.id} />
+            </TabsContent>
+
 
             {/* Verification Tab */}
             <TabsContent value="verification" className="mt-6">
