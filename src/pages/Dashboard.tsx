@@ -11,13 +11,14 @@ import SellerAnalytics from "@/components/SellerAnalytics";
 import FavoritesTab from "@/components/FavoritesTab";
 import InvoiceDialog from "@/components/InvoiceDialog";
 import SellerOrderManagement from "@/components/SellerOrderManagement";
+import SellerVerificationPanel from "@/components/SellerVerificationPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Package, Gavel, User, Star, MapPin, Phone, MessageSquare, Image, BarChart3, Heart, Pencil, ShoppingBag, Truck } from "lucide-react";
+import { Package, Gavel, User, Star, MapPin, Phone, MessageSquare, Image, BarChart3, Heart, Pencil, ShoppingBag, Truck, ShieldCheck } from "lucide-react";
 import { formatZAR } from "@/lib/currency";
 import { Skeleton } from "@/components/ui/skeleton";
 import TrustBadges from "@/components/TrustBadges";
@@ -468,6 +469,10 @@ const Dashboard = () => {
                 <Image className="w-4 h-4" />
                 <span className="hidden sm:inline">Images</span>
               </TabsTrigger>
+              <TabsTrigger value="verification" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
+                <ShieldCheck className="w-4 h-4" />
+                <span className="hidden sm:inline">Verification</span>
+              </TabsTrigger>
               <TabsTrigger value="profile" className="flex-shrink-0 gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm sm:px-3">
                 <User className="w-4 h-4" />
                 <span className="hidden sm:inline">Profile</span>
@@ -480,6 +485,12 @@ const Dashboard = () => {
             <TabsContent value="analytics" className="mt-6">
               <h2 className="text-2xl font-semibold mb-4">Seller Analytics</h2>
               <SellerAnalytics userId={user.id} />
+            </TabsContent>
+
+            {/* Verification Tab */}
+            <TabsContent value="verification" className="mt-6">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-4">Verification</h2>
+              <SellerVerificationPanel userId={user.id} />
             </TabsContent>
 
             {/* Listings Tab */}
