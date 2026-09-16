@@ -635,9 +635,8 @@ export default function ListingDetail() {
     setSubmitting(true);
     setCheckoutError(null);
     try {
-      const { data, error } = await supabase.functions.invoke("create-payment", {
-        body: { listingId: id, idempotencyKey },
-        headers: { "x-idempotency-key": idempotencyKey },
+      const { data, error } = await supabase.functions.invoke("payfast-checkout", {
+        body: { listingId: id, idempotencyKey, origin: window.location.origin },
       });
 
       if (error) throw error;
