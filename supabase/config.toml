@@ -2,3 +2,6 @@ project_id = "wjdjoeljyyjibhuotftc"
 
 [functions.finalize-auctions]
 verify_jwt = false
+
+[functions.payfast-itn]
+verify_jwt = false
