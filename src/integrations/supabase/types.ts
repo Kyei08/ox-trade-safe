@@ -621,7 +621,10 @@ export type Database = {
           id: string
           invoice_number: string | null
           listing_id: string
+          m_payment_id: string | null
           notes: string | null
+          payfast_payment_id: string | null
+          payment_provider: string
           seller_id: string
           shipping_address: string | null
           status: Database["public"]["Enums"]["order_status"]
@@ -637,7 +640,10 @@ export type Database = {
           id?: string
           invoice_number?: string | null
           listing_id: string
+          m_payment_id?: string | null
           notes?: string | null
+          payfast_payment_id?: string | null
+          payment_provider?: string
           seller_id: string
           shipping_address?: string | null
           status?: Database["public"]["Enums"]["order_status"]
@@ -653,7 +659,10 @@ export type Database = {
           id?: string
           invoice_number?: string | null
           listing_id?: string
+          m_payment_id?: string | null
           notes?: string | null
+          payfast_payment_id?: string | null
+          payment_provider?: string
           seller_id?: string
           shipping_address?: string | null
           status?: Database["public"]["Enums"]["order_status"]
