@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Package,
   Search,
@@ -32,6 +33,8 @@ import {
   CheckCircle2,
   Clock,
   ExternalLink,
+  ShieldAlert,
+  Sparkles,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -84,6 +87,11 @@ const AdminOrders = () => {
   const [editStatus, setEditStatus] = useState<OrderStatus>("paid");
   const [editTracking, setEditTracking] = useState("");
   const [saving, setSaving] = useState(false);
+  const [riskOrder, setRiskOrder] = useState<AdminOrder | null>(null);
+  const [riskIssue, setRiskIssue] = useState("");
+  const [riskLoading, setRiskLoading] = useState(false);
+  const [riskResult, setRiskResult] = useState<string | null>(null);
+  const [riskError, setRiskError] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -151,6 +159,55 @@ const AdminOrders = () => {
   const awaitingShipment = orders.filter((o) => o.status === "paid").length;
   const inTransit = orders.filter((o) => o.status === "shipped").length;
   const pendingPayment = orders.filter((o) => o.status === "pending").length;
+
+  const openRisk = (order: AdminOrder) => {
+    setRiskOrder(order);
+    setRiskIssue("");
+    setRiskResult(null);
+    setRiskError(null);
+  };
+
+  const runRiskAnalysis = async () => {
+    if (!riskOrder || !riskIssue.trim()) return;
+    setRiskLoading(true);
+    setRiskError(null);
+    setRiskResult(null);
+
+    const { data, error } = await supabase.functions.invoke("analyze-payment-risk", {
+      body: {
+        issue: riskIssue.trim(),
+        order: {
+          invoice_number: riskOrder.invoice_number,
+          amount_zar: Number(riskOrder.amount),
+          status: riskOrder.status,
+          payment_provider: riskOrder.payment_provider,
+          payfast_payment_id: riskOrder.payfast_payment_id,
+          m_payment_id: riskOrder.m_payment_id,
+          tracking_number: riskOrder.tracking_number,
+          created_at: riskOrder.created_at,
+          updated_at: riskOrder.updated_at,
+          listing_title: riskOrder.listing?.title ?? null,
+          buyer: riskOrder.buyer?.full_name || riskOrder.buyer?.email || null,
+          seller: riskOrder.seller?.full_name || riskOrder.seller?.email || null,
+        },
+      },
+    });
+
+    setRiskLoading(false);
+
+    if (error) {
+      setRiskError(
+        (error as { message?: string }).message ||
+          "The analysis could not be completed. Please try again."
+      );
+      return;
+    }
+    if (data?.error) {
+      setRiskError(data.error as string);
+      return;
+    }
+    setRiskResult((data?.analysis as string) ?? null);
+  };
 
   const openEdit = (order: AdminOrder) => {
     setEditing(order);
@@ -311,6 +368,10 @@ const AdminOrders = () => {
                     <Button variant="outline" size="sm" onClick={() => openEdit(order)}>
                       Update
                     </Button>
+                    <Button variant="secondary" size="sm" onClick={() => openRisk(order)}>
+                      <ShieldAlert className="h-4 w-4 mr-2" />
+                      Analyse risk
+                    </Button>
                     <Button variant="ghost" size="icon" asChild>
                       <Link to={`/listing/${order.listing_id}`} aria-label="View listing">
                         <ExternalLink className="h-4 w-4" />
@@ -365,6 +426,69 @@ const AdminOrders = () => {
             </Button>
             <Button onClick={saveEdit} disabled={saving}>
               {saving ? "Saving…" : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!riskOrder} onOpenChange={(open) => !open && setRiskOrder(null)}>
+        <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5" />
+              Payment risk analysis
+            </DialogTitle>
+            <DialogDescription>
+              {riskOrder?.listing?.title ?? "Order"} ·{" "}
+              {riskOrder?.invoice_number ?? riskOrder?.id.slice(0, 8)} · R
+              {Number(riskOrder?.amount ?? 0).toLocaleString("en-ZA", { minimumFractionDigits: 2 })}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="risk-issue">Describe the payment issue</Label>
+              <Textarea
+                id="risk-issue"
+                rows={4}
+                placeholder="e.g. Buyer says the card was charged twice, but PayFast only shows one payment and the order is still pending."
+                value={riskIssue}
+                onChange={(e) => setRiskIssue(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                The order details above are sent along with your description.
+              </p>
+            </div>
+
+            {riskError && (
+              <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                {riskError}
+              </div>
+            )}
+
+            {riskResult && (
+              <div className="rounded-md border bg-muted/40 p-4">
+                <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5" /> AI assessment — review before acting
+                </p>
+                <div className="text-sm whitespace-pre-wrap leading-relaxed">{riskResult}</div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRiskOrder(null)} disabled={riskLoading}>
+              Close
+            </Button>
+            <Button onClick={runRiskAnalysis} disabled={riskLoading || !riskIssue.trim()}>
+              {riskLoading ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Analysing…
+                </>
+              ) : riskResult ? (
+                "Re-run analysis"
+              ) : (
+                "Analyse risk"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
