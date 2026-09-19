@@ -90,18 +90,35 @@ const AdminOrders = () => {
     const { data, error } = await supabase
       .from("orders")
       .select(
-        `id, listing_id, amount, status, tracking_number, invoice_number, payment_provider, payfast_payment_id, m_payment_id, created_at, updated_at,
-         listing:listings(title),
-         buyer:profiles!orders_buyer_id_fkey(full_name, email),
-         seller:profiles!orders_seller_id_fkey(full_name, email)`
+        `id, listing_id, buyer_id, seller_id, amount, status, tracking_number, invoice_number, payment_provider, payfast_payment_id, m_payment_id, created_at, updated_at,
+         listing:listings(title)`
       )
       .order("created_at", { ascending: false });
 
     if (error) {
       toast({ title: "Could not load orders", description: error.message, variant: "destructive" });
-    } else {
-      setOrders((data as unknown as AdminOrder[]) ?? []);
+      setLoading(false);
+      return;
     }
+
+    const rows = (data ?? []) as unknown as (Omit<AdminOrder, "buyer" | "seller"> & {
+      buyer_id: string;
+      seller_id: string;
+    })[];
+
+    const userIds = [...new Set(rows.flatMap((r) => [r.buyer_id, r.seller_id]))];
+    const { data: profiles } = userIds.length
+      ? await supabase.from("profiles").select("id, full_name, email").in("id", userIds)
+      : { data: [] };
+    const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+
+    setOrders(
+      rows.map(({ buyer_id, seller_id, ...rest }) => ({
+        ...rest,
+        buyer: profileMap.get(buyer_id) ?? null,
+        seller: profileMap.get(seller_id) ?? null,
+      }))
+    );
     setLoading(false);
   };
 
