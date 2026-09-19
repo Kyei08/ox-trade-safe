@@ -430,6 +430,69 @@ const AdminOrders = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!riskOrder} onOpenChange={(open) => !open && setRiskOrder(null)}>
+        <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5" />
+              Payment risk analysis
+            </DialogTitle>
+            <DialogDescription>
+              {riskOrder?.listing?.title ?? "Order"} ·{" "}
+              {riskOrder?.invoice_number ?? riskOrder?.id.slice(0, 8)} · R
+              {Number(riskOrder?.amount ?? 0).toLocaleString("en-ZA", { minimumFractionDigits: 2 })}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="risk-issue">Describe the payment issue</Label>
+              <Textarea
+                id="risk-issue"
+                rows={4}
+                placeholder="e.g. Buyer says the card was charged twice, but PayFast only shows one payment and the order is still pending."
+                value={riskIssue}
+                onChange={(e) => setRiskIssue(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                The order details above are sent along with your description.
+              </p>
+            </div>
+
+            {riskError && (
+              <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                {riskError}
+              </div>
+            )}
+
+            {riskResult && (
+              <div className="rounded-md border bg-muted/40 p-4">
+                <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5" /> AI assessment — review before acting
+                </p>
+                <div className="text-sm whitespace-pre-wrap leading-relaxed">{riskResult}</div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRiskOrder(null)} disabled={riskLoading}>
+              Close
+            </Button>
+            <Button onClick={runRiskAnalysis} disabled={riskLoading || !riskIssue.trim()}>
+              {riskLoading ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Analysing…
+                </>
+              ) : riskResult ? (
+                "Re-run analysis"
+              ) : (
+                "Analyse risk"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };
