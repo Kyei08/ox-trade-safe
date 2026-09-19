@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Package,
   Search,
@@ -32,6 +33,8 @@ import {
   CheckCircle2,
   Clock,
   ExternalLink,
+  ShieldAlert,
+  Sparkles,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
