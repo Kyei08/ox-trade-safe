@@ -87,6 +87,11 @@ const AdminOrders = () => {
   const [editStatus, setEditStatus] = useState<OrderStatus>("paid");
   const [editTracking, setEditTracking] = useState("");
   const [saving, setSaving] = useState(false);
+  const [riskOrder, setRiskOrder] = useState<AdminOrder | null>(null);
+  const [riskIssue, setRiskIssue] = useState("");
+  const [riskLoading, setRiskLoading] = useState(false);
+  const [riskResult, setRiskResult] = useState<string | null>(null);
+  const [riskError, setRiskError] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
