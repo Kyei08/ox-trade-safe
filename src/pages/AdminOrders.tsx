@@ -160,6 +160,55 @@ const AdminOrders = () => {
   const inTransit = orders.filter((o) => o.status === "shipped").length;
   const pendingPayment = orders.filter((o) => o.status === "pending").length;
 
+  const openRisk = (order: AdminOrder) => {
+    setRiskOrder(order);
+    setRiskIssue("");
+    setRiskResult(null);
+    setRiskError(null);
+  };
+
+  const runRiskAnalysis = async () => {
+    if (!riskOrder || !riskIssue.trim()) return;
+    setRiskLoading(true);
+    setRiskError(null);
+    setRiskResult(null);
+
+    const { data, error } = await supabase.functions.invoke("analyze-payment-risk", {
+      body: {
+        issue: riskIssue.trim(),
+        order: {
+          invoice_number: riskOrder.invoice_number,
+          amount_zar: Number(riskOrder.amount),
+          status: riskOrder.status,
+          payment_provider: riskOrder.payment_provider,
+          payfast_payment_id: riskOrder.payfast_payment_id,
+          m_payment_id: riskOrder.m_payment_id,
+          tracking_number: riskOrder.tracking_number,
+          created_at: riskOrder.created_at,
+          updated_at: riskOrder.updated_at,
+          listing_title: riskOrder.listing?.title ?? null,
+          buyer: riskOrder.buyer?.full_name || riskOrder.buyer?.email || null,
+          seller: riskOrder.seller?.full_name || riskOrder.seller?.email || null,
+        },
+      },
+    });
+
+    setRiskLoading(false);
+
+    if (error) {
+      setRiskError(
+        (error as { message?: string }).message ||
+          "The analysis could not be completed. Please try again."
+      );
+      return;
+    }
+    if (data?.error) {
+      setRiskError(data.error as string);
+      return;
+    }
+    setRiskResult((data?.analysis as string) ?? null);
+  };
+
   const openEdit = (order: AdminOrder) => {
     setEditing(order);
     setEditStatus(order.status);
