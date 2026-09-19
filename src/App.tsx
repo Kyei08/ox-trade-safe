@@ -16,6 +16,7 @@ import AdminCategories from "./pages/AdminCategories";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminSortAnalytics from "./pages/AdminSortAnalytics";
 import AdminSellers from "./pages/AdminSellers";
+import AdminOrders from "./pages/AdminOrders";
 import SellerVerification from "./pages/SellerVerification";
 import AdminRoute from "@/components/AdminRoute";
 
@@ -94,6 +95,14 @@ const App = () => (
             }
           />
 
+          <Route
+            path="/admin/orders"
+            element={
+              <AdminRoute>
+                <AdminOrders />
+              </AdminRoute>
+            }
+          />
           <Route
             path="/admin/categories"
             element={
