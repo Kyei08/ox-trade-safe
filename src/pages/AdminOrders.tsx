@@ -368,6 +368,10 @@ const AdminOrders = () => {
                     <Button variant="outline" size="sm" onClick={() => openEdit(order)}>
                       Update
                     </Button>
+                    <Button variant="secondary" size="sm" onClick={() => openRisk(order)}>
+                      <ShieldAlert className="h-4 w-4 mr-2" />
+                      Analyse risk
+                    </Button>
                     <Button variant="ghost" size="icon" asChild>
                       <Link to={`/listing/${order.listing_id}`} aria-label="View listing">
                         <ExternalLink className="h-4 w-4" />
