@@ -79,6 +79,26 @@ const STATUS_VARIANTS: Record<OrderStatus, "default" | "secondary" | "destructiv
 
 const STATUS_OPTIONS: OrderStatus[] = ["pending", "paid", "shipped", "delivered", "cancelled", "refunded"];
 
+/** Payment status derived from the order status (PayFast confirms payment before fulfilment). */
+const PAYMENT_STATUS_MAP: Record<OrderStatus, "pending" | "paid" | "refunded" | "cancelled"> = {
+  pending: "pending",
+  paid: "paid",
+  shipped: "paid",
+  delivered: "paid",
+  cancelled: "cancelled",
+  refunded: "refunded",
+};
+
+/** Fulfilment status derived from the order status. */
+const FULFILLMENT_MAP: Record<OrderStatus, "awaiting" | "shipped" | "delivered" | "none"> = {
+  pending: "none",
+  paid: "awaiting",
+  shipped: "shipped",
+  delivered: "delivered",
+  cancelled: "none",
+  refunded: "none",
+};
+
 const AdminOrders = () => {
   const { toast } = useToast();
   const [orders, setOrders] = useState<AdminOrder[]>([]);
