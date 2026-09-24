@@ -75,6 +75,21 @@ Deno.serve(async (req) => {
 
     if (!mPaymentId) return new Response("Missing reference", { status: 400 });
 
+    // Ledger: record every validated ITN so payments can be reconciled against orders later.
+    const { error: ledgerError } = await admin
+      .from("payfast_transactions")
+      .upsert(
+        {
+          m_payment_id: mPaymentId,
+          pf_payment_id: params.get("pf_payment_id"),
+          payment_status: paymentStatus,
+          amount_gross: grossAmount,
+          payload: Object.fromEntries(entries),
+        },
+        { onConflict: "pf_payment_id,payment_status,amount_gross" }
+      );
+    if (ledgerError) console.error("payfast-itn: ledger write failed:", ledgerError);
+
     const { data: order } = await admin
       .from("orders")
       .select("id, amount, status, listing_id")

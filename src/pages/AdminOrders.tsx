@@ -35,6 +35,8 @@ import {
   ExternalLink,
   ShieldAlert,
   Sparkles,
+  SlidersHorizontal,
+  X,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -77,12 +79,38 @@ const STATUS_VARIANTS: Record<OrderStatus, "default" | "secondary" | "destructiv
 
 const STATUS_OPTIONS: OrderStatus[] = ["pending", "paid", "shipped", "delivered", "cancelled", "refunded"];
 
+/** Payment status derived from the order status (PayFast confirms payment before fulfilment). */
+const PAYMENT_STATUS_MAP: Record<OrderStatus, "pending" | "paid" | "refunded" | "cancelled"> = {
+  pending: "pending",
+  paid: "paid",
+  shipped: "paid",
+  delivered: "paid",
+  cancelled: "cancelled",
+  refunded: "refunded",
+};
+
+/** Fulfilment status derived from the order status. */
+const FULFILLMENT_MAP: Record<OrderStatus, "awaiting" | "shipped" | "delivered" | "none"> = {
+  pending: "none",
+  paid: "awaiting",
+  shipped: "shipped",
+  delivered: "delivered",
+  cancelled: "none",
+  refunded: "none",
+};
+
 const AdminOrders = () => {
   const { toast } = useToast();
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [buyerFilter, setBuyerFilter] = useState("");
+  const [sellerFilter, setSellerFilter] = useState("");
+  const [paymentFilter, setPaymentFilter] = useState<string>("all");
+  const [fulfillmentFilter, setFulfillmentFilter] = useState<string>("all");
+  const [trackingFilter, setTrackingFilter] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [editing, setEditing] = useState<AdminOrder | null>(null);
   const [editStatus, setEditStatus] = useState<OrderStatus>("paid");
   const [editTracking, setEditTracking] = useState("");
@@ -137,8 +165,34 @@ const AdminOrders = () => {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const buyerQ = buyerFilter.trim().toLowerCase();
+    const sellerQ = sellerFilter.trim().toLowerCase();
+    const trackQ = trackingFilter.trim().toLowerCase();
+    const from = dateFrom ? new Date(`${dateFrom}T00:00:00`) : null;
+    const to = dateTo ? new Date(`${dateTo}T23:59:59.999`) : null;
+
     return orders.filter((o) => {
-      if (statusFilter !== "all" && o.status !== statusFilter) return false;
+      if (paymentFilter !== "all" && PAYMENT_STATUS_MAP[o.status] !== paymentFilter) return false;
+      if (fulfillmentFilter !== "all" && FULFILLMENT_MAP[o.status] !== fulfillmentFilter) return false;
+      if (from && new Date(o.created_at) < from) return false;
+      if (to && new Date(o.created_at) > to) return false;
+      if (trackQ && !o.tracking_number?.toLowerCase().includes(trackQ)) return false;
+      if (
+        buyerQ &&
+        !(
+          o.buyer?.full_name?.toLowerCase().includes(buyerQ) ||
+          o.buyer?.email.toLowerCase().includes(buyerQ)
+        )
+      )
+        return false;
+      if (
+        sellerQ &&
+        !(
+          o.seller?.full_name?.toLowerCase().includes(sellerQ) ||
+          o.seller?.email.toLowerCase().includes(sellerQ)
+        )
+      )
+        return false;
       if (!q) return true;
       return (
         o.listing?.title?.toLowerCase().includes(q) ||
@@ -152,7 +206,36 @@ const AdminOrders = () => {
         o.payfast_payment_id?.toLowerCase().includes(q)
       );
     });
-  }, [orders, search, statusFilter]);
+  }, [
+    orders,
+    search,
+    buyerFilter,
+    sellerFilter,
+    paymentFilter,
+    fulfillmentFilter,
+    trackingFilter,
+    dateFrom,
+    dateTo,
+  ]);
+
+  const hasActiveFilters =
+    buyerFilter.trim() !== "" ||
+    sellerFilter.trim() !== "" ||
+    paymentFilter !== "all" ||
+    fulfillmentFilter !== "all" ||
+    trackingFilter.trim() !== "" ||
+    dateFrom !== "" ||
+    dateTo !== "";
+
+  const clearFilters = () => {
+    setBuyerFilter("");
+    setSellerFilter("");
+    setPaymentFilter("all");
+    setFulfillmentFilter("all");
+    setTrackingFilter("");
+    setDateFrom("");
+    setDateTo("");
+  };
 
   const paidOrders = orders.filter((o) => ["paid", "shipped", "delivered"].includes(o.status));
   const totalRevenue = paidOrders.reduce((sum, o) => sum + Number(o.amount), 0);
@@ -289,29 +372,111 @@ const AdminOrders = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             className="pl-9"
-            placeholder="Search buyer, seller, listing, invoice or tracking number…"
+            placeholder="Search invoice, PayFast reference, listing title…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="sm:w-44">
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            {STATUS_OPTIONS.map((s) => (
-              <SelectItem key={s} value={s}>
-                {STATUS_LABELS[s]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
         <Button variant="outline" onClick={load} disabled={loading}>
           <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
           Refresh
         </Button>
       </div>
+
+      <Card className="mb-4">
+        <CardContent className="py-4 space-y-4">
+          <div className="flex items-center justify-between gap-2">
+            <p className="flex items-center gap-2 text-sm font-medium">
+              <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+              Advanced filters
+            </p>
+            {hasActiveFilters ? (
+              <Button variant="ghost" size="sm" onClick={clearFilters}>
+                <X className="h-4 w-4 mr-1.5" />
+                Clear filters
+              </Button>
+            ) : (
+              <span className="text-xs text-muted-foreground">No filters applied</span>
+            )}
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="filter-buyer">Buyer</Label>
+              <Input
+                id="filter-buyer"
+                placeholder="Name or email"
+                value={buyerFilter}
+                onChange={(e) => setBuyerFilter(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="filter-seller">Seller</Label>
+              <Input
+                id="filter-seller"
+                placeholder="Name or email"
+                value={sellerFilter}
+                onChange={(e) => setSellerFilter(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="filter-tracking">Tracking number</Label>
+              <Input
+                id="filter-tracking"
+                placeholder="e.g. TCG123456789ZA"
+                value={trackingFilter}
+                onChange={(e) => setTrackingFilter(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Payment status</Label>
+              <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All payments" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All payments</SelectItem>
+                  <SelectItem value="pending">Pending payment</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                  <SelectItem value="refunded">Refunded</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Fulfilment status</Label>
+              <Select value={fulfillmentFilter} onValueChange={setFulfillmentFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All fulfilment" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All fulfilment</SelectItem>
+                  <SelectItem value="awaiting">Awaiting shipment</SelectItem>
+                  <SelectItem value="shipped">In transit</SelectItem>
+                  <SelectItem value="delivered">Delivered</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="filter-from">From date</Label>
+              <Input
+                id="filter-from"
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="filter-to">To date</Label>
+              <Input
+                id="filter-to"
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <p className="text-sm text-muted-foreground mb-3">
         Showing {filtered.length} of {orders.length} orders
