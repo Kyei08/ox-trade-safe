@@ -1,11 +1,17 @@
 # Roadmap
 
 ## Done
-- [x] Advanced filters + search on /admin/orders (buyer, seller, payment status, fulfilment status, date range, tracking number). Typecheck passed; visual verification pending (backend was waking).
+- [x] Advanced filters + search on /admin/orders (buyer, seller, payment status, fulfilment status, date range, tracking number). Typecheck passed.
+- [x] PayFast reconciliation page `/admin/reconciliation` ("Reconciliation" in admin nav) — compares PayFast confirmations with orders, flags missing confirmations, duplicates, amount mismatches, stale pending orders, and unknown transactions. Typecheck passed.
+- [x] `payfast-itn` edge function updated to record every validated PayFast confirmation into the `payfast_transactions` ledger (upsert on PayFast payment ID + status + amount).
 
-## In progress
-- [ ] PayFast reconciliation view: compare PayFast transactions (ITN ledger) with paid orders; flag missing, duplicated, and mismatched payments.
+## Blocked — Lovable Cloud database is paused (resume disabled from this side)
+- [ ] Apply `payfast_transactions` migration (ledger table + admin-only read policy). Retry `supabase--migration` once the backend is ACTIVE_HEALTHY.
+- [ ] Deploy updated `payfast-itn` (ledger writes) via `supabase--deploy_edge_functions`.
+- [ ] Browser verification of /admin/orders filters and /admin/reconciliation (also blocked earlier: admin session mint failed because backend was down).
+- [ ] Regenerate/sync `types.ts` once migration applies — AdminReconciliation currently casts `supabase as any` for the ledger query; revert to typed client after.
 
-## Blocked
-- [ ] Browser verification of order filters + reconciliation page — blocked on backend pooler waking up (SUPABASE_POOLER_UNAVAILABLE).
-- [ ] `analyze-payment-risk` deploy confirmation + PayFast ITN enablement (user-side PayFast settings) — carried over from earlier.
+## Carried over
+- [ ] `analyze-payment-risk` deploy confirmation.
+- [ ] PayFast ITN enablement in the merchant's PayFast settings (user-side, passphrase provided).
+- [ ] Sandbox vs live PayFast decision (credentials are live).
