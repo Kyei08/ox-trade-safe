@@ -32,6 +32,7 @@ interface ReconOrder {
   listing_id: string;
   amount: number;
   status: string;
+  payment_provider: string;
   payfast_payment_id: string | null;
   m_payment_id: string | null;
   invoice_number: string | null;
@@ -81,19 +82,23 @@ const AdminReconciliation = () => {
     setLoading(true);
     setLoadError(null);
 
+    // Types for the ledger table regenerate after its migration applies; cast until then.
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const db = supabase as any;
     const [ordersRes, txRes] = await Promise.all([
       supabase
         .from("orders")
         .select(
-          `id, listing_id, amount, status, payfast_payment_id, m_payment_id, invoice_number, created_at,
+          `id, listing_id, amount, status, payment_provider, payfast_payment_id, m_payment_id, invoice_number, created_at,
            listing:listings(title)`
         )
         .order("created_at", { ascending: false }),
-      supabase
+      db
         .from("payfast_transactions")
         .select("id, m_payment_id, pf_payment_id, payment_status, amount_gross, received_at")
         .order("received_at", { ascending: false }),
     ]);
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     if (ordersRes.error || txRes.error) {
       setLoadError(ordersRes.error?.message ?? txRes.error?.message ?? "Could not load data");
