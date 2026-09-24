@@ -35,6 +35,8 @@ import {
   ExternalLink,
   ShieldAlert,
   Sparkles,
+  SlidersHorizontal,
+  X,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -82,7 +84,13 @@ const AdminOrders = () => {
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [buyerFilter, setBuyerFilter] = useState("");
+  const [sellerFilter, setSellerFilter] = useState("");
+  const [paymentFilter, setPaymentFilter] = useState<string>("all");
+  const [fulfillmentFilter, setFulfillmentFilter] = useState<string>("all");
+  const [trackingFilter, setTrackingFilter] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [editing, setEditing] = useState<AdminOrder | null>(null);
   const [editStatus, setEditStatus] = useState<OrderStatus>("paid");
   const [editTracking, setEditTracking] = useState("");
