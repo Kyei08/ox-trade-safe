@@ -17,6 +17,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminSortAnalytics from "./pages/AdminSortAnalytics";
 import AdminSellers from "./pages/AdminSellers";
 import AdminOrders from "./pages/AdminOrders";
+import AdminReconciliation from "./pages/AdminReconciliation";
 import SellerVerification from "./pages/SellerVerification";
 import AdminRoute from "@/components/AdminRoute";
 
@@ -100,6 +101,14 @@ const App = () => (
             element={
               <AdminRoute>
                 <AdminOrders />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/reconciliation"
+            element={
+              <AdminRoute>
+                <AdminReconciliation />
               </AdminRoute>
             }
           />
