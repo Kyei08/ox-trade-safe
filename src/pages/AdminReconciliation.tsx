@@ -16,9 +16,11 @@ import {
   Search,
   ExternalLink,
   Sparkles,
+  Stethoscope,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import ResolutionMessageDialog from "@/components/admin/ResolutionMessageDialog";
+import { DiscrepancyDiagnosisDialog } from "@/components/admin/DiscrepancyDiagnosisDialog";
 
 interface PayfastTx {
   id: string;
@@ -80,6 +82,7 @@ const AdminReconciliation = () => {
   const [search, setSearch] = useState("");
   const [kindFilter, setKindFilter] = useState<string>("all");
   const [draftIssue, setDraftIssue] = useState<IssueRow | null>(null);
+  const [diagnoseIssue, setDiagnoseIssue] = useState<IssueRow | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -368,6 +371,9 @@ const AdminReconciliation = () => {
                       <p className="text-lg font-bold">
                         {zar(Number(issue.order?.amount ?? issue.tx?.amount_gross ?? 0))}
                       </p>
+                      <Button variant="outline" size="sm" onClick={() => setDiagnoseIssue(issue)}>
+                        <Stethoscope className="h-4 w-4 mr-1" /> Diagnose
+                      </Button>
                       <Button variant="outline" size="sm" onClick={() => setDraftIssue(issue)}>
                         <Sparkles className="h-4 w-4 mr-1" /> Draft message
                       </Button>
@@ -389,6 +395,43 @@ const AdminReconciliation = () => {
           })}
         </div>
       )}
+      <DiscrepancyDiagnosisDialog
+        open={!!diagnoseIssue}
+        onOpenChange={(o) => !o && setDiagnoseIssue(null)}
+        defaultDiscrepancy={
+          diagnoseIssue ? `${ISSUE_LABELS[diagnoseIssue.kind]}: ${diagnoseIssue.detail}` : ""
+        }
+        defaultDetails={
+          diagnoseIssue
+            ? JSON.stringify(
+                {
+                  order: diagnoseIssue.order
+                    ? {
+                        invoice_number: diagnoseIssue.order.invoice_number,
+                        listing: diagnoseIssue.order.listing?.title,
+                        amount_zar: diagnoseIssue.order.amount,
+                        status: diagnoseIssue.order.status,
+                        payment_reference: diagnoseIssue.order.m_payment_id,
+                        payfast_payment_id: diagnoseIssue.order.payfast_payment_id,
+                        created_at: diagnoseIssue.order.created_at,
+                      }
+                    : null,
+                  payfast_transaction: diagnoseIssue.tx
+                    ? {
+                        payment_reference: diagnoseIssue.tx.m_payment_id,
+                        payfast_payment_id: diagnoseIssue.tx.pf_payment_id,
+                        status: diagnoseIssue.tx.payment_status,
+                        amount_gross_zar: diagnoseIssue.tx.amount_gross,
+                        received_at: diagnoseIssue.tx.received_at,
+                      }
+                    : null,
+                },
+                null,
+                2
+              )
+            : ""
+        }
+      />
       <ResolutionMessageDialog
         open={!!draftIssue}
         onOpenChange={(o) => !o && setDraftIssue(null)}
