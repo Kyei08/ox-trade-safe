@@ -16,9 +16,11 @@ import {
   Search,
   ExternalLink,
   Sparkles,
+  Stethoscope,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import ResolutionMessageDialog from "@/components/admin/ResolutionMessageDialog";
+import { DiscrepancyDiagnosisDialog } from "@/components/admin/DiscrepancyDiagnosisDialog";
 
 interface PayfastTx {
   id: string;
@@ -80,6 +82,7 @@ const AdminReconciliation = () => {
   const [search, setSearch] = useState("");
   const [kindFilter, setKindFilter] = useState<string>("all");
   const [draftIssue, setDraftIssue] = useState<IssueRow | null>(null);
+  const [diagnoseIssue, setDiagnoseIssue] = useState<IssueRow | null>(null);
 
   const load = async () => {
     setLoading(true);
