@@ -15,8 +15,10 @@ import {
   SearchX,
   Search,
   ExternalLink,
+  Sparkles,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import ResolutionMessageDialog from "@/components/admin/ResolutionMessageDialog";
 
 interface PayfastTx {
   id: string;
@@ -77,6 +79,7 @@ const AdminReconciliation = () => {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [kindFilter, setKindFilter] = useState<string>("all");
+  const [draftIssue, setDraftIssue] = useState<IssueRow | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -365,6 +368,9 @@ const AdminReconciliation = () => {
                       <p className="text-lg font-bold">
                         {zar(Number(issue.order?.amount ?? issue.tx?.amount_gross ?? 0))}
                       </p>
+                      <Button variant="outline" size="sm" onClick={() => setDraftIssue(issue)}>
+                        <Sparkles className="h-4 w-4 mr-1" /> Draft message
+                      </Button>
                       {issue.order && (
                         <Button variant="ghost" size="icon" asChild>
                           <Link
@@ -383,6 +389,37 @@ const AdminReconciliation = () => {
           })}
         </div>
       )}
+      <ResolutionMessageDialog
+        open={!!draftIssue}
+        onOpenChange={(o) => !o && setDraftIssue(null)}
+        defaultDiscrepancy={draftIssue ? `${ISSUE_LABELS[draftIssue.kind]}: ${draftIssue.detail}` : ""}
+        details={
+          draftIssue
+            ? {
+                order: draftIssue.order
+                  ? {
+                      invoice_number: draftIssue.order.invoice_number,
+                      listing: draftIssue.order.listing?.title,
+                      amount_zar: draftIssue.order.amount,
+                      status: draftIssue.order.status,
+                      payment_reference: draftIssue.order.m_payment_id,
+                      payfast_payment_id: draftIssue.order.payfast_payment_id,
+                      created_at: draftIssue.order.created_at,
+                    }
+                  : null,
+                payfast_transaction: draftIssue.tx
+                  ? {
+                      payment_reference: draftIssue.tx.m_payment_id,
+                      payfast_payment_id: draftIssue.tx.pf_payment_id,
+                      status: draftIssue.tx.payment_status,
+                      amount_gross_zar: draftIssue.tx.amount_gross,
+                      received_at: draftIssue.tx.received_at,
+                    }
+                  : null,
+              }
+            : {}
+        }
+      />
     </AdminLayout>
   );
 };
