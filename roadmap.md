@@ -15,3 +15,5 @@
 - [ ] `analyze-payment-risk` deploy confirmation.
 - [ ] PayFast ITN enablement in the merchant's PayFast settings (user-side, passphrase provided).
 - [ ] Sandbox vs live PayFast decision (credentials are live).
+
+- [ ] Deploy diagnose-payment-discrepancy function (blocked: backend paused)
