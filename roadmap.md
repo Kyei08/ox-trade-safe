@@ -17,3 +17,5 @@
 - [ ] Sandbox vs live PayFast decision (credentials are live).
 
 - [ ] Deploy diagnose-payment-discrepancy function (blocked: backend paused)
+- [ ] Deploy draft-resolution-message function (blocked: backend paused)
+- [ ] Deploy triage-payment-discrepancies function (built, typecheck passed; blocked: backend paused)

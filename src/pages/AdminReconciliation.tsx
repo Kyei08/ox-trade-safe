@@ -17,10 +17,15 @@ import {
   ExternalLink,
   Sparkles,
   Stethoscope,
+  ListOrdered,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import ResolutionMessageDialog from "@/components/admin/ResolutionMessageDialog";
 import { DiscrepancyDiagnosisDialog } from "@/components/admin/DiscrepancyDiagnosisDialog";
+import {
+  DiscrepancyTriageDialog,
+  type TriageCaseInput,
+} from "@/components/admin/DiscrepancyTriageDialog";
 
 interface PayfastTx {
   id: string;
@@ -83,6 +88,7 @@ const AdminReconciliation = () => {
   const [kindFilter, setKindFilter] = useState<string>("all");
   const [draftIssue, setDraftIssue] = useState<IssueRow | null>(null);
   const [diagnoseIssue, setDiagnoseIssue] = useState<IssueRow | null>(null);
+  const [triageOpen, setTriageOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -243,6 +249,43 @@ const AdminReconciliation = () => {
     });
   }, [issues, search, kindFilter]);
 
+  const triageCases: TriageCaseInput[] = useMemo(
+    () =>
+      issues.map((issue, idx) => ({
+        ref:
+          issue.order?.invoice_number ??
+          issue.order?.m_payment_id?.slice(0, 8) ??
+          issue.tx?.pf_payment_id ??
+          issue.tx?.m_payment_id ??
+          `case-${idx + 1}`,
+        issueType: ISSUE_LABELS[issue.kind],
+        discrepancy: issue.detail,
+        details: JSON.stringify({
+          order: issue.order
+            ? {
+                listing: issue.order.listing?.title,
+                amount_zar: issue.order.amount,
+                status: issue.order.status,
+                buyer: issue.order.buyer?.full_name || issue.order.buyer?.email,
+                payment_reference: issue.order.m_payment_id,
+                payfast_payment_id: issue.order.payfast_payment_id,
+                created_at: issue.order.created_at,
+              }
+            : null,
+          payfast_transaction: issue.tx
+            ? {
+                payment_reference: issue.tx.m_payment_id,
+                payfast_payment_id: issue.tx.pf_payment_id,
+                status: issue.tx.payment_status,
+                amount_gross_zar: issue.tx.amount_gross,
+                received_at: issue.tx.received_at,
+              }
+            : null,
+        }),
+      })),
+    [issues]
+  );
+
   const summaryCards: { key: string; label: string; value: number; icon: typeof Scale; tone: string }[] = [
     { key: "all", label: "Reconciled payments", value: reconciled, icon: CheckCircle2, tone: "text-green-600" },
     { key: "missing", label: "Missing confirmation", value: counts.missing, icon: AlertTriangle, tone: "text-destructive" },
@@ -263,10 +306,20 @@ const AdminReconciliation = () => {
             ? "All PayFast payments reconcile with orders."
             : `${issues.length} issue${issues.length === 1 ? "" : "s"} found across ${orders.length} orders.`}
         </p>
-        <Button variant="outline" onClick={load} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-          Re-run reconciliation
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setTriageOpen(true)}
+            disabled={loading || issues.length === 0}
+          >
+            <ListOrdered className="h-4 w-4 mr-2" />
+            Triage by urgency
+          </Button>
+          <Button variant="outline" onClick={load} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+            Re-run reconciliation
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 mb-6">
@@ -431,6 +484,11 @@ const AdminReconciliation = () => {
               )
             : ""
         }
+      />
+      <DiscrepancyTriageDialog
+        open={triageOpen}
+        onOpenChange={setTriageOpen}
+        cases={triageCases}
       />
       <ResolutionMessageDialog
         open={!!draftIssue}
