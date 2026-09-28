@@ -19,3 +19,5 @@
 - [ ] Deploy diagnose-payment-discrepancy function (blocked: backend paused)
 - [ ] Deploy draft-resolution-message function (blocked: backend paused)
 - [ ] Deploy triage-payment-discrepancies function (built, typecheck passed; blocked: backend paused)
+
+- [ ] PayFast callback log: apply supabase/pending/payfast_itn_events.sql, deploy payfast-itn + retry-payfast-itn (blocked: backend paused)
