@@ -17,10 +17,15 @@ import {
   ExternalLink,
   Sparkles,
   Stethoscope,
+  ListOrdered,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import ResolutionMessageDialog from "@/components/admin/ResolutionMessageDialog";
 import { DiscrepancyDiagnosisDialog } from "@/components/admin/DiscrepancyDiagnosisDialog";
+import {
+  DiscrepancyTriageDialog,
+  type TriageCaseInput,
+} from "@/components/admin/DiscrepancyTriageDialog";
 
 interface PayfastTx {
   id: string;
@@ -83,6 +88,7 @@ const AdminReconciliation = () => {
   const [kindFilter, setKindFilter] = useState<string>("all");
   const [draftIssue, setDraftIssue] = useState<IssueRow | null>(null);
   const [diagnoseIssue, setDiagnoseIssue] = useState<IssueRow | null>(null);
+  const [triageOpen, setTriageOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
