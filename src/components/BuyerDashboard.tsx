@@ -75,6 +75,7 @@ const BuyerDashboard = ({ userId }: BuyerDashboardProps) => {
           .from("orders")
           .select("id, amount, status, tracking_number, created_at, listings(id, title, images, listing_type)")
           .eq("buyer_id", userId)
+          .not("status", "in", "(pending,cancelled)")
           .order("created_at", { ascending: false }),
         supabase
           .from("bids")

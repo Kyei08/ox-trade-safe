@@ -1,0 +1,1 @@
+- Orders are created as 'pending' by the checkout function and only become 'paid' via the verified PayFast ITN (service role); buyer/seller views exclude pending/cancelled orders — clicking Buy must never count as a purchase.
