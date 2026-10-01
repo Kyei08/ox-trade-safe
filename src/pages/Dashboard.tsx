@@ -243,6 +243,7 @@ const Dashboard = () => {
           listings(id, title, images, listing_type)
         `)
         .eq("buyer_id", user!.id)
+        .not("status", "in", "(pending,cancelled)")
         .order("created_at", { ascending: false });
       if (ordersRes.error) {
         console.error("orders load error", ordersRes.error);
@@ -268,6 +269,7 @@ const Dashboard = () => {
           listings(id, title, images)
         `)
         .eq("seller_id", user!.id)
+        .not("status", "in", "(pending,cancelled)")
         .order("created_at", { ascending: false });
       if (sellerOrdersRes.error) {
         console.error("seller orders load error", sellerOrdersRes.error);
