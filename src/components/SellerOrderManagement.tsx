@@ -179,8 +179,6 @@ const SellerOrderManagement = ({ orders, onOrderUpdated }: Props) => {
                   <SelectItem value="paid">Paid</SelectItem>
                   <SelectItem value="shipped">Shipped</SelectItem>
                   <SelectItem value="delivered">Delivered</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                  <SelectItem value="refunded">Refunded</SelectItem>
                 </SelectContent>
               </Select>
             </div>
