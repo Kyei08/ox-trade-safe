@@ -39,6 +39,7 @@ import {
   X,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import RefundTrackingDialog, { REFUND_LABELS, type RefundStatus } from "@/components/admin/RefundTrackingDialog";
 
 type OrderStatus = "pending" | "paid" | "shipped" | "delivered" | "cancelled" | "refunded";
 
@@ -56,6 +57,10 @@ interface AdminOrder {
   updated_at: string;
   needs_admin_review?: boolean;
   review_reason?: string | null;
+  refund_status?: RefundStatus | null;
+  refund_reference?: string | null;
+  refund_notes?: string | null;
+  refund_updated_at?: string | null;
   listing: { title: string } | null;
   buyer: { full_name: string | null; email: string } | null;
   seller: { full_name: string | null; email: string } | null;
@@ -122,6 +127,7 @@ const AdminOrders = () => {
   const [riskLoading, setRiskLoading] = useState(false);
   const [riskResult, setRiskResult] = useState<string | null>(null);
   const [riskError, setRiskError] = useState<string | null>(null);
+  const [refundOrder, setRefundOrder] = useState<AdminOrder | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -532,11 +538,22 @@ const AdminOrders = () => {
                         Needs review: {order.review_reason ?? "Conflicting payment"}
                       </p>
                     )}
+                    {(order.needs_admin_review || (order.refund_status && order.refund_status !== "not_started")) && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {REFUND_LABELS[(order.refund_status ?? "not_started") as RefundStatus]}
+                        {order.refund_reference && ` · Ref: ${order.refund_reference}`}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     <p className="text-lg font-bold">
                       R{Number(order.amount).toLocaleString("en-ZA", { minimumFractionDigits: 2 })}
                     </p>
+                    {(order.needs_admin_review || (order.refund_status && order.refund_status !== "not_started")) && (
+                      <Button variant="destructive" size="sm" onClick={() => setRefundOrder(order)}>
+                        Refund
+                      </Button>
+                    )}
                     <Button variant="outline" size="sm" onClick={() => openEdit(order)}>
                       Update
                     </Button>
@@ -556,6 +573,8 @@ const AdminOrders = () => {
           ))}
         </div>
       )}
+
+      <RefundTrackingDialog order={refundOrder} onClose={() => setRefundOrder(null)} onSaved={load} />
 
       <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
         <DialogContent>
