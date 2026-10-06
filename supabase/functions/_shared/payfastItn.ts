@@ -76,10 +76,15 @@ export async function processItn(raw: string, admin: any): Promise<ItnResult> {
   }
 
   if (paymentStatus === "COMPLETE" && order.status === "pending") {
-    const { error } = await admin.from("orders")
-      .update({ status: "paid", payfast_payment_id: params.get("pf_payment_id") }).eq("id", order.id);
-    if (error) return fail(`Order update failed: ${error.message}`, 500);
-    await admin.from("listings").update({ status: "sold" }).eq("id", order.listing_id);
+    // Atomic: locks the listing so only the first confirmed payment wins.
+    const { data: outcome, error } = await admin.rpc("confirm_payfast_payment", {
+      _order_id: order.id,
+      _pf_payment_id: params.get("pf_payment_id"),
+    });
+    if (error) return fail(`Order confirmation failed: ${error.message}`, 500);
+    if (outcome === "conflict") {
+      return { result: "processed", reason: "Listing already sold — payment routed to admin review", httpStatus: 200, body: "OK" };
+    }
     return { result: "processed", reason: null, httpStatus: 200, body: "OK" };
   }
   if (paymentStatus === "CANCELLED" && order.status === "pending") {
