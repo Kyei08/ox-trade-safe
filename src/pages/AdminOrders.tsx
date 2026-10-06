@@ -54,6 +54,8 @@ interface AdminOrder {
   m_payment_id: string | null;
   created_at: string;
   updated_at: string;
+  needs_admin_review?: boolean;
+  review_reason?: string | null;
   listing: { title: string } | null;
   buyer: { full_name: string | null; email: string } | null;
   seller: { full_name: string | null; email: string } | null;
@@ -126,7 +128,7 @@ const AdminOrders = () => {
     const { data, error } = await supabase
       .from("orders")
       .select(
-        `id, listing_id, buyer_id, seller_id, amount, status, tracking_number, invoice_number, payment_provider, payfast_payment_id, m_payment_id, created_at, updated_at,
+        `id, listing_id, buyer_id, seller_id, amount, status, tracking_number, invoice_number, payment_provider, payfast_payment_id, m_payment_id, created_at, updated_at, needs_admin_review, review_reason,
          listing:listings(title)`
       )
       .order("created_at", { ascending: false });
@@ -525,6 +527,11 @@ const AdminOrders = () => {
                       {order.payfast_payment_id && ` · PayFast #${order.payfast_payment_id}`}
                       {order.tracking_number && ` · Tracking: ${order.tracking_number}`}
                     </p>
+                    {order.needs_admin_review && (
+                      <p className="text-xs font-medium text-destructive mt-1">
+                        Needs review: {order.review_reason ?? "Conflicting payment"}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     <p className="text-lg font-bold">
