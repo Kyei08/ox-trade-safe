@@ -622,9 +622,11 @@ export type Database = {
           invoice_number: string | null
           listing_id: string
           m_payment_id: string | null
+          needs_admin_review: boolean
           notes: string | null
           payfast_payment_id: string | null
           payment_provider: string
+          review_reason: string | null
           seller_id: string
           shipping_address: string | null
           status: Database["public"]["Enums"]["order_status"]
@@ -641,9 +643,11 @@ export type Database = {
           invoice_number?: string | null
           listing_id: string
           m_payment_id?: string | null
+          needs_admin_review?: boolean
           notes?: string | null
           payfast_payment_id?: string | null
           payment_provider?: string
+          review_reason?: string | null
           seller_id: string
           shipping_address?: string | null
           status?: Database["public"]["Enums"]["order_status"]
@@ -660,9 +664,11 @@ export type Database = {
           invoice_number?: string | null
           listing_id?: string
           m_payment_id?: string | null
+          needs_admin_review?: boolean
           notes?: string | null
           payfast_payment_id?: string | null
           payment_provider?: string
+          review_reason?: string | null
           seller_id?: string
           shipping_address?: string | null
           status?: Database["public"]["Enums"]["order_status"]
@@ -1294,6 +1300,10 @@ export type Database = {
       }
     }
     Functions: {
+      confirm_payfast_payment: {
+        Args: { _order_id: string; _pf_payment_id: string }
+        Returns: string
+      }
       dblink: { Args: { "": string }; Returns: Record<string, unknown>[] }
       dblink_cancel_query: { Args: { "": string }; Returns: string }
       dblink_close: { Args: { "": string }; Returns: string }
