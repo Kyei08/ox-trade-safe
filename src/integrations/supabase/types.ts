@@ -680,6 +680,87 @@ export type Database = {
           },
         ]
       }
+      payfast_itn_events: {
+        Row: {
+          amount_gross: number | null
+          failure_reason: string | null
+          http_status: number | null
+          id: string
+          last_retry_at: string | null
+          last_retry_by: string | null
+          m_payment_id: string | null
+          payment_status: string | null
+          pf_payment_id: string | null
+          raw_body: string
+          received_at: string
+          result: string
+          retry_count: number
+          source_ip: string | null
+        }
+        Insert: {
+          amount_gross?: number | null
+          failure_reason?: string | null
+          http_status?: number | null
+          id?: string
+          last_retry_at?: string | null
+          last_retry_by?: string | null
+          m_payment_id?: string | null
+          payment_status?: string | null
+          pf_payment_id?: string | null
+          raw_body: string
+          received_at?: string
+          result: string
+          retry_count?: number
+          source_ip?: string | null
+        }
+        Update: {
+          amount_gross?: number | null
+          failure_reason?: string | null
+          http_status?: number | null
+          id?: string
+          last_retry_at?: string | null
+          last_retry_by?: string | null
+          m_payment_id?: string | null
+          payment_status?: string | null
+          pf_payment_id?: string | null
+          raw_body?: string
+          received_at?: string
+          result?: string
+          retry_count?: number
+          source_ip?: string | null
+        }
+        Relationships: []
+      }
+      payfast_transactions: {
+        Row: {
+          amount_gross: number | null
+          created_at: string
+          id: string
+          m_payment_id: string
+          payload: Json | null
+          payment_status: string | null
+          pf_payment_id: string | null
+        }
+        Insert: {
+          amount_gross?: number | null
+          created_at?: string
+          id?: string
+          m_payment_id: string
+          payload?: Json | null
+          payment_status?: string | null
+          pf_payment_id?: string | null
+        }
+        Update: {
+          amount_gross?: number | null
+          created_at?: string
+          id?: string
+          m_payment_id?: string
+          payload?: Json | null
+          payment_status?: string | null
+          pf_payment_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address_verified_at: string | null
