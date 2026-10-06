@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.guard_order_payment_status() FROM PUBLIC, anon, authenticated;
