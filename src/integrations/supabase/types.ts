@@ -626,6 +626,11 @@ export type Database = {
           notes: string | null
           payfast_payment_id: string | null
           payment_provider: string
+          refund_notes: string | null
+          refund_reference: string | null
+          refund_status: string
+          refund_updated_at: string | null
+          refund_updated_by: string | null
           review_reason: string | null
           seller_id: string
           shipping_address: string | null
@@ -647,6 +652,11 @@ export type Database = {
           notes?: string | null
           payfast_payment_id?: string | null
           payment_provider?: string
+          refund_notes?: string | null
+          refund_reference?: string | null
+          refund_status?: string
+          refund_updated_at?: string | null
+          refund_updated_by?: string | null
           review_reason?: string | null
           seller_id: string
           shipping_address?: string | null
@@ -668,6 +678,11 @@ export type Database = {
           notes?: string | null
           payfast_payment_id?: string | null
           payment_provider?: string
+          refund_notes?: string | null
+          refund_reference?: string | null
+          refund_status?: string
+          refund_updated_at?: string | null
+          refund_updated_by?: string | null
           review_reason?: string | null
           seller_id?: string
           shipping_address?: string | null
