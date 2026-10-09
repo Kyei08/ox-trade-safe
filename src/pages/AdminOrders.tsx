@@ -134,7 +134,7 @@ const AdminOrders = () => {
     const { data, error } = await supabase
       .from("orders")
       .select(
-        `id, listing_id, buyer_id, seller_id, amount, status, tracking_number, invoice_number, payment_provider, payfast_payment_id, m_payment_id, created_at, updated_at, needs_admin_review, review_reason,
+        `id, listing_id, buyer_id, seller_id, amount, status, tracking_number, invoice_number, payment_provider, payfast_payment_id, m_payment_id, created_at, updated_at, needs_admin_review, review_reason, refund_status, refund_reference, refund_notes, refund_updated_at,
          listing:listings(title)`
       )
       .order("created_at", { ascending: false });
