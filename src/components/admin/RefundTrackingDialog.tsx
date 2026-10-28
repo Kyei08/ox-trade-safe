@@ -45,6 +45,7 @@ export default function RefundTrackingDialog({ order, onClose, onSaved }: Props)
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [draftOpen, setDraftOpen] = useState(false);
 
   useEffect(() => {
     if (!order) return;
