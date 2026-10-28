@@ -24,3 +24,5 @@
 
 - [x] Unpaid checkouts hidden from buyer purchases, buyer dashboard and seller sales (only paid/shipped/delivered shown); sellers can no longer set cancelled/refunded.
 - [ ] Apply supabase/pending/order_payment_guard.sql — orders default to pending, buyers can't insert orders, sellers only see paid orders, only PayFast confirmation/admin can mark paid (blocked: backend paused)
+
+- [ ] Deploy draft-buyer-update function (AI buyer update for conflicting-payment refund cases, wired into RefundTrackingDialog) — blocked: backend paused again
