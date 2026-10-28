@@ -135,11 +135,27 @@ export default function RefundTrackingDialog({ order, onClose, onSaved }: Props)
             </p>
           )}
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={save} loading={saving} disabled={saving || needsReference}>Save</Button>
+        <DialogFooter className="sm:justify-between">
+          <Button variant="outline" onClick={() => setDraftOpen(true)} disabled={!order}>
+            <MessageSquareText className="h-4 w-4 mr-2" />
+            Draft buyer update
+          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose}>Cancel</Button>
+            <Button onClick={save} loading={saving} disabled={saving || needsReference}>Save</Button>
+          </div>
         </DialogFooter>
       </DialogContent>
+      {order && (
+        <BuyerUpdateDraftDialog
+          open={draftOpen}
+          onOpenChange={setDraftOpen}
+          order={order}
+          refundStatus={status}
+          refundReference={reference}
+          refundNotes={notes}
+        />
+      )}
     </Dialog>
   );
 }
