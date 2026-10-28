@@ -31,6 +31,7 @@ export interface RefundOrder {
   refund_notes?: string | null;
   refund_updated_at?: string | null;
   listing?: { title: string } | null;
+  buyer?: { full_name: string | null; email: string } | null;
 }
 
 interface Props {

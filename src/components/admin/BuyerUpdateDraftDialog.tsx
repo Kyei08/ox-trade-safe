@@ -51,6 +51,7 @@ const BuyerUpdateDraftDialog = ({
     listing_title: order?.listing?.title ?? null,
     amount_zar: order ? Number(order.amount) : null,
     conflict_reason: order?.review_reason ?? null,
+    buyer_first_name: order?.buyer?.full_name?.trim().split(/\s+/)[0] ?? null,
   };
 
   const draft = async () => {
