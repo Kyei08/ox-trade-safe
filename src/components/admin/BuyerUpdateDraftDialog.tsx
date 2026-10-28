@@ -51,7 +51,6 @@ const BuyerUpdateDraftDialog = ({
     listing_title: order?.listing?.title ?? null,
     amount_zar: order ? Number(order.amount) : null,
     conflict_reason: order?.review_reason ?? null,
-    created_at: order ? null : undefined,
   };
 
   const draft = async () => {
