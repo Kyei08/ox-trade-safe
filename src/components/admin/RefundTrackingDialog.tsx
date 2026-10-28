@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { MessageSquareText } from "lucide-react";
+import BuyerUpdateDraftDialog from "./BuyerUpdateDraftDialog";
 
 export type RefundStatus = "not_started" | "in_progress" | "refunded" | "resolved_other";
 
@@ -29,6 +31,7 @@ export interface RefundOrder {
   refund_notes?: string | null;
   refund_updated_at?: string | null;
   listing?: { title: string } | null;
+  buyer?: { full_name: string | null; email: string } | null;
 }
 
 interface Props {
@@ -43,6 +46,7 @@ export default function RefundTrackingDialog({ order, onClose, onSaved }: Props)
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [draftOpen, setDraftOpen] = useState(false);
 
   useEffect(() => {
     if (!order) return;
@@ -132,11 +136,27 @@ export default function RefundTrackingDialog({ order, onClose, onSaved }: Props)
             </p>
           )}
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={save} loading={saving} disabled={saving || needsReference}>Save</Button>
+        <DialogFooter className="sm:justify-between">
+          <Button variant="outline" onClick={() => setDraftOpen(true)} disabled={!order}>
+            <MessageSquareText className="h-4 w-4 mr-2" />
+            Draft buyer update
+          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose}>Cancel</Button>
+            <Button onClick={save} loading={saving} disabled={saving || needsReference}>Save</Button>
+          </div>
         </DialogFooter>
       </DialogContent>
+      {order && (
+        <BuyerUpdateDraftDialog
+          open={draftOpen}
+          onOpenChange={setDraftOpen}
+          order={order}
+          refundStatus={status}
+          refundReference={reference}
+          refundNotes={notes}
+        />
+      )}
     </Dialog>
   );
 }
