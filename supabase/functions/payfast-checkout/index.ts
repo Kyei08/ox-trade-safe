@@ -73,6 +73,21 @@ Deno.serve(async (req) => {
       { auth: { persistSession: false } },
     );
 
+    // Simple in-app rate limit: cap checkout initiations per buyer (the backend has
+    // no standard rate-limiting primitive, so this uses recent order creations).
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const { count: recentOrders } = await admin
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .eq("buyer_id", user.id)
+      .gte("created_at", tenMinutesAgo);
+    if ((recentOrders ?? 0) >= 10) {
+      return new Response(
+        JSON.stringify({ error: "Too many checkout attempts. Please wait a few minutes and try again." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     const { data: listing, error: listingError } = await admin
       .from("listings")
       .select("id, title, status, seller_id, listing_type, fixed_price, current_bid")
@@ -81,7 +96,26 @@ Deno.serve(async (req) => {
 
     if (listingError || !listing) throw new Error("Listing not found");
     if (listing.seller_id === user.id) throw new Error("You cannot buy your own listing");
-    if (listing.status !== "active") throw new Error("This listing is no longer available");
+
+    // Auctions are payable only by the confirmed winner after the auction has
+    // closed (listing finalized to "sold" with the winning bid marked). This
+    // prevents anyone from paying the current bid to claim a live auction.
+    if (listing.listing_type === "auction") {
+      if (listing.status !== "sold") {
+        throw new Error("This auction is still running — you can pay for it once it has ended");
+      }
+      const { data: winningBid } = await admin
+        .from("bids")
+        .select("id, bidder_id")
+        .eq("listing_id", listing.id)
+        .eq("is_winning", true)
+        .maybeSingle();
+      if (!winningBid || winningBid.bidder_id !== user.id) {
+        throw new Error("Only the auction winner can pay for this item");
+      }
+    } else if (listing.status !== "active") {
+      throw new Error("This listing is no longer available");
+    }
 
     const price = listing.listing_type === "fixed_price" ? listing.fixed_price : listing.current_bid;
     if (!price || Number(price) <= 0) throw new Error("No valid price found for this listing");
