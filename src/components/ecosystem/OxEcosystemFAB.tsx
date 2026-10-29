@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, Truck, Store } from "lucide-react";
+import { X, Truck, Store, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +19,7 @@ interface OxEcosystemFABProps {
 
 const OxEcosystemFAB = ({
   logisticsEnabled = true,
-  servicesUrl = "https://blue-sky-dreams.lovable.app",
+  servicesUrl = "https://ox-services.lovable.app",
 }: OxEcosystemFABProps) => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
@@ -65,6 +65,16 @@ const OxEcosystemFAB = ({
       color: "#2563EB",
       action: () => {
         navigate("/");
+        setOpen(false);
+      },
+    },
+    {
+      id: "services",
+      label: "OX Services",
+      icon: <Wrench className="h-5 w-5" />,
+      color: "#0EA5E9",
+      action: () => {
+        window.open(servicesUrl, "_blank", "noopener,noreferrer");
         setOpen(false);
       },
     },
