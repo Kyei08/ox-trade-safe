@@ -26,3 +26,7 @@
 - [ ] Apply supabase/pending/order_payment_guard.sql — orders default to pending, buyers can't insert orders, sellers only see paid orders, only PayFast confirmation/admin can mark paid (blocked: backend paused)
 
 - [ ] Deploy draft-buyer-update function (AI buyer update for conflicting-payment refund cases, wired into RefundTrackingDialog) — blocked: backend paused again
+
+- [x] Auction checkout loophole fixed: payfast-checkout only lets the confirmed auction winner pay after the auction closes (listing "sold" + winning bid check); fixed-price unchanged. Winner now sees "Buy Now" on the sold listing page.
+- [x] Ad-hoc checkout rate limit in payfast-checkout (max 10 order creations per buyer per 10 min, 429 response) — backend has no standard rate-limiting primitive.
+- [ ] Deploy payfast-checkout + draft-buyer-update and test live — blocked: backend paused
