@@ -68,6 +68,16 @@ const OxEcosystemFAB = ({
         setOpen(false);
       },
     },
+    {
+      id: "services",
+      label: "OX Services",
+      icon: <Wrench className="h-5 w-5" />,
+      color: "#0EA5E9",
+      action: () => {
+        window.open(servicesUrl, "_blank", "noopener,noreferrer");
+        setOpen(false);
+      },
+    },
   ];
 
   return (
