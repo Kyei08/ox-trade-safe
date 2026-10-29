@@ -1055,7 +1055,12 @@ export default function ListingDetail() {
                     </AlertDialogContent>
                   </AlertDialog>
 
-                  {!isAuction && !isOwner && listing.status === "active" && (
+                  {((!isAuction && !isOwner && listing.status === "active") ||
+                    (isAuction &&
+                      !isOwner &&
+                      listing.status === "sold" &&
+                      winningBidderId !== null &&
+                      winningBidderId === user?.id)) && (
                     <>
                       {pendingCheckout && checkoutExpiry && (
                         <Alert
