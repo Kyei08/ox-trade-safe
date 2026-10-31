@@ -202,7 +202,7 @@ const OxEcosystemFAB = ({
   ];
 
   const containerStyle: CSSProperties = {};
-  if (isMobile && bottomOffset !== null) containerStyle.bottom = bottomOffset;
+  if (isMobile) containerStyle.bottom = bottomOffset ?? BASE_BOTTOM;
 
   return (
     <div
@@ -210,7 +210,7 @@ const OxEcosystemFAB = ({
       style={containerStyle}
       className={cn(
         "fixed right-4 sm:right-6 z-[60] flex flex-col items-end gap-3",
-        isMobile ? BASE_BOTTOM : "sm:bottom-6"
+        !isMobile && "sm:bottom-6"
       )}
     >
       {open && (
