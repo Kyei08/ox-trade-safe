@@ -987,6 +987,11 @@ const CreateListing = () => {
             <p className="text-muted-foreground">
               Fill in the details below to list your item for sale
             </p>
+            {isAdmin && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                Admin account — seller verification bypassed.
+              </p>
+            )}
           </div>
 
           {draftRestored && (
