@@ -932,7 +932,7 @@ const CreateListing = () => {
 
   if (!user) return null;
 
-  if (!checkingVerification && verificationStatus !== "approved") {
+  if (!checkingVerification && !isAdmin && verificationStatus !== "approved") {
     const labels: Record<string, { title: string; description: string; cta: string }> = {
       not_started: {
         title: "Verify your seller account",
