@@ -216,16 +216,21 @@ const CreateListing = () => {
   };
   const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
   const [checkingVerification, setCheckingVerification] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("seller_verification_status")
-        .eq("id", user.id)
-        .maybeSingle();
+      const [{ data }, adminRes] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("seller_verification_status")
+          .eq("id", user.id)
+          .maybeSingle(),
+        supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }),
+      ]);
       setVerificationStatus(data?.seller_verification_status ?? "not_started");
+      setIsAdmin(!!adminRes.data && !adminRes.error);
       setCheckingVerification(false);
     })();
   }, [user]);
@@ -927,7 +932,7 @@ const CreateListing = () => {
 
   if (!user) return null;
 
-  if (!checkingVerification && verificationStatus !== "approved") {
+  if (!checkingVerification && !isAdmin && verificationStatus !== "approved") {
     const labels: Record<string, { title: string; description: string; cta: string }> = {
       not_started: {
         title: "Verify your seller account",
@@ -982,6 +987,11 @@ const CreateListing = () => {
             <p className="text-muted-foreground">
               Fill in the details below to list your item for sale
             </p>
+            {isAdmin && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                Admin account — seller verification bypassed.
+              </p>
+            )}
           </div>
 
           {draftRestored && (
