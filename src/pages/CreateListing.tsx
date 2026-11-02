@@ -216,16 +216,21 @@ const CreateListing = () => {
   };
   const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
   const [checkingVerification, setCheckingVerification] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("seller_verification_status")
-        .eq("id", user.id)
-        .maybeSingle();
+      const [{ data }, adminRes] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("seller_verification_status")
+          .eq("id", user.id)
+          .maybeSingle(),
+        supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }),
+      ]);
       setVerificationStatus(data?.seller_verification_status ?? "not_started");
+      setIsAdmin(!!adminRes.data && !adminRes.error);
       setCheckingVerification(false);
     })();
   }, [user]);
