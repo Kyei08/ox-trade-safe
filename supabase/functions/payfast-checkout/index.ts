@@ -29,11 +29,20 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const merchantId = Deno.env.get("PAYFAST_MERCHANT_ID") ?? "";
-    const merchantKey = Deno.env.get("PAYFAST_MERCHANT_KEY") ?? "";
-    const passphrase = Deno.env.get("PAYFAST_PASSPHRASE") ?? "";
+    const merchantId = (Deno.env.get("PAYFAST_MERCHANT_ID") ?? "").trim();
+    const merchantKey = (Deno.env.get("PAYFAST_MERCHANT_KEY") ?? "").trim();
+    const passphrase = (Deno.env.get("PAYFAST_PASSPHRASE") ?? "").trim();
     if (!merchantId || !merchantKey) {
       throw new Error("PayFast is not configured");
+    }
+    // Fail in-app with a clear message rather than letting the buyer land on a
+    // PayFast "400 Bad Request" page when credentials are malformed.
+    if (!/^\d{8}$/.test(merchantId) || !/^[A-Za-z0-9]{13}$/.test(merchantKey)) {
+      console.error("payfast-checkout: PayFast credentials malformed", {
+        merchantIdLength: merchantId.length,
+        merchantKeyLength: merchantKey.length,
+      });
+      throw new Error("Payments are temporarily unavailable while we fix a checkout configuration issue. Please try again shortly.");
     }
 
     const authHeader = req.headers.get("Authorization");
