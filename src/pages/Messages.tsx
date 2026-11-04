@@ -75,12 +75,12 @@ const Messages = () => {
         (data || []).map(async (conv) => {
           const [buyerProfile, sellerProfile] = await Promise.all([
             supabase
-              .from("public_profiles")
+              .from("public_seller_profiles")
               .select("full_name")
               .eq("id", conv.buyer_id)
               .single(),
             supabase
-              .from("public_profiles")
+              .from("public_seller_profiles")
               .select("full_name")
               .eq("id", conv.seller_id)
               .single(),

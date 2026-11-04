@@ -90,7 +90,7 @@ export default function SimilarListings({ categoryId, currentListingId, currentT
       const sellerIds = Array.from(new Set(top.map((i) => i.seller_id)));
       if (sellerIds.length > 0) {
         const { data: sellerData } = await supabase
-          .from("public_profiles")
+          .from("public_seller_profiles")
           .select("id, kyc_status, rating, total_reviews")
           .in("id", sellerIds);
 

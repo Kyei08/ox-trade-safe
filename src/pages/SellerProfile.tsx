@@ -63,7 +63,7 @@ const SellerProfile = () => {
 
       const [profileRes, listingsRes] = await Promise.all([
         supabase
-          .from("public_profiles")
+          .from("public_seller_profiles")
           .select("*")
           .eq("id", sellerId)
           .single(),

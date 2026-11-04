@@ -8,6 +8,13 @@
       "when": 1793616241268,
       "tag": "0000_auto_grant_admin_on_signup",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793827105651,
+      "tag": "0001_migration",
+      "breakpoints": true
     }
   ]
 }

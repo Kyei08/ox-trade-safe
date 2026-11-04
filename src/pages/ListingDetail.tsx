@@ -367,7 +367,7 @@ export default function ListingDetail() {
         .from("listings")
         .select(`
           *,
-          public_profiles!seller_id (
+          public_profiles:public_seller_profiles!seller_id (
             full_name,
             avatar_url,
             rating,
@@ -925,7 +925,7 @@ export default function ListingDetail() {
                     <ReviewSubmitDialog
                       listingId={id!}
                       reviewedUserId={listing.seller_id}
-                      reviewedUserName={listing.public_profiles.full_name}
+                      reviewedUserName={listing.public_profiles?.full_name ?? "the seller"}
                       onReviewSubmitted={() => {
                         checkReviewStatus();
                         fetchListing();
@@ -961,7 +961,7 @@ export default function ListingDetail() {
                 <CardHeader>
                   <CardTitle>Seller Reviews</CardTitle>
                   <CardDescription>
-                    What others are saying about {listing.public_profiles.full_name}
+                    What others are saying about {listing.public_profiles?.full_name || "the seller"}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
