@@ -286,7 +286,7 @@ const Dashboard = () => {
       let profilesMap: Record<string, { full_name: string | null }> = {};
       if (allIds.length > 0) {
         const { data: profilesData, error: profilesErr } = await supabase
-          .from("public_profiles")
+          .from("public_seller_profiles")
           .select("id, full_name")
           .in("id", allIds);
         if (profilesErr) {

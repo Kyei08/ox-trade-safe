@@ -110,7 +110,7 @@ const BuyerDashboard = ({ userId }: BuyerDashboardProps) => {
       const otherIds = Array.from(new Set(rawConvs.map((c) => (c.buyer_id === userId ? c.seller_id : c.buyer_id))));
       const profilesMap: Record<string, string> = {};
       if (otherIds.length > 0) {
-        const { data: profs } = await supabase.from("public_profiles").select("id, full_name").in("id", otherIds);
+        const { data: profs } = await supabase.from("public_seller_profiles").select("id, full_name").in("id", otherIds);
         (profs || []).forEach((p: any) => { profilesMap[p.id] = p.full_name || "User"; });
       }
 

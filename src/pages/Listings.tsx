@@ -200,7 +200,7 @@ const Listings = () => {
         .from("listings")
         .select(`
           *,
-          public_profiles!seller_id (
+          public_profiles:public_seller_profiles!seller_id (
             full_name,
             avatar_url
           )

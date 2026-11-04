@@ -35,7 +35,7 @@ export default function BidHistory({ listingId, currentUserId, auctionEnded }: B
         .from("bids")
         .select(`
           *,
-          public_profiles!bidder_id (full_name)
+          public_profiles:public_seller_profiles!bidder_id (full_name)
         `)
         .eq("listing_id", listingId)
         .order("amount", { ascending: false });
@@ -124,7 +124,7 @@ export default function BidHistory({ listingId, currentUserId, auctionEnded }: B
               <Trophy className="h-5 w-5 text-primary" />
               <span className="font-semibold text-primary">Winner</span>
             </div>
-            <p className="text-lg font-bold">{winningBid.public_profiles.full_name}</p>
+            <p className="text-lg font-bold">{winningBid.public_profiles?.full_name || "Anonymous"}</p>
             <p className="text-2xl font-bold text-primary">{formatZAR(winningBid.amount)}</p>
           </div>
         )}
@@ -150,7 +150,7 @@ export default function BidHistory({ listingId, currentUserId, auctionEnded }: B
                   </span>
                   <div>
                     <p className="font-medium flex items-center gap-2">
-                      {bid.public_profiles.full_name}
+                      {bid.public_profiles?.full_name || "Anonymous"}
                       {bid.bidder_id === currentUserId && (
                         <Badge variant="outline" className="text-xs">You</Badge>
                       )}

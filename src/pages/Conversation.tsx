@@ -79,12 +79,12 @@ const Conversation = () => {
       // Fetch profiles separately
       const [buyerProfile, sellerProfile] = await Promise.all([
         supabase
-          .from("public_profiles")
+          .from("public_seller_profiles")
           .select("full_name")
           .eq("id", data.buyer_id)
           .single(),
         supabase
-          .from("public_profiles")
+          .from("public_seller_profiles")
           .select("full_name")
           .eq("id", data.seller_id)
           .single(),

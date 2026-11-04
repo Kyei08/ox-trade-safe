@@ -55,6 +55,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "bids_bidder_id_fkey"
+            columns: ["bidder_id"]
+            isOneToOne: false
+            referencedRelation: "public_seller_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "bids_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
@@ -458,6 +465,13 @@ export type Database = {
             columns: ["seller_id"]
             isOneToOne: false
             referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listings_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "public_seller_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1234,6 +1248,13 @@ export type Database = {
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_seller_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -1309,6 +1330,78 @@ export type Database = {
           twitter_url?: string | null
           website_url?: string | null
           whatsapp_number?: string | null
+          youtube_url?: string | null
+        }
+        Relationships: []
+      }
+      public_seller_profiles: {
+        Row: {
+          address_verified_at: string | null
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          facebook_url: string | null
+          full_name: string | null
+          id: string | null
+          instagram_url: string | null
+          kyc_status: Database["public"]["Enums"]["kyc_status"] | null
+          linkedin_url: string | null
+          phone_verified_at: string | null
+          rating: number | null
+          seller_type: Database["public"]["Enums"]["seller_type"] | null
+          seller_verification_status:
+            | Database["public"]["Enums"]["seller_verification_status"]
+            | null
+          tiktok_url: string | null
+          total_reviews: number | null
+          twitter_url: string | null
+          website_url: string | null
+          youtube_url: string | null
+        }
+        Insert: {
+          address_verified_at?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          facebook_url?: string | null
+          full_name?: string | null
+          id?: string | null
+          instagram_url?: string | null
+          kyc_status?: Database["public"]["Enums"]["kyc_status"] | null
+          linkedin_url?: string | null
+          phone_verified_at?: string | null
+          rating?: number | null
+          seller_type?: Database["public"]["Enums"]["seller_type"] | null
+          seller_verification_status?:
+            | Database["public"]["Enums"]["seller_verification_status"]
+            | null
+          tiktok_url?: string | null
+          total_reviews?: number | null
+          twitter_url?: string | null
+          website_url?: string | null
+          youtube_url?: string | null
+        }
+        Update: {
+          address_verified_at?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          facebook_url?: string | null
+          full_name?: string | null
+          id?: string | null
+          instagram_url?: string | null
+          kyc_status?: Database["public"]["Enums"]["kyc_status"] | null
+          linkedin_url?: string | null
+          phone_verified_at?: string | null
+          rating?: number | null
+          seller_type?: Database["public"]["Enums"]["seller_type"] | null
+          seller_verification_status?:
+            | Database["public"]["Enums"]["seller_verification_status"]
+            | null
+          tiktok_url?: string | null
+          total_reviews?: number | null
+          twitter_url?: string | null
+          website_url?: string | null
           youtube_url?: string | null
         }
         Relationships: []
