@@ -11,9 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Star, ShieldCheck, Calendar, Package, Facebook, Instagram, Twitter, Linkedin, MessageCircle, Video, Youtube, Globe } from "lucide-react";
+import { Star, ShieldCheck, Calendar, Package, Facebook, Instagram, Twitter, Linkedin, Video, Youtube, Globe } from "lucide-react";
 import TrustBadges from "@/components/TrustBadges";
-import SellerVerificationProof from "@/components/SellerVerificationProof";
 import { format } from "date-fns";
 
 interface PublicProfile {
@@ -29,7 +28,6 @@ interface PublicProfile {
   instagram_url: string | null;
   twitter_url: string | null;
   linkedin_url: string | null;
-  whatsapp_number: string | null;
   tiktok_url: string | null;
   youtube_url: string | null;
   website_url: string | null;
@@ -63,7 +61,7 @@ const SellerProfile = () => {
 
       const [profileRes, listingsRes] = await Promise.all([
         supabase
-          .from("public_seller_profiles")
+          .from("public_profiles")
           .select("*")
           .eq("id", sellerId)
           .single(),
@@ -98,7 +96,7 @@ const SellerProfile = () => {
     return `R ${price.toLocaleString()}`;
   };
 
-  const hasSocialLinks = profile?.facebook_url || profile?.instagram_url || profile?.twitter_url || profile?.linkedin_url || profile?.whatsapp_number || profile?.tiktok_url || profile?.youtube_url || profile?.website_url;
+  const hasSocialLinks = profile?.facebook_url || profile?.instagram_url || profile?.twitter_url || profile?.linkedin_url || profile?.tiktok_url || profile?.youtube_url || profile?.website_url;
 
   if (loading) {
     return (
@@ -232,22 +230,6 @@ const SellerProfile = () => {
                           </a>
                         </Button>
                       )}
-                      {profile.whatsapp_number && (
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          asChild
-                          className="hover:bg-[#25D366]/10 hover:border-[#25D366]/50"
-                        >
-                          <a 
-                            href={`https://wa.me/${profile.whatsapp_number.replace(/^0/, '27').replace(/[^0-9]/g, '')}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                          >
-                            <MessageCircle className="h-4 w-4 text-[#25D366]" />
-                          </a>
-                        </Button>
-                      )}
                       {profile.tiktok_url && (
                         <Button
                           variant="outline"
@@ -290,8 +272,6 @@ const SellerProfile = () => {
               </div>
             </CardContent>
           </Card>
-
-          {sellerId && <SellerVerificationProof sellerId={sellerId} />}
 
           {/* Active Listings */}
           <Card>

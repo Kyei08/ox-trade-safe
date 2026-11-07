@@ -1,1 +1,2 @@
 - Orders are created as 'pending' by the checkout function and only become 'paid' via the verified PayFast ITN (service role); buyer/seller views exclude pending/cancelled orders — clicking Buy must never count as a purchase.
+- When deploying the frontend to GitHub Pages, publish Vite's compiled `dist` via GitHub Actions with an SPA fallback, while keeping Lovable Cloud as the backend.
